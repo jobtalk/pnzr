@@ -13,7 +13,7 @@ type Setting struct {
 
 // serviceが存在しない時はサービスを作る
 // 存在するときはアップデートする
-func Deploy(awsConfig aws.Config, s *Setting) (interface{}, error) {
+func Deploy(awsConfig *aws.Config, s *Setting) (interface{}, error) {
 	if s.TaskDefinition != nil {
 		_, err := RegisterTaskDefinition(awsConfig, s.TaskDefinition)
 		if err != nil {
