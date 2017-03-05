@@ -1,0 +1,50 @@
+{
+    "ContainerDefinitions": [
+        {
+            "Command": null,
+            "Cpu": null,
+            "DisableNetworking": null,
+            "DnsSearchDomains": [
+                null
+            ],
+            "DnsServers": [
+                null
+            ],
+            "DockerLabels": {
+                "Key": "test"
+            },
+            "DockerSecurityOptions": [
+                "any option"
+            ],
+            "EntryPoint": null,
+            "Environment": [
+                {
+                    "Name": "KEY",
+                    "Value": "VALUE"
+                }
+            ],
+            "Essential": null,
+            "ExtraHosts": null,
+            "Hostname": null,
+            "Image": null,
+            "Links": null,
+            "LogConfiguration": null,
+            "Memory": null,
+            "MemoryReservation": null,
+            "MountPoints": null,
+            "Name": null,
+            "PortMappings": null,
+            "Privileged": null,
+            "ReadonlyRootFilesystem": null,
+            "Ulimits": null,
+            "User": null,
+            "VolumesFrom": null,
+            "WorkingDirectory": null
+        }
+    ],
+    "Family": null,
+    "NetworkMode": null,
+    "PlacementConstraints": null,
+    "TaskRoleArn": null,
+    "Volumes": null
+}
