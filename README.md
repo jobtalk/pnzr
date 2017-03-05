@@ -11,8 +11,7 @@ $ go get -u github.com/ieee0824/thor/cmd/thor
 $ thor deploy -f config.json --profile credential-name
 ```
 
-## Help
-
+## Option
 ```
 $ thor --help
 Usage: thor [--version] [--help] <command> [<args>]
