@@ -21,3 +21,8 @@ func CreateListener(awsConfig *aws.Config, params *elbv2.CreateListenerInput) (*
 	svc := elbv2.New(session.New(), awsConfig)
 	return svc.CreateListener(params)
 }
+
+func DescribeLoadBalancers(awsConfig *aws.Config, params *elbv2.DescribeLoadBalancersInput) (*elbv2.DescribeLoadBalancersOutput, error) {
+	svc := elbv2.New(session.New(), awsConfig)
+	return svc.DescribeLoadBalancers(params)
+}
