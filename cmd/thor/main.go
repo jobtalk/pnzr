@@ -26,6 +26,9 @@ func main() {
 		"deploy": func() (cli.Command, error) {
 			return &subcmd.Deploy{}, nil
 		},
+		"mkelb": func() (cli.Command, error) {
+			return &subcmd.MkELB{}, nil
+		},
 	}
 	exitCode, err := c.Run()
 	if err != nil {
