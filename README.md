@@ -1,6 +1,8 @@
 # thor
 ecs deploy docker container
 
+<img src="http://img.ieee.moe/thor.png" width="150px">
+
 ## install
 ```
 $ go get -u github.com/ieee0824/thor/cmd/thor
