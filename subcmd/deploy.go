@@ -58,7 +58,15 @@ func parseDeployArgs(args []string) (*deployParam, error) {
 }
 
 func (c *Deploy) Help() string {
-	return "ecs deploy"
+	help := ""
+	help += "usage: deploy [options ...]\n"
+	help += "options:\n"
+	help += "    -f thor_setting.json\n"
+	help += "\n"
+	help += "    --profile=${aws profile name}\n"
+	help += "        --profile option is arbitrary parameter.\n"
+
+	return help
 }
 
 func (c *Deploy) Run(args []string) int {
@@ -93,12 +101,13 @@ func (c *Deploy) Run(args []string) int {
 
 func (c *Deploy) Synopsis() string {
 	synopsis := ""
-	synopsis += "usage: deploy [options ...]\n"
+	synopsis += "usage: thor deploy [options ...]\n"
 	synopsis += "options:\n"
-	synopsis += "    -f deploy_setting.json\n"
+	synopsis += "    -f thor_setting.json\n"
 	synopsis += "\n"
 	synopsis += "    --profile=${aws profile name}\n"
 	synopsis += "        --profile option is arbitrary parameter.\n"
+	synopsis += "===================================================\n"
 
 	return synopsis
 }
