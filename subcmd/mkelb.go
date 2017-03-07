@@ -9,21 +9,19 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/ieee0824/thor/deploy"
+	"github.com/ieee0824/thor/mkelb"
 )
 
-type deployConfigure struct {
-	*deploy.Setting
+type mkelbConfigure struct {
+	*mkelb.Setting
 }
 
-type Deploy struct{}
-
-type deployParam struct {
+type mkelbParam struct {
 	File    *string
 	Profile *string
 }
 
-func (p deployParam) String() string {
+func (p mkelbParam) String() string {
 	bin, err := json.Marshal(p)
 	if err != nil {
 		return ""
@@ -31,8 +29,10 @@ func (p deployParam) String() string {
 	return string(bin)
 }
 
-func parseDeployArgs(args []string) (*deployParam, error) {
-	var result = &deployParam{}
+type MkELB struct{}
+
+func parseMkELBArgs(args []string) (*mkelbParam, error) {
+	var result = &mkelbParam{}
 	fileParam, err := getValFromArgs(args, "-f")
 	if err != nil {
 		return nil, err
@@ -57,9 +57,9 @@ func parseDeployArgs(args []string) (*deployParam, error) {
 	return result, nil
 }
 
-func (c *Deploy) Help() string {
+func (c *MkELB) Help() string {
 	help := ""
-	help += "usage: deploy [options ...]\n"
+	help += "usage: mkelb [options ...]\n"
 	help += "options:\n"
 	help += "    -f thor_setting.json\n"
 	help += "\n"
@@ -67,11 +67,12 @@ func (c *Deploy) Help() string {
 	help += "        --profile option is arbitrary parameter.\n"
 
 	return help
+
 }
 
-func (c *Deploy) Run(args []string) int {
-	var config = &deployConfigure{}
-	params, err := parseDeployArgs(args)
+func (c *MkELB) Run(args []string) int {
+	var config = &mkelbConfigure{}
+	params, err := parseMkELBArgs(args)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -83,15 +84,15 @@ func (c *Deploy) Run(args []string) int {
 		Credentials: cred,
 		Region:      aws.String("ap-northeast-1"),
 	}
-	deployConfigureJSON, err := ioutil.ReadFile(*params.File)
+	mkelbConfigureJSON, err := ioutil.ReadFile(*params.File)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = json.Unmarshal(deployConfigureJSON, config)
+	err = json.Unmarshal(mkelbConfigureJSON, config)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	result, err := deploy.Deploy(awsConfig, config.Setting)
+	result, err := mkelb.MkELB(awsConfig, config.Setting)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -99,9 +100,9 @@ func (c *Deploy) Run(args []string) int {
 	return 0
 }
 
-func (c *Deploy) Synopsis() string {
+func (c *MkELB) Synopsis() string {
 	synopsis := ""
-	synopsis += "usage: thor deploy [options ...]\n"
+	synopsis += "usage: thor mkelb [options ...]\n"
 	synopsis += "options:\n"
 	synopsis += "    -f thor_setting.json\n"
 	synopsis += "\n"
