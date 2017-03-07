@@ -4,15 +4,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/ieee0824/thor/elb"
+	"github.com/ieee0824/thor/setting"
 )
 
-type Setting struct {
-	*elbv2.CreateLoadBalancerInput
-	*elbv2.CreateTargetGroupInput
-	*elbv2.CreateListenerInput
-}
-
-func MkELB(awsConfig *aws.Config, s *Setting) (interface{}, error) {
+func MkELB(awsConfig *aws.Config, s *setting.ELB) (interface{}, error) {
 	var result = []interface{}{}
 	resultTargetGroup, err := elb.CreateTargetGroup(awsConfig, s.CreateTargetGroupInput)
 	if err != nil {

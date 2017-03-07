@@ -10,10 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/ieee0824/thor/mkelb"
+	"github.com/ieee0824/thor/setting"
 )
 
 type mkelbConfigure struct {
-	*mkelb.Setting
+	*setting.Setting
 }
 
 type mkelbParam struct {
@@ -92,7 +93,7 @@ func (c *MkELB) Run(args []string) int {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	result, err := mkelb.MkELB(awsConfig, config.Setting)
+	result, err := mkelb.MkELB(awsConfig, config.Setting.ELB)
 	if err != nil {
 		log.Fatalln(err)
 	}

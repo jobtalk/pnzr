@@ -10,10 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/ieee0824/thor/deploy"
+	"github.com/ieee0824/thor/setting"
 )
 
 type deployConfigure struct {
-	*deploy.Setting
+	*setting.Setting
 }
 
 type Deploy struct{}
