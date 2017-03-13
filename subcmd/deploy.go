@@ -107,6 +107,9 @@ func (c *Deploy) Help() string {
 	help += "\n"
 	help += "    --profile=${aws profile name}\n"
 	help += "        --profile option is arbitrary parameter.\n"
+	help += "    --vault-password-file=${vault pass file}\n"
+	help += "\n"
+	help += "    --ask-vault-pass=${vault pass string}\n"
 
 	return help
 }
@@ -208,6 +211,9 @@ func (c *Deploy) Synopsis() string {
 	synopsis += "\n"
 	synopsis += "    --profile=${aws profile name}\n"
 	synopsis += "        --profile option is arbitrary parameter.\n"
+	synopsis += "    --vault-password-file=${vault pass file}"
+	synopsis += "\n"
+	synopsis += "    --ask-vault-pass=${vault pass string}\n"
 	synopsis += "===================================================\n"
 
 	return synopsis
