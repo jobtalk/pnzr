@@ -7,9 +7,20 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/json"
 	"errors"
 	"io"
 )
+
+func IsSecret(b []byte) bool {
+	var s = &Secret{}
+
+	err := json.Unmarshal(b, s)
+	if err != nil {
+		return false
+	}
+	return true
+}
 
 type Secret struct {
 	plain   []byte
@@ -67,4 +78,13 @@ func (s *Secret) Decrypt(key string) ([]byte, error) {
 		return nil, errors.New("message authority code is not match")
 	}
 	return decryptedText, nil
+}
+
+func Decrypt(d []byte, key string) ([]byte, error) {
+	var s = &Secret{}
+	err := json.Unmarshal(d, s)
+	if err != nil {
+		return nil, err
+	}
+	return s.Decrypt(key)
 }

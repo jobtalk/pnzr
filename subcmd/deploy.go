@@ -9,8 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/ieee0824/thor/conf"
 	"github.com/ieee0824/thor/deploy"
 	"github.com/ieee0824/thor/setting"
+	"github.com/ieee0824/thor/vault"
 )
 
 type deployConfigure struct {
@@ -22,6 +24,7 @@ type Deploy struct{}
 type deployParam struct {
 	File    *string
 	Profile *string
+	Vault   *string
 }
 
 func (p deployParam) String() string {
@@ -34,6 +37,9 @@ func (p deployParam) String() string {
 
 func parseDeployArgs(args []string) (*deployParam, error) {
 	var result = &deployParam{}
+	/*
+		設定ファイルの場所を定義したargsを読む
+	*/
 	fileParam, err := getValFromArgs(args, "-f")
 	if err != nil {
 		return nil, err
@@ -46,6 +52,40 @@ func parseDeployArgs(args []string) (*deployParam, error) {
 		fileName := "thor.json"
 		result.File = &fileName
 	}
+	var vaultPass string
+	/* vaultのpass */
+	if bin, err := ioutil.ReadFile(".vault"); err == nil {
+		vaultPass = string(bin)
+	}
+	/*
+		--vault-password-file
+	*/
+	if vaultFileParam, err := getFullNameParam(args, "--vault-password-file"); err == nil {
+		if len(vaultFileParam) == 1 {
+			if bin, err := ioutil.ReadFile(*vaultFileParam[0]); err == nil {
+				vaultPass = string(bin)
+			}
+		} else {
+			return nil, errors.New("--vault-password-file param is invalid")
+		}
+	}
+	/*
+		--ask-vault-pass
+	*/
+	if vaultPassParam, err := getFullNameParam(args, "--ask-vault-pass"); err == nil {
+		if len(vaultPassParam) == 1 {
+			vaultPass = *vaultPassParam[0]
+		} else {
+			return nil, errors.New("--ask-vault-pass param is invalid")
+		}
+	}
+	if vaultPass != "" {
+		result.Vault = &vaultPass
+	}
+
+	/*
+		awsのprofileの定義関係
+	*/
 	profileParam, err := getFullNameParam(args, "--profile")
 	if err != nil {
 		return nil, err
@@ -71,8 +111,62 @@ func (c *Deploy) Help() string {
 	return help
 }
 
-func (c *Deploy) Run(args []string) int {
+func readExternalVariables() ([][]byte, error) {
+	var result = [][]byte{}
+	infos, err := ioutil.ReadDir("./externals")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, info := range infos {
+		if !info.IsDir() {
+			bin, err := ioutil.ReadFile("./externals/" + info.Name())
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, bin)
+		}
+	}
+
+	return result, nil
+}
+
+func readConf(params *deployParam) (*deployConfigure, error) {
 	var config = &deployConfigure{}
+	deployConfigureJSON, err := ioutil.ReadFile(*params.File)
+	if err != nil {
+		return nil, err
+	}
+	externals, err := readExternalVariables()
+	if err != nil {
+		return nil, err
+	}
+	if len(externals) != 0 {
+		base := string(deployConfigureJSON)
+		for _, external := range externals {
+			if vault.IsSecret(external) {
+				if params.Vault == nil {
+					return nil, errors.New("vault pass is empty")
+				}
+				plain, err := vault.Decrypt(external, *params.Vault)
+				if err != nil {
+					return nil, err
+				}
+				base = conf.Embedde(base, string(plain))
+			} else {
+				base = conf.Embedde(base, string(external))
+			}
+		}
+		deployConfigureJSON = []byte(base)
+	}
+
+	if err := json.Unmarshal(deployConfigureJSON, config); err != nil {
+		return nil, err
+	}
+	return config, err
+}
+
+func (c *Deploy) Run(args []string) int {
 	params, err := parseDeployArgs(args)
 	if err != nil {
 		log.Fatalln(err)
@@ -85,14 +179,12 @@ func (c *Deploy) Run(args []string) int {
 		Credentials: cred,
 		Region:      aws.String("ap-northeast-1"),
 	}
-	deployConfigureJSON, err := ioutil.ReadFile(*params.File)
+
+	config, err := readConf(params)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = json.Unmarshal(deployConfigureJSON, config)
-	if err != nil {
-		log.Fatalln(err)
-	}
+
 	result, err := deploy.Deploy(awsConfig, config.Setting)
 	if err != nil {
 		log.Fatalln(err)
