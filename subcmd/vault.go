@@ -52,7 +52,14 @@ func parseVaultArgs(args []string) (*vaultParam, error) {
 type Vault struct{}
 
 func (c *Vault) Help() string {
-	return ""
+	help := ""
+	help += "usage: vault [options ...]\n"
+	help += "options:\n"
+	help += "    -f vault target json\n"
+	help += "\n"
+	help += "    -p vault pass\n"
+
+	return help
 }
 
 func (c *Vault) Run(args []string) int {
@@ -84,5 +91,13 @@ func (c *Vault) Run(args []string) int {
 }
 
 func (c *Vault) Synopsis() string {
-	return ""
+	synopsis := ""
+	synopsis += "usage: thor vault [options ...]\n"
+	synopsis += "options:\n"
+	synopsis += "    -f vault target json\n"
+	synopsis += "\n"
+	synopsis += "    -p vault password\n"
+	synopsis += "===================================================\n"
+
+	return synopsis
 }
