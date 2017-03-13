@@ -15,8 +15,6 @@ $ thor deploy -f config.json --profile credential-name
 
 ## Option
 ```
-$ thor --help
-
 Usage: thor [--version] [--help] <command> [<args>]
 
 Available commands are:
@@ -26,6 +24,8 @@ options:
 
     --profile=${aws profile name}
         --profile option is arbitrary parameter.
+    --vault-password-file=${vault pass file}
+    --ask-vault-pass=${vault pass string}
 ===================================================
 
     mkelb     usage: thor mkelb [options ...]
@@ -34,5 +34,12 @@ options:
 
     --profile=${aws profile name}
         --profile option is arbitrary parameter.
+===================================================
+
+    vault     usage: thor vault [options ...]
+options:
+    -f vault target json
+
+    -p vault password
 ===================================================
 ```
