@@ -43,7 +43,8 @@ func parseDeployArgs(args []string) (*deployParam, error) {
 	if len(fileParam) == 1 {
 		result.File = fileParam[0]
 	} else if len(fileParam) == 0 {
-		return nil, errors.New("'-f' parameter is a required item.")
+		fileName := "thor.json"
+		result.File = &fileName
 	}
 	profileParam, err := getFullNameParam(args, "--profile")
 	if err != nil {
