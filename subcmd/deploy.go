@@ -152,9 +152,16 @@ func readConf(params *deployParam) (*deployConfigure, error) {
 				if err != nil {
 					return nil, err
 				}
-				base = conf.Embedde(base, string(plain))
+				base, err = conf.Embedde(base, string(plain))
+				if err != nil {
+					return nil, err
+				}
 			} else {
-				base = conf.Embedde(base, string(external))
+				var err error
+				base, err = conf.Embedde(base, string(external))
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 		deployConfigureJSON = []byte(base)

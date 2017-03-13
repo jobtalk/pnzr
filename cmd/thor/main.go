@@ -29,6 +29,9 @@ func main() {
 		"mkelb": func() (cli.Command, error) {
 			return &subcmd.MkELB{}, nil
 		},
+		"vault": func() (cli.Command, error) {
+			return &subcmd.Vault{}, nil
+		},
 	}
 	exitCode, err := c.Run()
 	if err != nil {

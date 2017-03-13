@@ -68,7 +68,6 @@ func (c *MkELB) Help() string {
 	help += "        --profile option is arbitrary parameter.\n"
 
 	return help
-
 }
 
 func (c *MkELB) Run(args []string) int {
