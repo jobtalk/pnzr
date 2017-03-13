@@ -19,6 +19,9 @@ func IsSecret(b []byte) bool {
 	if err != nil {
 		return false
 	}
+	if len(s.Chipher) == 0 || len(s.Chipher) == 0 {
+		return false
+	}
 	return true
 }
 
