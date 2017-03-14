@@ -2,6 +2,8 @@
 ecs deploy docker container
 
 [![CircleCI](https://circleci.com/gh/ieee0824/thor.svg?style=shield)](https://circleci.com/gh/ieee0824/thor)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
+
 
 <img src="http://img.ieee.moe/thor.png" width="150px">
 
