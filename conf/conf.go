@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -14,6 +15,7 @@ func isJSON(s string) bool {
 func Embedde(base, val string) (string, error) {
 	// 埋め込み用の値をjsonからデコードする
 	var v = map[string]interface{}{}
+	var buffer = bytes.NewBuffer([]byte{})
 	if err := json.Unmarshal([]byte(val), &v); err != nil {
 		return "", err
 	}
@@ -28,5 +30,9 @@ func Embedde(base, val string) (string, error) {
 
 		base = strings.Replace(base, fmt.Sprintf("$%s", k), string(valJSON), -1)
 	}
-	return base, nil
+	if err := json.Compact(buffer, []byte(base)); err != nil {
+		return "", err
+	}
+
+	return string(buffer.Bytes()), nil
 }
