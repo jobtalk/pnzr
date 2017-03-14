@@ -1,0 +1,23 @@
+version: 2
+jobs:
+    build:
+        working_directory: /go/src/github.com/ieee0824/thor
+        docker:
+            - image: golang:latest
+              environment:
+                  GO15VENDOREXPERIMENT: 1
+        steps:
+            - checkout
+            - run:
+                name: "Install glide"
+                command: |
+                    go get github.com/Masterminds/glide
+                    go install github.com/Masterminds/glide
+            - run:
+                name: "Install packages"
+                command: |
+                    glide i
+            - run:
+                name: "run test"
+                command: |
+                    go test $(glide novendor)
