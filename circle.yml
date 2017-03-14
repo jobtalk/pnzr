@@ -9,8 +9,8 @@ jobs:
         steps:
             - checkout
             - run:
-                name: "Install glide"
+                name: "Install glide and install package"
                 command: |
                     go get github.com/Masterminds/glide
                     go install github.com/Masterminds/glide
-
+                    glide i
