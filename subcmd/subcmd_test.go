@@ -1,6 +1,7 @@
 package subcmd
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -42,5 +43,44 @@ func TestGetFullNameParam(t *testing.T) {
 		t.Error(err)
 	} else if *vals[0] != "true" {
 		t.Error("Invalid parameter: %v", *vals[0])
+	}
+}
+
+func TestGetValFromArgs(t *testing.T) {
+	var args = []string{
+		"-f", "hoge.txt",
+		"-e", "val1",
+		"-e", "val2",
+	}
+	var (
+		vals []*string
+		err  error
+	)
+	vals, err = getValFromArgs(args, "-f")
+	if err != nil {
+		t.Error(err)
+	} else if len(vals) != 1 {
+		bin, _ := json.Marshal(vals)
+		t.Errorf("parse missed: %v", string(bin))
+	} else if vals[0] == nil {
+		t.Errorf("parse missed value is nil")
+	} else if *vals[0] != "hoge.txt" {
+		t.Errorf("parse missed: %v", *vals[0])
+	}
+
+	vals, err = getValFromArgs(args, "-e")
+	if err != nil {
+		t.Error(err)
+	} else if len(vals) != 2 {
+		bin, _ := json.Marshal(vals)
+		t.Errorf("parse missed: %v", string(bin))
+	} else if vals[0] == nil {
+		t.Errorf("parse missed vals[0] is nil")
+	} else if vals[1] == nil {
+		t.Errorf("parse missed vals[1] is nil")
+	} else if *vals[0] != "val1" {
+		t.Errorf("parse missed: %v", *vals[0])
+	} else if *vals[1] != "val2" {
+		t.Errorf("parse missed: %v", *vals[0])
 	}
 }
