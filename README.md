@@ -1,6 +1,8 @@
 # thor
 ecs deploy docker container
 
+[![CircleCI](https://circleci.com/gh/ieee0824/thor.svg?style=shield)](https://circleci.com/gh/ieee0824/thor)
+
 <img src="http://img.ieee.moe/thor.png" width="150px">
 
 ## install
