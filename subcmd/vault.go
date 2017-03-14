@@ -14,11 +14,15 @@ type vaultParam struct {
 	Path *string
 }
 
-func (v *vaultParam) Validate() error {
+func (v *vaultParam) validate() error {
 	if v.Pass == nil {
-		return errors.New("pass is nil")
+		return errors.New("pass is empty")
 	} else if v.Path == nil {
-		return errors.New("path is nil")
+		return errors.New("path is empty")
+	} else if *v.Pass == "" {
+		return errors.New("pass is empty")
+	} else if *v.Path == "" {
+		return errors.New("path is empty")
 	}
 	return nil
 }
@@ -67,7 +71,7 @@ func (c *Vault) Run(args []string) int {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if err := param.Validate(); err != nil {
+	if err := param.validate(); err != nil {
 		log.Fatalln(err)
 	}
 	bin, err := ioutil.ReadFile(*param.Path)
