@@ -12,10 +12,12 @@ func getFullNameParam(args []string, key string) ([]*string, error) {
 	for _, v := range args {
 		if strings.Contains(v, key) {
 			splitStr := strings.Split(v, "=")
-			if len(splitStr) != 2 {
+			if len(splitStr) == 1 {
+				param := "true"
+				result = append(result, &param)
+			} else if len(splitStr) != 2 {
 				return nil, errors.New(fmt.Sprintf("%s is illegal parameter", key))
-			}
-			if splitStr[0] == key {
+			} else if splitStr[0] == key {
 				result = append(result, &splitStr[1])
 			}
 		}
