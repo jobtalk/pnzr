@@ -17,10 +17,6 @@ jobs:
                 name: "Install packages"
                 command: |
                     glide i
-            - save_cache:
-                key: dependency-cache-{{ checksum "glide.lock" }}
-                paths:
-                    - vendor
             - run:
                 name: "run test"
                 command: |
