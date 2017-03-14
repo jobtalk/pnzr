@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -114,16 +115,20 @@ func (c *Deploy) Help() string {
 	return help
 }
 
-func readExternalVariables() ([][]byte, error) {
+func readExternalVariablesFromFile(path string) ([][]byte, error) {
 	var result = [][]byte{}
-	infos, err := ioutil.ReadDir("./externals")
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+	infos, err := ioutil.ReadDir(abs)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, info := range infos {
 		if !info.IsDir() {
-			bin, err := ioutil.ReadFile("./externals/" + info.Name())
+			bin, err := ioutil.ReadFile(abs + "/" + info.Name())
 			if err != nil {
 				return nil, err
 			}
@@ -131,6 +136,22 @@ func readExternalVariables() ([][]byte, error) {
 		}
 	}
 
+	return result, nil
+}
+
+// 分離されたファイルを読む
+func readExternalVariables(pathes ...string) ([][]byte, error) {
+	var result = [][]byte{}
+	if len(pathes) == 0 {
+		return readExternalVariablesFromFile("./externals")
+	}
+	for _, path := range pathes {
+		r, err := readExternalVariablesFromFile(path)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, r...)
+	}
 	return result, nil
 }
 
