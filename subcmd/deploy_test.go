@@ -10,4 +10,5 @@ var (
 )
 
 func TestReadExternalVariablesFromFile(t *testing.T) {
+
 }
