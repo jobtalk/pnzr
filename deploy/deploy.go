@@ -9,7 +9,6 @@ import (
 
 // serviceが存在しない時はサービスを作る
 // 存在するときはアップデートする
-
 func Deploy(awsConfig *aws.Config, s *setting.Setting) (interface{}, error) {
 	var result = []interface{}{}
 	if s.ECS != nil {
