@@ -17,14 +17,14 @@ func TestIsSecret(t *testing.T) {
 	plain, err := ioutil.ReadFile(plainTextPath)
 	if err != nil {
 		t.Error(err)
-	} else if !IsSecret(plain) {
+	} else if IsSecret(plain) {
 		t.Errorf("The result is illegal. I want %v, but it is actually %v.", false, IsSecret(plain))
 	}
 
 	chipher, err := ioutil.ReadFile(chipherTextPath)
 	if err != nil {
 		t.Error(err)
-	} else if IsSecret(chipher) {
+	} else if !IsSecret(chipher) {
 		t.Errorf("The result is illegal. I want %v, but it is actually %v.", true, IsSecret(chipher))
 	}
 }
