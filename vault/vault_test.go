@@ -49,9 +49,9 @@ func falsification(d []byte) []byte {
 
 	for i, v := range d {
 		if i%2 == 0 {
-			d[i] <<= uint(rand.Int())
+			d[i] = v << uint(rand.Int())
 		} else {
-			d[i] >>= uint(rand.Int())
+			d[i] = v >> uint(rand.Int())
 		}
 	}
 	return d
