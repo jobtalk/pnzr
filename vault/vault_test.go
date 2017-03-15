@@ -46,7 +46,7 @@ func TestIsSecret(t *testing.T) {
 }
 
 func TestEncryption(t *testing.T) {
-	var randomStr = randStringRunes(255)
+	var randomStr = randStringRunes(65536)
 	var key = "test"
 	encrypter := NewString(randomStr)
 
