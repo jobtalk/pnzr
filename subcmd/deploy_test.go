@@ -11,11 +11,24 @@ var (
 
 func TestReadExternalVariablesFromFile(t *testing.T) {
 	var EXTERNSL_DIR = TEST_DIR + "/readExternalVariablesFromFiles"
+	t.Log("ディレクトリの中身がある時のテスト")
 	result, err := readExternalVariablesFromFile(EXTERNSL_DIR)
 	if err != nil {
 		t.Error(err)
 	} else if len(result) != 2 {
 		t.Errorf("The number of elements is invalid. Originally it should be %v, but it is actually %v.", 2, len(result))
+	}
+
+	t.Log("ディレクトリの中身が無いときのテスト")
+	EXTERNSL_DIR = TEST_DIR + "/readExternalVariablesFromFiles/empty"
+	if err := os.Mkdir(EXTERNSL_DIR, 0777); err != nil {
+		t.Error(err)
+	}
+	result, err = readExternalVariablesFromFile(EXTERNSL_DIR)
+	if err != nil {
+		t.Error(err)
+	} else if len(result) != 2 {
+		t.Errorf("The number of elements is invalid. Originally it should be %v, but it is actually %v.", 0, len(result))
 	}
 }
 
