@@ -48,6 +48,8 @@ func TestIsSecret(t *testing.T) {
 func TestEncryption(t *testing.T) {
 	var randomStr = randStringRunes(65536)
 	var key = "test"
+	var invalidKey = "johnDoe"
+
 	encrypter := NewString(randomStr)
 
 	if err := encrypter.Encrypt(key); err != nil {
@@ -61,4 +63,9 @@ func TestEncryption(t *testing.T) {
 	} else if string(result) != randomStr {
 		t.Errorf("cipher text and plain text is not match")
 	}
+
+	if _, err := encrypter.Decrypt(invalidKey); err == nil {
+		t.Errorf("There is no error with an invalid key.")
+	}
+
 }
