@@ -17,6 +17,8 @@ func TestReadExternalVariablesFromFile(t *testing.T) {
 		t.Error(err)
 	} else if len(result) != 2 {
 		t.Errorf("The number of elements is invalid. Originally it should be %v, but it is actually %v.", 2, len(result))
+	} else {
+		t.Log("ok")
 	}
 
 	t.Log("ディレクトリの中身が無いときのテスト")
@@ -27,8 +29,10 @@ func TestReadExternalVariablesFromFile(t *testing.T) {
 	result, err = readExternalVariablesFromFile(EXTERNSL_DIR)
 	if err != nil {
 		t.Error(err)
-	} else if len(result) != 2 {
+	} else if len(result) != 0 {
 		t.Errorf("The number of elements is invalid. Originally it should be %v, but it is actually %v.", 0, len(result))
+	} else {
+		t.Log("ok")
 	}
 }
 
