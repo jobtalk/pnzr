@@ -45,6 +45,18 @@ func TestIsSecret(t *testing.T) {
 	}
 }
 
+func falsification(d []byte) []byte {
+
+	for i, v := range d {
+		if i%2 == 0 {
+			d[i] <<= rand.Intn(8)
+		} else {
+			d[i] >>= rand.Intn(8)
+		}
+	}
+	return d
+}
+
 func TestEncryption(t *testing.T) {
 	var randomStr = randStringRunes(65536)
 	var key = "test"
@@ -64,6 +76,10 @@ func TestEncryption(t *testing.T) {
 		t.Errorf("cipher text and plain text is not match")
 	}
 
+	if _, err := encrypter.Decrypt(invalidKey); err == nil {
+		t.Errorf("There is no error with an invalid key.")
+	}
+	encrypter.Chipher = falsification(encrypter.Chipher)
 	if _, err := encrypter.Decrypt(invalidKey); err == nil {
 		t.Errorf("There is no error with an invalid key.")
 	}
