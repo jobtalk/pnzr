@@ -21,13 +21,13 @@ func TestReadExternalVariablesFromFile(t *testing.T) {
 
 func TestReadExternalVariables(t *testing.T) {
 	var EXTERNSL_DIRS = []string{
-		TEST_DIR + "readExternalVariablesFiles/dir1",
-		TEST_DIR + "readExternalVariablesFiles/dir2",
-		TEST_DIR + "readExternalVariablesFiles/dir3",
+		TEST_DIR + "/readExternalVariablesFiles/dir1",
+		TEST_DIR + "/readExternalVariablesFiles/dir2",
+		TEST_DIR + "/readExternalVariablesFiles/dir3",
 	}
 
 	// test用にディレクトリを作る
-	if err := os.Mkdir(TEST_DIR+"readExternalVariablesFiles/dir3", 0777); err != nil {
+	if err := os.Mkdir(TEST_DIR+"/readExternalVariablesFiles/dir3", 0777); err != nil {
 		t.Error(err)
 	}
 
