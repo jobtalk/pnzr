@@ -171,10 +171,18 @@ func NewSelectBox(q string, elems []string, w ...int) *SelectBox {
 	return ret
 }
 
+func genCursor(b bool) string {
+	if b {
+		return "_"
+	}
+	return ""
+}
+
 type TextBox struct {
 	Question string
 	input    string
 	MaxWidth int
+	cursor   bool
 }
 
 func (t *TextBox) Answer() string {
@@ -184,7 +192,7 @@ func (t *TextBox) Answer() string {
 func (t *TextBox) Message() string {
 	var ret string
 	ret = fmt.Sprintf("<-- %v -->\n", t.Question)
-	ret = ret + fmt.Sprintf("=> %v\n", t.input)
+	ret = ret + fmt.Sprintf("=> %v%v\n", t.input, genCursor(t.cursor))
 	return ret
 }
 
@@ -193,12 +201,14 @@ func (t *TextBox) Subst(s string) {
 }
 
 func (t *TextBox) Add(r rune) {
+	t.cursor = true
 	if 0x20 <= uint8(r) && uint8(r) <= 0x7f {
 		t.input += string([]rune{r})
 	}
 }
 
 func (t *TextBox) BS() {
+	t.cursor = true
 	if len(t.input) == 0 {
 		return
 	}
@@ -217,15 +227,18 @@ type PolarQuestionBox struct {
 	Question string
 	input    string
 	defo     string
+	cursor   bool
 }
 
 func (t *PolarQuestionBox) Add(r rune) {
+	t.cursor = true
 	if 0x20 <= uint8(r) && uint8(r) <= 0x7f {
 		t.input += string([]rune{r})
 	}
 }
 
 func (t *PolarQuestionBox) BS() {
+	t.cursor = true
 	if len(t.input) == 0 {
 		return
 	}
@@ -260,7 +273,7 @@ func (t *PolarQuestionBox) Message() string {
 		def = t.defo
 	}
 	ret = fmt.Sprintf("<-- %v -->\n", t.Question)
-	ret = ret + fmt.Sprintf("(Y/n) %v%v\n", def, t.input)
+	ret = ret + fmt.Sprintf("(Y/n) %v%v%v\n", def, t.input, genCursor(t.cursor))
 	return ret
 }
 
