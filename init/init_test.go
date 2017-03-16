@@ -169,3 +169,51 @@ func TestNewSelectBox(t *testing.T) {
 		t.Errorf("The number of elements is abnormal. Although the desired number is %v, it is actually %v.: %v", 2, len(box.Items[1].Lines), box.Items[1].Lines)
 	}
 }
+
+func TestMoveCursor(t *testing.T) {
+	elems := []string{
+		"hoge",
+		"huga",
+		"foo",
+		"bar",
+	}
+	if box := NewSelectBox(elems); box == nil {
+		t.Errorf("box is nil: %v", box)
+	} else if box.Up(); box.cursorPlace != 0 ||
+		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
+		box.Items[box.cursorPlace+1].Lines[0].hasCursor {
+		t.Errorf("The predicted numerical value is %v but %v.", 0, box.cursorPlace)
+	} else if box.Down(); box.cursorPlace != 1 ||
+		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
+		box.Items[box.cursorPlace-1].Lines[0].hasCursor {
+		t.Errorf("The predicted numerical value is %v but %v.", 1, box.cursorPlace)
+	} else if box.Down(); box.cursorPlace != 2 ||
+		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
+		box.Items[box.cursorPlace-1].Lines[0].hasCursor {
+		t.Errorf("The predicted numerical value is %v but %v.", 2, box.cursorPlace)
+	} else if box.Down(); box.cursorPlace != 3 ||
+		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
+		box.Items[box.cursorPlace-1].Lines[0].hasCursor {
+		t.Errorf("The predicted numerical value is %v but %v.", 3, box.cursorPlace)
+	} else if box.Down(); box.cursorPlace != 3 ||
+		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
+		box.Items[box.cursorPlace-1].Lines[0].hasCursor {
+		t.Errorf("The predicted numerical value is %v but %v.", 3, box.cursorPlace)
+	} else if box.Up(); box.cursorPlace != 2 ||
+		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
+		box.Items[box.cursorPlace+1].Lines[0].hasCursor {
+		t.Errorf("The predicted numerical value is %v but %v.", 2, box.cursorPlace)
+	} else if box.Up(); box.cursorPlace != 1 ||
+		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
+		box.Items[box.cursorPlace+1].Lines[0].hasCursor {
+		t.Errorf("The predicted numerical value is %v but %v.", 1, box.cursorPlace)
+	} else if box.Up(); box.cursorPlace != 0 ||
+		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
+		box.Items[box.cursorPlace+1].Lines[0].hasCursor {
+		t.Errorf("The predicted numerical value is %v but %v.", 0, box.cursorPlace)
+	} else if box.Up(); box.cursorPlace != 0 ||
+		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
+		box.Items[box.cursorPlace+1].Lines[0].hasCursor {
+		t.Errorf("The predicted numerical value is %v but %v.", 0, box.cursorPlace)
+	}
+}

@@ -109,6 +109,29 @@ type SelectBox struct {
 	MaxWidth    int
 }
 
+func (s SelectBox) String() string {
+	return ""
+}
+
+// カーソルを移動する
+func (s *SelectBox) Up() {
+	if s.cursorPlace == 0 {
+		return
+	}
+	s.Items[s.cursorPlace].ToggleCursor()
+	s.cursorPlace--
+	s.Items[s.cursorPlace].ToggleCursor()
+}
+
+func (s *SelectBox) Down() {
+	if s.cursorPlace == len(s.Items)-1 {
+		return
+	}
+	s.Items[s.cursorPlace].ToggleCursor()
+	s.cursorPlace++
+	s.Items[s.cursorPlace].ToggleCursor()
+}
+
 func NewSelectBox(elems []string, w ...int) *SelectBox {
 	var items = []*Item{}
 	var ret = &SelectBox{}
