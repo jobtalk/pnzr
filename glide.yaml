@@ -1,7 +1,6 @@
 package: github.com/ieee0824/thor
 import:
 - package: github.com/aws/aws-sdk-go
-  version: ^1.7.9
   subpackages:
   - aws
   - aws/credentials
@@ -9,3 +8,4 @@ import:
   - service/ecs
   - service/elbv2
 - package: github.com/mitchellh/cli
+- package: github.com/nsf/termbox-go
