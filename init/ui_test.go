@@ -244,5 +244,11 @@ func TestTextBox(t *testing.T) {
 				t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
 			}
 		}
+		for i := 0; i < 2048; i++ {
+			box.BS()
+		}
+		if box.input != "" {
+			t.Errorf("The expected value is %v, but in fact %v.", "", box.input)
+		}
 	}
 }
