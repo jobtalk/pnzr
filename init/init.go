@@ -110,7 +110,12 @@ type SelectBox struct {
 }
 
 func (s SelectBox) String() string {
-	return ""
+	var ret string
+
+	for _, item := range s.Items {
+		ret += item.String()
+	}
+	return ret
 }
 
 // カーソルを移動する
