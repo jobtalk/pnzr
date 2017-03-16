@@ -117,3 +117,55 @@ func TestItemString(t *testing.T) {
 		t.Errorf("can not set cursor: %v", item)
 	}
 }
+
+func TestNewSelectBox(t *testing.T) {
+	elems := []string{}
+	if box := NewSelectBox(elems); box != nil {
+		t.Errorf("box is not nil: %v", box)
+	}
+
+	if box := NewSelectBox(elems, 1000); box != nil {
+		t.Errorf("box is not nil: %v", box)
+	}
+
+	if box := NewSelectBox(nil, 1000); box != nil {
+		t.Errorf("box is not nil: %v", box)
+	}
+
+	elems = append(
+		elems,
+		[]string{
+			"hoge",
+			"huga",
+			"foo",
+			"bar",
+		}...,
+	)
+
+	if box := NewSelectBox(elems); box == nil {
+		t.Errorf("box is nil: %v", box)
+	} else if len(box.Items) != 4 {
+		t.Errorf("The number of elements is abnormal. Although the desired number is %v, it is actually %v.: %v", 4, len(box.Items), box.Items)
+	} else if box.Items[0].Lines[0].S != "hoge" {
+		t.Error(box.Items[0].Lines[0].S)
+	} else if box.Items[0].Lines[0].hasCursor != true {
+		t.Error(box.Items[0].Lines[0].hasCursor)
+	} else if box.Items[1].Lines[0].hasCursor != false {
+		t.Error(box.Items[0].Lines[0].hasCursor)
+	}
+
+	elems = []string{
+		"0123456789",
+		"98765",
+	}
+
+	if box := NewSelectBox(elems, 5); box == nil {
+		t.Errorf("box is nil: %v", box)
+	} else if len(box.Items) != 2 {
+		t.Errorf("The number of elements is abnormal. Although the desired number is %v, it is actually %v.: %v", 2, len(box.Items), box.Items)
+	} else if len(box.Items[0].Lines) != 2 {
+		t.Errorf("The number of elements is abnormal. Although the desired number is %v, it is actually %v.: %v", 2, len(box.Items[0].Lines), box.Items[0].Lines)
+	} else if len(box.Items[1].Lines) != 1 {
+		t.Errorf("The number of elements is abnormal. Although the desired number is %v, it is actually %v.: %v", 2, len(box.Items[1].Lines), box.Items[1].Lines)
+	}
+}

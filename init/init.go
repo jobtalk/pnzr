@@ -118,8 +118,9 @@ func NewSelectBox(elems []string, w ...int) *SelectBox {
 
 	if len(w) == 0 {
 		ret.MaxWidth = 0
+	} else {
+		ret.MaxWidth = w[0]
 	}
-	ret.MaxWidth = w[0]
 	ret.cursorPlace = 0
 
 	for _, elem := range elems {
