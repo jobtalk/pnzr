@@ -217,3 +217,32 @@ func TestMoveCursor(t *testing.T) {
 		t.Errorf("The predicted numerical value is %v but %v.", 0, box.cursorPlace)
 	}
 }
+
+func TestTextBox(t *testing.T) {
+	if box := NewTextBox("test"); box == nil {
+		t.Error("box is nil")
+	} else if box.Question != "test" {
+		t.Errorf("The expected value is %v, but in fact %v.", "test", box.Question)
+	} else if box.Subst("hoge"); box.input != "hoge" {
+		t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+	} else if box.Add('0'); box.input != "hoge0" {
+		t.Errorf("The expected value is %v, but in fact %v.", "hoge0", box.input)
+	} else if box.BS(); box.input != "hoge" {
+		t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+	} else if box.Answer() != "hoge" {
+		t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+	} else {
+		for i := 0; i < 0x20; i++ {
+			box.Add(rune(uint8(i)))
+			if box.input != "hoge" {
+				t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+			}
+		}
+		for i := 0x80; i < 0xff; i++ {
+			box.Add(rune(uint8(i)))
+			if box.input != "hoge" {
+				t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+			}
+		}
+	}
+}
