@@ -250,5 +250,11 @@ func TestTextBox(t *testing.T) {
 		if box.input != "" {
 			t.Errorf("The expected value is %v, but in fact %v.", "", box.input)
 		}
+		for i := 0; i < 4096; i++ {
+			box.Add('a')
+		}
+		if len(box.input) != 4096 {
+			t.Errorf("The expected value is %v, but in fact %v.", 4096, len(box.input))
+		}
 	}
 }
