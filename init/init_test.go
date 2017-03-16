@@ -83,3 +83,37 @@ func TestLineString(t *testing.T) {
 		t.Errorf(line.String())
 	}
 }
+
+func TestItemString(t *testing.T) {
+	if item := NewItem("test"); len(item.Lines) != 1 {
+		t.Errorf("can not create item: %v", item)
+	} else if item.SetCursor(); item.Lines[0].hasCursor == false {
+		t.Errorf("can not set cursor: %v", item)
+	} else if item.DeleteCursor(); item.Lines[0].hasCursor == true {
+		t.Errorf("can not delete cursor: %v", item)
+	} else if item.ToggleCursor(); item.Lines[0].hasCursor == false {
+		t.Errorf("can not delete cursor: %v", item)
+	} else if item.ToggleCursor(); item.Lines[0].hasCursor == true {
+		t.Errorf("can not delete cursor: %v", item)
+	}
+
+	if item := NewItem("0123456789", 5); len(item.Lines) != 2 {
+		t.Errorf("can not create item: %v", item)
+	} else if item.SetCursor(); item.Lines[0].hasCursor == false {
+		t.Errorf("can not set cursor: %v", item)
+	} else if item.Lines[1].hasCursor == true {
+		t.Errorf("can not set cursor: %v", item)
+	} else if item.DeleteCursor(); item.Lines[0].hasCursor == true {
+		t.Errorf("can not set cursor: %v", item)
+	} else if item.Lines[1].hasCursor == true {
+		t.Errorf("can not set cursor: %v", item)
+	} else if item.ToggleCursor(); item.Lines[0].hasCursor == false {
+		t.Errorf("can not set cursor: %v", item)
+	} else if item.Lines[1].hasCursor == true {
+		t.Errorf("can not set cursor: %v", item)
+	} else if item.ToggleCursor(); item.Lines[0].hasCursor == true {
+		t.Errorf("can not set cursor: %v", item)
+	} else if item.Lines[1].hasCursor == true {
+		t.Errorf("can not set cursor: %v", item)
+	}
+}
