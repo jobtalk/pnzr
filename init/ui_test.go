@@ -120,15 +120,15 @@ func TestItemString(t *testing.T) {
 
 func TestNewSelectBox(t *testing.T) {
 	elems := []string{}
-	if box := NewSelectBox(elems); box != nil {
+	if box := NewSelectBox("", elems); box != nil {
 		t.Errorf("box is not nil: %v", box)
 	}
 
-	if box := NewSelectBox(elems, 1000); box != nil {
+	if box := NewSelectBox("", elems, 1000); box != nil {
 		t.Errorf("box is not nil: %v", box)
 	}
 
-	if box := NewSelectBox(nil, 1000); box != nil {
+	if box := NewSelectBox("", nil, 1000); box != nil {
 		t.Errorf("box is not nil: %v", box)
 	}
 
@@ -142,7 +142,7 @@ func TestNewSelectBox(t *testing.T) {
 		}...,
 	)
 
-	if box := NewSelectBox(elems); box == nil {
+	if box := NewSelectBox("", elems); box == nil {
 		t.Errorf("box is nil: %v", box)
 	} else if len(box.Items) != 4 {
 		t.Errorf("The number of elements is abnormal. Although the desired number is %v, it is actually %v.: %v", 4, len(box.Items), box.Items)
@@ -159,7 +159,7 @@ func TestNewSelectBox(t *testing.T) {
 		"98765",
 	}
 
-	if box := NewSelectBox(elems, 5); box == nil {
+	if box := NewSelectBox("", elems, 5); box == nil {
 		t.Errorf("box is nil: %v", box)
 	} else if len(box.Items) != 2 {
 		t.Errorf("The number of elements is abnormal. Although the desired number is %v, it is actually %v.: %v", 2, len(box.Items), box.Items)
@@ -177,7 +177,7 @@ func TestMoveCursor(t *testing.T) {
 		"foo",
 		"bar",
 	}
-	if box := NewSelectBox(elems); box == nil {
+	if box := NewSelectBox("", elems); box == nil {
 		t.Errorf("box is nil: %v", box)
 	} else if box.Up(); box.cursorPlace != 0 ||
 		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
@@ -215,5 +215,46 @@ func TestMoveCursor(t *testing.T) {
 		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
 		box.Items[box.cursorPlace+1].Lines[0].hasCursor {
 		t.Errorf("The predicted numerical value is %v but %v.", 0, box.cursorPlace)
+	}
+}
+
+func TestTextBox(t *testing.T) {
+	if box := NewTextBox("test"); box == nil {
+		t.Error("box is nil")
+	} else if box.Question != "test" {
+		t.Errorf("The expected value is %v, but in fact %v.", "test", box.Question)
+	} else if box.Subst("hoge"); box.input != "hoge" {
+		t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+	} else if box.Add('0'); box.input != "hoge0" {
+		t.Errorf("The expected value is %v, but in fact %v.", "hoge0", box.input)
+	} else if box.BS(); box.input != "hoge" {
+		t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+	} else if box.Answer() != "hoge" {
+		t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+	} else {
+		for i := 0; i < 0x20; i++ {
+			box.Add(rune(uint8(i)))
+			if box.input != "hoge" {
+				t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+			}
+		}
+		for i := 0x80; i < 0xff; i++ {
+			box.Add(rune(uint8(i)))
+			if box.input != "hoge" {
+				t.Errorf("The expected value is %v, but in fact %v.", "hoge", box.input)
+			}
+		}
+		for i := 0; i < 2048; i++ {
+			box.BS()
+		}
+		if box.input != "" {
+			t.Errorf("The expected value is %v, but in fact %v.", "", box.input)
+		}
+		for i := 0; i < 4096; i++ {
+			box.Add('a')
+		}
+		if len(box.input) != 4096 {
+			t.Errorf("The expected value is %v, but in fact %v.", 4096, len(box.input))
+		}
 	}
 }

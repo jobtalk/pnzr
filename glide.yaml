@@ -9,3 +9,4 @@ import:
   - service/ecs
   - service/elbv2
 - package: github.com/mitchellh/cli
+- package: github.com/nsf/termbox-go
