@@ -2,6 +2,7 @@ package init
 
 import (
 	"strings"
+	"time"
 
 	"github.com/nsf/termbox-go"
 )
@@ -15,6 +16,7 @@ var sections = map[string]map[string]Section{
 type Section interface {
 	Answer() string
 	Message() string
+	ToggleCursor()
 }
 
 func drawLine(x, y int, str string) {
@@ -45,16 +47,33 @@ func draw(d Section) {
 }
 
 func RunInit() {
-	//box := sections["JP"]["generateQuestinType"].(*SelectBox)
 	box := NewPolarQuestionBox("test")
+	var fin = make(chan bool)
+	//点滅を制御する
+	go func() {
+		t := time.NewTicker(500 * time.Millisecond)
+		for {
+			select {
+			case <-t.C:
+				box.ToggleCursor()
+				draw(box)
+			case <-fin:
+			default:
+			}
+		}
+		t.Stop()
+	}()
+	//box := sections["JP"]["generateQuestinType"].(*SelectBox)
 	draw(box)
 	for {
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
 			switch ev.Key {
 			case termbox.KeyEsc:
+				fin <- true
 				return
 			case termbox.KeyCtrlC:
+				fin <- true
 				return
 			case termbox.KeyEnter:
 				drawString(box.Answer())

@@ -112,6 +112,9 @@ type SelectBox struct {
 	MaxWidth    int
 }
 
+func (s *SelectBox) ToggleCursor() {
+}
+
 func (s *SelectBox) Answer() string {
 	return fmt.Sprintf("%v", s.cursorPlace)
 }
@@ -185,6 +188,10 @@ type TextBox struct {
 	cursor   bool
 }
 
+func (t *TextBox) ToggleCursor() {
+	t.cursor = t.cursor != true
+}
+
 func (t *TextBox) Answer() string {
 	return t.input
 }
@@ -228,6 +235,10 @@ type PolarQuestionBox struct {
 	input    string
 	defo     string
 	cursor   bool
+}
+
+func (t *PolarQuestionBox) ToggleCursor() {
+	t.cursor = t.cursor != true
 }
 
 func (t *PolarQuestionBox) Add(r rune) {
