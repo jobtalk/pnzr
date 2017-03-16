@@ -170,3 +170,45 @@ func NewSelectBox(q string, elems []string, w ...int) *SelectBox {
 	ret.Items[0].SetCursor()
 	return ret
 }
+
+type TextBox struct {
+	Question string
+	input    string
+	MaxWidth int
+}
+
+func (t *TextBox) Answer() string {
+	return t.input
+}
+
+func (t *TextBox) Message() string {
+	var ret string
+	ret = fmt.Sprintf("<-- %v -->\n", t.Question)
+	ret = ret + fmt.Sprintf("=> %v\n", t.input)
+	return ret
+}
+
+func (t *TextBox) Subst(s string) {
+	t.input = s
+}
+
+func (t *TextBox) Add(r rune) {
+	if 0x20 <= uint8(r) && uint8(r) <= 0x7f {
+		t.input += string([]rune{r})
+	}
+}
+
+func (t *TextBox) BS() {
+	if len(t.input) == 0 {
+		return
+	}
+	runes := []rune(t.input)
+	runes = runes[:len(runes)-1]
+	t.input = string(runes)
+}
+
+func NewTextBox(q string, w ...int) *TextBox {
+	return &TextBox{
+		Question: q,
+	}
+}

@@ -45,7 +45,9 @@ func draw(d Section) {
 }
 
 func RunInit() {
-	box := sections["JP"]["generateQuestinType"].(*SelectBox)
+	//box := sections["JP"]["generateQuestinType"].(*SelectBox)
+	box := NewTextBox("test")
+	box.Subst("hoge")
 	draw(box)
 	for {
 		switch ev := termbox.PollEvent(); ev.Type {
@@ -53,15 +55,18 @@ func RunInit() {
 			switch ev.Key {
 			case termbox.KeyEsc:
 				return
-			case termbox.KeyArrowUp:
-				box.Up()
-				draw(box)
-			case termbox.KeyArrowDown:
-				box.Down()
-				draw(box)
+			case termbox.KeyCtrlC:
+				return
 			case termbox.KeyEnter:
 				drawString(box.Answer())
+			case termbox.KeyBackspace:
+				box.BS()
+				draw(box)
+			case termbox.KeyBackspace2:
+				box.BS()
+				draw(box)
 			default:
+				box.Add(ev.Ch)
 				draw(box)
 			}
 		default:
