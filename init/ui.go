@@ -212,3 +212,65 @@ func NewTextBox(q string, w ...int) *TextBox {
 		Question: q,
 	}
 }
+
+type PolarQuestionBox struct {
+	Question string
+	input    string
+	defo     string
+}
+
+func (t *PolarQuestionBox) Add(r rune) {
+	if 0x20 <= uint8(r) && uint8(r) <= 0x7f {
+		t.input += string([]rune{r})
+	}
+}
+
+func (t *PolarQuestionBox) BS() {
+	if len(t.input) == 0 {
+		return
+	}
+	runes := []rune(t.input)
+	runes = runes[:len(runes)-1]
+	t.input = string(runes)
+}
+
+func (t *PolarQuestionBox) Answer() string {
+	if t.input == "yes" ||
+		t.input == "y" ||
+		t.input == "Y" ||
+		t.input == "Yes" ||
+		t.input == "YES" {
+		return "y"
+	} else if t.input == "n" ||
+		t.input == "N" ||
+		t.input == "no" ||
+		t.input == "No" ||
+		t.input == "NO" {
+		return "n"
+	} else if t.input == "" {
+		return ""
+	}
+	return t.input
+}
+
+func (t *PolarQuestionBox) Message() string {
+	var ret string
+	var def string
+	if t.defo != "" {
+		def = t.defo
+	}
+	ret = fmt.Sprintf("<-- %v -->\n", t.Question)
+	ret = ret + fmt.Sprintf("(Y/n) %v%v\n", def, t.input)
+	return ret
+}
+
+func NewPolarQuestionBox(q string, d ...string) *PolarQuestionBox {
+	var def string
+	if len(d) != 0 {
+		def = d[0]
+	}
+	return &PolarQuestionBox{
+		Question: q,
+		defo:     def,
+	}
+}

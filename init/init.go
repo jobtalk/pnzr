@@ -46,8 +46,7 @@ func draw(d Section) {
 
 func RunInit() {
 	//box := sections["JP"]["generateQuestinType"].(*SelectBox)
-	box := NewTextBox("test")
-	box.Subst("hoge")
+	box := NewPolarQuestionBox("test")
 	draw(box)
 	for {
 		switch ev := termbox.PollEvent(); ev.Type {
