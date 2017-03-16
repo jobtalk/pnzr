@@ -1,5 +1,7 @@
 package init
 
+import "fmt"
+
 func isMultiByteChar(r rune) bool {
 	c := string([]rune{r})
 	return 1 != len(c)
@@ -104,13 +106,22 @@ func NewItem(s string, w ...int) *Item {
 }
 
 type SelectBox struct {
+	Question    string
 	cursorPlace int
 	Items       []*Item
 	MaxWidth    int
 }
 
+func (s *SelectBox) Answer() string {
+	return fmt.Sprintf("%v", s.cursorPlace)
+}
+
+func (s *SelectBox) Message() string {
+	return s.String()
+}
+
 func (s SelectBox) String() string {
-	var ret string
+	var ret = fmt.Sprintf("<-- %v -->\n", s.Question)
 
 	for _, item := range s.Items {
 		ret += item.String()
@@ -137,12 +148,13 @@ func (s *SelectBox) Down() {
 	s.Items[s.cursorPlace].ToggleCursor()
 }
 
-func NewSelectBox(elems []string, w ...int) *SelectBox {
+func NewSelectBox(q string, elems []string, w ...int) *SelectBox {
 	var items = []*Item{}
 	var ret = &SelectBox{}
 	if len(elems) == 0 {
 		return nil
 	}
+	ret.Question = q
 
 	if len(w) == 0 {
 		ret.MaxWidth = 0

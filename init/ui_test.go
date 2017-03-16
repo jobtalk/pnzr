@@ -120,15 +120,15 @@ func TestItemString(t *testing.T) {
 
 func TestNewSelectBox(t *testing.T) {
 	elems := []string{}
-	if box := NewSelectBox(elems); box != nil {
+	if box := NewSelectBox("", elems); box != nil {
 		t.Errorf("box is not nil: %v", box)
 	}
 
-	if box := NewSelectBox(elems, 1000); box != nil {
+	if box := NewSelectBox("", elems, 1000); box != nil {
 		t.Errorf("box is not nil: %v", box)
 	}
 
-	if box := NewSelectBox(nil, 1000); box != nil {
+	if box := NewSelectBox("", nil, 1000); box != nil {
 		t.Errorf("box is not nil: %v", box)
 	}
 
@@ -142,7 +142,7 @@ func TestNewSelectBox(t *testing.T) {
 		}...,
 	)
 
-	if box := NewSelectBox(elems); box == nil {
+	if box := NewSelectBox("", elems); box == nil {
 		t.Errorf("box is nil: %v", box)
 	} else if len(box.Items) != 4 {
 		t.Errorf("The number of elements is abnormal. Although the desired number is %v, it is actually %v.: %v", 4, len(box.Items), box.Items)
@@ -159,7 +159,7 @@ func TestNewSelectBox(t *testing.T) {
 		"98765",
 	}
 
-	if box := NewSelectBox(elems, 5); box == nil {
+	if box := NewSelectBox("", elems, 5); box == nil {
 		t.Errorf("box is nil: %v", box)
 	} else if len(box.Items) != 2 {
 		t.Errorf("The number of elements is abnormal. Although the desired number is %v, it is actually %v.: %v", 2, len(box.Items), box.Items)
@@ -177,7 +177,7 @@ func TestMoveCursor(t *testing.T) {
 		"foo",
 		"bar",
 	}
-	if box := NewSelectBox(elems); box == nil {
+	if box := NewSelectBox("", elems); box == nil {
 		t.Errorf("box is nil: %v", box)
 	} else if box.Up(); box.cursorPlace != 0 ||
 		!box.Items[box.cursorPlace].Lines[0].hasCursor ||
