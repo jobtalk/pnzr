@@ -32,9 +32,6 @@ func main() {
 		"vault": func() (cli.Command, error) {
 			return &subcmd.Vault{}, nil
 		},
-		"init": func() (cli.Command, error) {
-			return &subcmd.Init{}, nil
-		},
 	}
 	exitCode, err := c.Run()
 	if err != nil {
