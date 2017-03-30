@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	TEST_DIR = os.Getenv("GOPATH") + "/src/github.com/ieee0824/thor/test"
+	TEST_DIR = os.Getenv("GOPATH") + "/src/github.com/jobtalk/thor/test"
 )
 
 func init() {

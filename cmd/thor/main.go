@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ieee0824/thor/subcmd"
+	"github.com/jobtalk/thor/subcmd"
 	"github.com/mitchellh/cli"
 )
 

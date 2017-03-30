@@ -9,8 +9,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/ieee0824/thor/mkelb"
-	"github.com/ieee0824/thor/setting"
+	"github.com/jobtalk/thor/mkelb"
+	"github.com/jobtalk/thor/setting"
 )
 
 type mkelbConfigure struct {

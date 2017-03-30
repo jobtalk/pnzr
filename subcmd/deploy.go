@@ -10,10 +10,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/ieee0824/thor/conf"
-	"github.com/ieee0824/thor/deploy"
-	"github.com/ieee0824/thor/setting"
-	"github.com/ieee0824/thor/vault"
+	"github.com/jobtalk/thor/conf"
+	"github.com/jobtalk/thor/deploy"
+	"github.com/jobtalk/thor/setting"
+	"github.com/jobtalk/thor/vault"
 )
 
 type deployConfigure struct {

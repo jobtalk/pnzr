@@ -2,9 +2,9 @@ package deploy
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	. "github.com/ieee0824/thor/ecs"
-	"github.com/ieee0824/thor/mkelb"
-	"github.com/ieee0824/thor/setting"
+	. "github.com/jobtalk/thor/ecs"
+	"github.com/jobtalk/thor/mkelb"
+	"github.com/jobtalk/thor/setting"
 )
 
 // serviceが存在しない時はサービスを作る
