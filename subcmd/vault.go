@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/ieee0824/thor/vault"
+	"github.com/jobtalk/thor/vault"
 )
 
 type vaultParam struct {

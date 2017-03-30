@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/ieee0824/thor/setting"
+	"github.com/jobtalk/thor/setting"
 )
 
 func sample() string {

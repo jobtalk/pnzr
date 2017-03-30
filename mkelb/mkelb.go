@@ -3,8 +3,8 @@ package mkelb
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/ieee0824/thor/elb"
-	"github.com/ieee0824/thor/setting"
+	"github.com/jobtalk/thor/elb"
+	"github.com/jobtalk/thor/setting"
 )
 
 func MkELB(awsConfig *aws.Config, s *setting.ELB) (interface{}, error) {

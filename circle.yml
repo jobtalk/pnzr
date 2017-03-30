@@ -1,7 +1,7 @@
 version: 2
 jobs:
     build:
-        working_directory: /go/src/github.com/ieee0824/thor
+        working_directory: /go/src/github.com/jobtalk/thor
         docker:
             - image: golang:latest
               environment:
