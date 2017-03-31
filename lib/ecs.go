@@ -1,4 +1,4 @@
-package ecs
+package lib
 
 import (
 	"errors"
@@ -8,14 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
 )
-
-/*
-cred := credentials.NewSharedCredentials("", "default")
-awsConfig := &aws.Config{
-	Credentials: cred,
-	Region:      aws.String("ap-northeast-1"),
-}
-*/
 
 type Service struct {
 	Name *string

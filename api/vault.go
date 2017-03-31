@@ -1,4 +1,4 @@
-package vault
+package api
 
 import (
 	"crypto/aes"

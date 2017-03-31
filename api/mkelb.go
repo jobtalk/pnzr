@@ -1,21 +1,21 @@
-package mkelb
+package api
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/jobtalk/thor/elb"
-	"github.com/jobtalk/thor/setting"
+	"github.com/jobtalk/thor/lib"
+	"github.com/jobtalk/thor/lib/setting"
 )
 
 func MkELB(awsConfig *aws.Config, s *setting.ELB) (interface{}, error) {
 	var result = []interface{}{}
-	resultTargetGroup, err := elb.CreateTargetGroup(awsConfig, s.CreateTargetGroupInput)
+	resultTargetGroup, err := lib.CreateTargetGroup(awsConfig, s.CreateTargetGroupInput)
 	if err != nil {
 		return nil, err
 	}
 	result = append(result, resultTargetGroup)
 
-	resultLoadBalancer, err := elb.CreateLoadBalancer(awsConfig, s.CreateLoadBalancerInput)
+	resultLoadBalancer, err := lib.CreateLoadBalancer(awsConfig, s.CreateLoadBalancerInput)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func MkELB(awsConfig *aws.Config, s *setting.ELB) (interface{}, error) {
 		defaultAction,
 	}
 	s.CreateListenerInput.LoadBalancerArn = resultLoadBalancer.LoadBalancers[0].LoadBalancerArn
-	resultLister, err := elb.CreateListener(awsConfig, s.CreateListenerInput)
+	resultLister, err := lib.CreateListener(awsConfig, s.CreateListenerInput)
 	if err != nil {
 		return nil, err
 	}
