@@ -1,8 +1,6 @@
-package subcmd
+package vault
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestVaultParamValidate(t *testing.T) {
 	var pass = "hoge"

@@ -1,4 +1,4 @@
-package subcmd
+package mkelb
 
 import (
 	"encoding/json"
@@ -6,12 +6,48 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/jobtalk/thor/mkelb"
-	"github.com/jobtalk/thor/setting"
+	"github.com/jobtalk/thor/api"
+	"github.com/jobtalk/thor/lib/setting"
 )
+
+// --hoge=hugaみたいなやつ
+func getFullNameParam(args []string, key string) ([]*string, error) {
+	var result = []*string{}
+	for _, v := range args {
+		if strings.Contains(v, key) {
+			splitStr := strings.Split(v, "=")
+			if len(splitStr) == 1 {
+				param := "true"
+				result = append(result, &param)
+			} else if len(splitStr) != 2 {
+				return nil, errors.New(fmt.Sprintf("%s is illegal parameter", key))
+			} else if splitStr[0] == key {
+				result = append(result, &splitStr[1])
+			}
+		}
+	}
+	return result, nil
+}
+
+// -f hogeみたいなやつ
+func getValFromArgs(args []string, key string) ([]*string, error) {
+	var result = []*string{}
+	for i, v := range args {
+		if v == key {
+			// vが一番最後じゃないとき
+			if i+1 != len(args) {
+				result = append(result, &args[i+1])
+			} else {
+				return nil, errors.New(fmt.Sprintf("%s is illegal parameter", key))
+			}
+		}
+	}
+	return result, nil
+}
 
 type mkelbConfigure struct {
 	*setting.Setting
@@ -92,7 +128,7 @@ func (c *MkELB) Run(args []string) int {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	result, err := mkelb.MkELB(awsConfig, config.Setting.ELB)
+	result, err := api.MkELB(awsConfig, config.Setting.ELB)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -1,10 +1,9 @@
-package deploy
+package api
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	. "github.com/jobtalk/thor/ecs"
-	"github.com/jobtalk/thor/mkelb"
-	"github.com/jobtalk/thor/setting"
+	"github.com/jobtalk/thor/lib"
+	"github.com/jobtalk/thor/lib/setting"
 )
 
 // serviceが存在しない時はサービスを作る
@@ -12,20 +11,20 @@ import (
 func Deploy(awsConfig *aws.Config, s *setting.Setting) (interface{}, error) {
 	var result = []interface{}{}
 	if s.ECS != nil {
-		resultMkELB, err := mkelb.MkELB(awsConfig, s.ELB)
+		resultMkELB, err := MkELB(awsConfig, s.ELB)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, resultMkELB)
 	}
 	if s.ECS.TaskDefinition != nil {
-		resultTaskDefinition, err := RegisterTaskDefinition(awsConfig, s.ECS.TaskDefinition)
+		resultTaskDefinition, err := lib.RegisterTaskDefinition(awsConfig, s.ECS.TaskDefinition)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, resultTaskDefinition)
 	}
-	resultUpsert, err := UpsertService(awsConfig, s.ECS.Service)
+	resultUpsert, err := lib.UpsertService(awsConfig, s.ECS.Service)
 	if err != nil {
 		return nil, err
 	}

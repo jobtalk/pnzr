@@ -1,21 +1,21 @@
-package mkelb
+package api
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/jobtalk/thor/elb"
-	"github.com/jobtalk/thor/setting"
+	"github.com/jobtalk/thor/lib"
+	"github.com/jobtalk/thor/lib/setting"
 )
 
 func MkELB(awsConfig *aws.Config, s *setting.ELB) (interface{}, error) {
 	var result = []interface{}{}
-	resultTargetGroup, err := elb.CreateTargetGroup(awsConfig, s.CreateTargetGroupInput)
+	resultTargetGroup, err := lib.CreateTargetGroup(awsConfig, s.TargetGroup)
 	if err != nil {
 		return nil, err
 	}
 	result = append(result, resultTargetGroup)
 
-	resultLoadBalancer, err := elb.CreateLoadBalancer(awsConfig, s.CreateLoadBalancerInput)
+	resultLoadBalancer, err := lib.CreateLoadBalancer(awsConfig, s.LB)
 	if err != nil {
 		return nil, err
 	}
@@ -25,11 +25,14 @@ func MkELB(awsConfig *aws.Config, s *setting.ELB) (interface{}, error) {
 		TargetGroupArn: resultTargetGroup.TargetGroups[0].TargetGroupArn,
 		Type:           aws.String("forward"),
 	}
-	s.CreateListenerInput.DefaultActions = []*elbv2.Action{
+
+	s.Listener.DefaultActions = []*elbv2.Action{
 		defaultAction,
 	}
-	s.CreateListenerInput.LoadBalancerArn = resultLoadBalancer.LoadBalancers[0].LoadBalancerArn
-	resultLister, err := elb.CreateListener(awsConfig, s.CreateListenerInput)
+
+	s.Listener.LoadBalancerArn = resultLoadBalancer.LoadBalancers[0].LoadBalancerArn
+
+	resultLister, err := lib.CreateListener(awsConfig, s.Listener)
 	if err != nil {
 		return nil, err
 	}

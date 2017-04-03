@@ -1,4 +1,4 @@
-package subcmd
+package deploy
 
 import (
 	"encoding/json"
@@ -7,13 +7,13 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/jobtalk/thor/conf"
-	"github.com/jobtalk/thor/deploy"
-	"github.com/jobtalk/thor/setting"
-	"github.com/jobtalk/thor/vault"
+	"github.com/jobtalk/thor/api"
+	"github.com/jobtalk/thor/lib"
+	"github.com/jobtalk/thor/lib/setting"
 )
 
 type deployConfigure struct {
@@ -36,10 +36,45 @@ func (p deployParam) String() string {
 	return string(bin)
 }
 
+// --hoge=hugaみたいなやつ
+func getFullNameParam(args []string, key string) ([]*string, error) {
+	var result = []*string{}
+	for _, v := range args {
+		if strings.Contains(v, key) {
+			splitStr := strings.Split(v, "=")
+			if len(splitStr) == 1 {
+				param := "true"
+				result = append(result, &param)
+			} else if len(splitStr) != 2 {
+				return nil, errors.New(fmt.Sprintf("%s is illegal parameter", key))
+			} else if splitStr[0] == key {
+				result = append(result, &splitStr[1])
+			}
+		}
+	}
+	return result, nil
+}
+
+// -f hogeみたいなやつ
+func getValFromArgs(args []string, key string) ([]*string, error) {
+	var result = []*string{}
+	for i, v := range args {
+		if v == key {
+			// vが一番最後じゃないとき
+			if i+1 != len(args) {
+				result = append(result, &args[i+1])
+			} else {
+				return nil, errors.New(fmt.Sprintf("%s is illegal parameter", key))
+			}
+		}
+	}
+	return result, nil
+}
+
 func parseDeployArgs(args []string) (*deployParam, error) {
 	var result = &deployParam{}
 	/*
-		設定ファイルの場所を定義したargsを読む
+	   設定ファイルの場所を定義したargsを読む
 	*/
 	fileParam, err := getValFromArgs(args, "-f")
 	if err != nil {
@@ -59,7 +94,7 @@ func parseDeployArgs(args []string) (*deployParam, error) {
 		vaultPass = string(bin)
 	}
 	/*
-		--vault-password-file
+	   --vault-password-file
 	*/
 	if vaultFileParam, err := getFullNameParam(args, "--vault-password-file"); err == nil {
 		if len(vaultFileParam) == 1 {
@@ -71,7 +106,7 @@ func parseDeployArgs(args []string) (*deployParam, error) {
 		}
 	}
 	/*
-		--ask-vault-pass
+	   --ask-vault-pass
 	*/
 	if vaultPassParam, err := getFullNameParam(args, "--ask-vault-pass"); err == nil {
 		if len(vaultPassParam) == 1 {
@@ -85,7 +120,7 @@ func parseDeployArgs(args []string) (*deployParam, error) {
 	}
 
 	/*
-		awsのprofileの定義関係
+	   awsのprofileの定義関係
 	*/
 	profileParam, err := getFullNameParam(args, "--profile")
 	if err != nil {
@@ -168,21 +203,21 @@ func readConf(params *deployParam) (*deployConfigure, error) {
 	if len(externals) != 0 {
 		base := string(deployConfigureJSON)
 		for _, external := range externals {
-			if vault.IsSecret(external) {
+			if api.IsSecret(external) {
 				if params.Vault == nil {
 					return nil, errors.New("vault pass is empty")
 				}
-				plain, err := vault.Decrypt(external, *params.Vault)
+				plain, err := api.Decrypt(external, *params.Vault)
 				if err != nil {
 					return nil, err
 				}
-				base, err = conf.Embedde(base, string(plain))
+				base, err = lib.Embedde(base, string(plain))
 				if err != nil {
 					return nil, err
 				}
 			} else {
 				var err error
-				base, err = conf.Embedde(base, string(external))
+				base, err = lib.Embedde(base, string(external))
 				if err != nil {
 					return nil, err
 				}
@@ -216,7 +251,7 @@ func (c *Deploy) Run(args []string) int {
 		log.Fatalln(err)
 	}
 
-	result, err := deploy.Deploy(awsConfig, config.Setting)
+	result, err := api.Deploy(awsConfig, config.Setting)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -4,7 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/jobtalk/thor/subcmd"
+	"github.com/jobtalk/thor/subcmd/deploy"
+	"github.com/jobtalk/thor/subcmd/mkelb"
+	"github.com/jobtalk/thor/subcmd/vault"
 	"github.com/mitchellh/cli"
 )
 
@@ -12,25 +14,22 @@ const (
 	VERSION = "0.01"
 )
 
-func main() {
+func init() {
 	log.SetFlags(log.Llongfile)
-	/*
-		awsConfig := &aws.Config{
-			Region: aws.String("ap-northeast-1"),
-		}
-	*/
+}
 
+func main() {
 	c := cli.NewCLI("thor", VERSION)
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"deploy": func() (cli.Command, error) {
-			return &subcmd.Deploy{}, nil
+			return &deploy.Deploy{}, nil
 		},
 		"mkelb": func() (cli.Command, error) {
-			return &subcmd.MkELB{}, nil
+			return &mkelb.MkELB{}, nil
 		},
 		"vault": func() (cli.Command, error) {
-			return &subcmd.Vault{}, nil
+			return &vault.Vault{}, nil
 		},
 	}
 	exitCode, err := c.Run()
