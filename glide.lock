@@ -1,10 +1,10 @@
 hash: 18f0b992b17bf1f6b0cf0e86244bc3b49ef45ca10ab9dd56799db620a04ac189
-updated: 2017-03-31T19:14:28.937175163+09:00
+updated: 2017-04-03T17:33:57.416879704+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: 18e3cb7dea87468cd8b3fa0a31e00c056ee3d05f
+  version: 5ab6def9a2f0445ff22a47b16660fbb1ff919b16
   subpackages:
   - aws
   - aws/credentials
@@ -19,18 +19,18 @@ imports:
   - aws/request
   - aws/signer/v4
   - private/protocol/query
+  - private/protocol/jsonrpc
   - aws/corehandlers
   - aws/credentials/stscreds
   - aws/defaults
-  - private/protocol/jsonrpc
   - private/protocol/rest
   - private/protocol/query/queryutil
   - private/protocol/xml/xmlutil
+  - private/protocol/json/jsonutil
   - service/sts
   - aws/credentials/ec2rolecreds
   - aws/credentials/endpointcreds
   - aws/ec2metadata
-  - private/protocol/json/jsonutil
   - private/protocol
 - name: github.com/bgentry/speakeasy
   version: 675b82c74c0ed12283ee81ba8a534c8982c07b85
