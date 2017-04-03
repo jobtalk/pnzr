@@ -19,9 +19,12 @@ func RegisterTaskDefinition(awsConfig *aws.Config, registerTaskDefinitionInput *
 }
 
 func ListServices(awsConfig *aws.Config, params *ecs.ListServicesInput) (*ecs.ListServicesOutput, error) {
-	svc := ecs.New(session.New(), awsConfig)
-	var ret = &ecs.ListServicesOutput{}
-	var pageNum int
+	var (
+		ret     = &ecs.ListServicesOutput{}
+		pageNum int
+		svc     = ecs.New(session.New(), awsConfig)
+	)
+
 	err := svc.ListServicesPages(params, func(page *ecs.ListServicesOutput, lastPage bool) bool {
 		pageNum++
 		ret.ServiceArns = append(ret.ServiceArns, page.ServiceArns...)
