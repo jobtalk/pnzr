@@ -14,7 +14,12 @@ func CreateLoadBalancer(awsConfig *aws.Config, createLoadBalancerInput *elbv2.Cr
 
 func CreateTargetGroup(awsConfig *aws.Config, params *elbv2.CreateTargetGroupInput) (*elbv2.CreateTargetGroupOutput, error) {
 	svc := elbv2.New(session.New(), awsConfig)
-	return svc.CreateTargetGroup(params)
+	ret, err := svc.CreateTargetGroup(params)
+	if err != nil {
+		return nil, err
+	}
+	targetGroupARN = ret.TargetGroups[0].TargetGroupArn
+	return ret, nil
 }
 
 func CreateListener(awsConfig *aws.Config, params *elbv2.CreateListenerInput) (*elbv2.CreateListenerOutput, error) {

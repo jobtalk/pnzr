@@ -6,9 +6,9 @@ import (
 )
 
 type ELB struct {
-	*elbv2.CreateLoadBalancerInput
-	*elbv2.CreateTargetGroupInput
-	*elbv2.CreateListenerInput
+	LB          *elbv2.CreateLoadBalancerInput
+	TargetGroup *elbv2.CreateTargetGroupInput
+	Listener    *elbv2.CreateListenerInput
 }
 
 type ECS struct {

@@ -20,7 +20,17 @@ func RegisterTaskDefinition(awsConfig *aws.Config, registerTaskDefinitionInput *
 
 func ListServices(awsConfig *aws.Config, params *ecs.ListServicesInput) (*ecs.ListServicesOutput, error) {
 	svc := ecs.New(session.New(), awsConfig)
-	return svc.ListServices(params)
+	var ret = &ecs.ListServicesOutput{}
+	var pageNum int
+	err := svc.ListServicesPages(params, func(page *ecs.ListServicesOutput, lastPage bool) bool {
+		pageNum++
+		ret.ServiceArns = append(ret.ServiceArns, page.ServiceArns...)
+		return pageNum <= 1000
+	})
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 func CreateService(awsConfig *aws.Config, createServiceInput *ecs.CreateServiceInput) (*ecs.CreateServiceOutput, error) {
@@ -34,6 +44,9 @@ func UpdateService(awsConfig *aws.Config, updateServiceInput *ecs.UpdateServiceI
 }
 
 func UpsertService(awsConfig *aws.Config, createServiceInput *ecs.CreateServiceInput) (interface{}, error) {
+	if len(createServiceInput.LoadBalancers) != 0 && targetGroupARN != nil {
+		createServiceInput.LoadBalancers[0].TargetGroupArn = targetGroupARN
+	}
 	if createServiceInput.Cluster == nil {
 		createServiceInput.Cluster = aws.String("default")
 	}
