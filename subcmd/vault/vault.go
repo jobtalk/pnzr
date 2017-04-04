@@ -57,7 +57,20 @@ func decrypt(keyID string, fileName string) error {
 type Vault struct{}
 
 func (c *Vault) Help() string {
-	return ""
+	var msg string
+	msg += "usage: thor vault [options ...]\n"
+	msg += "options:\n"
+	msg += "    -key_id\n"
+	msg += "        set kms key id\n"
+	msg += "    -encrypt\n"
+	msg += "        use encrypt mode\n"
+	msg += "    -decrypt\n"
+	msg += "        use decrypt mode\n"
+	msg += "    -file\n"
+	msg += "        setting target file\n"
+	msg += "    -f"
+	msg += "        setting target file\n"
+	return msg
 }
 
 func (c *Vault) Run(args []string) int {
@@ -85,5 +98,5 @@ func (c *Vault) Run(args []string) int {
 }
 
 func (c *Vault) Synopsis() string {
-	return ""
+	return c.Help()
 }
