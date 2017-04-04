@@ -102,14 +102,16 @@ func decrypt(bin []byte) ([]byte, error) {
 }
 
 func readConf(baseConfPath string, externalPathList []string) (*deployConfigure, error) {
+	var root = *externalPath
 	var ret = &deployConfigure{}
 	base, err := ioutil.ReadFile(baseConfPath)
 	baseStr := string(base)
 	if err != nil {
 		return nil, err
 	}
+	root = strings.TrimSuffix(root, "/")
 	for _, externalPath := range externalPathList {
-		external, err := ioutil.ReadFile(externalPath)
+		external, err := ioutil.ReadFile(root + "/" + externalPath)
 		if err != nil {
 			return nil, err
 		}
