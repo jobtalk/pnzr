@@ -12,7 +12,7 @@ type KMS struct {
 	keyID     *string
 	awsConfig *aws.Config
 	Type      *string `json:"type"`
-	Chipher   []byte  `json:"chipher"`
+	Cipher    []byte  `json:"cipher"`
 }
 
 func NewKMS() *KMS {
@@ -43,14 +43,14 @@ func (k *KMS) Encrypt(plainText []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	k.Chipher = resp.CiphertextBlob
+	k.Cipher = resp.CiphertextBlob
 	return resp.CiphertextBlob, nil
 }
 
 func (k *KMS) Decrypt() ([]byte, error) {
 	svc := kms.New(session.New(), k.awsConfig)
 	params := &kms.DecryptInput{
-		CiphertextBlob: k.Chipher,
+		CiphertextBlob: k.Cipher,
 	}
 	resp, err := svc.Decrypt(params)
 	if err != nil {
