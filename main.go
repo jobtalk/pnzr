@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/jobtalk/thor/subcmd/deploy"
 	"github.com/jobtalk/thor/subcmd/mkelb"
 	"github.com/jobtalk/thor/subcmd/vault"
 	"github.com/mitchellh/cli"
@@ -22,9 +21,11 @@ func main() {
 	c := cli.NewCLI("thor", VERSION)
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
-		"deploy": func() (cli.Command, error) {
-			return &deploy.Deploy{}, nil
-		},
+		/*
+			"deploy": func() (cli.Command, error) {
+				return &deploy.Deploy{}, nil
+			},
+		*/
 		"mkelb": func() (cli.Command, error) {
 			return &mkelb.MkELB{}, nil
 		},

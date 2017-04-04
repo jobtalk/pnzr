@@ -22,31 +22,40 @@ func NewKMS() *KMS {
 	}
 }
 
+func NewKMSFromBinary(bin []byte) *KMS {
+	var ret = KMS{}
+	err := json.Unmarshal(bin, &ret)
+	if err != nil {
+		return nil
+	}
+	ret.awsConfig = &aws.Config{}
+	return &ret
+}
+
 func (k *KMS) Encrypt(plainText []byte) ([]byte, error) {
 	svc := kms.New(session.New(), k.awsConfig)
 	params := &kms.EncryptInput{
 		KeyId:     k.keyID,
 		Plaintext: plainText,
 	}
-	k.Chipher = nil
 	resp, err := svc.Encrypt(params)
 	if err != nil {
 		return nil, err
 	}
 
+	k.Chipher = resp.CiphertextBlob
 	return resp.CiphertextBlob, nil
 }
 
-func (k *KMS) Decrypt(cipherText []byte) ([]byte, error) {
+func (k *KMS) Decrypt() ([]byte, error) {
 	svc := kms.New(session.New(), k.awsConfig)
 	params := &kms.DecryptInput{
-		CiphertextBlob: cipherText,
+		CiphertextBlob: k.Chipher,
 	}
 	resp, err := svc.Decrypt(params)
 	if err != nil {
 		return nil, err
 	}
-	k.Chipher = resp.Plaintext
 	return resp.Plaintext, nil
 }
 
