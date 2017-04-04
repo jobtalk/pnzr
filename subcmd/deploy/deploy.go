@@ -183,11 +183,12 @@ func (c *Deploy) Synopsis() string {
 	synopsis += "options:\n"
 	synopsis += "    -f thor_setting.json\n"
 	synopsis += "\n"
-	synopsis += "    --profile=${aws profile name}\n"
-	synopsis += "        --profile option is arbitrary parameter.\n"
-	synopsis += "    --vault-password-file=${vault pass file}"
-	synopsis += "\n"
-	synopsis += "    --ask-vault-pass=${vault pass string}\n"
+	synopsis += "    -profile=${aws profile name}\n"
+	synopsis += "        -profile option is arbitrary parameter.\n"
+	synopsis += "    -region\n"
+	synopsis += "        aws region\n"
+	synopsis += "    -external_path\n"
+	synopsis += "        setting external path file\n"
 	synopsis += "===================================================\n"
 
 	return synopsis
