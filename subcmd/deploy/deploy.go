@@ -3,9 +3,11 @@ package deploy
 import (
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -16,239 +18,155 @@ import (
 	"github.com/jobtalk/thor/lib/setting"
 )
 
+var flagSet = &flag.FlagSet{}
+var cred *credentials.Credentials
+var (
+	file         *string
+	f            *string
+	profile      *string
+	kmsKeyID     *string
+	region       *string
+	externalPath *string
+)
+
+func init() {
+	kmsKeyID = flagSet.String("key_id", "", "Amazon KMS key ID")
+	file = flagSet.String("file", "", "target file")
+	f = flagSet.String("f", "", "target file")
+	profile = flagSet.String("profile", "default", "aws credentials profile name")
+	region = flagSet.String("region", "ap-northeast-1", "aws region")
+	externalPath = flagSet.String("external_path", "", "external conf path")
+}
+
+func fileList(root string) ([]string, error) {
+	if root == "" {
+		return nil, nil
+	}
+	ret := []string{}
+	err := filepath.Walk(root,
+		func(path string, info os.FileInfo, err error) error {
+			if info.IsDir() {
+				return nil
+			}
+
+			rel, err := filepath.Rel(root, path)
+			if strings.Contains(rel, ".json") {
+				ret = append(ret, rel)
+			}
+
+			return nil
+		})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
 type deployConfigure struct {
 	*setting.Setting
 }
 
-type Deploy struct{}
+func isEncrypted(data []byte) bool {
+	var buffer = map[string]interface{}{}
+	if err := json.Unmarshal(data, &buffer); err != nil {
+		return false
+	}
+	elem, ok := buffer["cipher"]
+	if !ok {
+		return false
+	}
+	str, ok := elem.(string)
+	if !ok {
+		return false
+	}
 
-type deployParam struct {
-	File    *string
-	Profile *string
-	Vault   *string
+	return len(str) != 0
 }
 
-func (p deployParam) String() string {
-	bin, err := json.Marshal(p)
-	if err != nil {
-		return ""
+func decrypt(bin []byte) ([]byte, error) {
+	awsConfig := &aws.Config{
+		Credentials: cred,
+		Region:      region,
 	}
-	return string(bin)
-}
-
-// --hoge=hugaみたいなやつ
-func getFullNameParam(args []string, key string) ([]*string, error) {
-	var result = []*string{}
-	for _, v := range args {
-		if strings.Contains(v, key) {
-			splitStr := strings.Split(v, "=")
-			if len(splitStr) == 1 {
-				param := "true"
-				result = append(result, &param)
-			} else if len(splitStr) != 2 {
-				return nil, errors.New(fmt.Sprintf("%s is illegal parameter", key))
-			} else if splitStr[0] == key {
-				result = append(result, &splitStr[1])
-			}
-		}
+	kms := lib.NewKMSFromBinary(bin)
+	if kms == nil {
+		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
 	}
-	return result, nil
-}
-
-// -f hogeみたいなやつ
-func getValFromArgs(args []string, key string) ([]*string, error) {
-	var result = []*string{}
-	for i, v := range args {
-		if v == key {
-			// vが一番最後じゃないとき
-			if i+1 != len(args) {
-				result = append(result, &args[i+1])
-			} else {
-				return nil, errors.New(fmt.Sprintf("%s is illegal parameter", key))
-			}
-		}
-	}
-	return result, nil
-}
-
-func parseDeployArgs(args []string) (*deployParam, error) {
-	var result = &deployParam{}
-	/*
-	   設定ファイルの場所を定義したargsを読む
-	*/
-	fileParam, err := getValFromArgs(args, "-f")
-	if err != nil {
-		return nil, err
-	} else if len(fileParam) >= 2 {
-		return nil, errors.New("'-f' parameter can not be specified more than once.")
-	}
-	if len(fileParam) == 1 {
-		result.File = fileParam[0]
-	} else if len(fileParam) == 0 {
-		fileName := "thor.json"
-		result.File = &fileName
-	}
-	var vaultPass string
-	/* vaultのpass */
-	if bin, err := ioutil.ReadFile(".vault"); err == nil {
-		vaultPass = string(bin)
-	}
-	/*
-	   --vault-password-file
-	*/
-	if vaultFileParam, err := getFullNameParam(args, "--vault-password-file"); err == nil {
-		if len(vaultFileParam) == 1 {
-			if bin, err := ioutil.ReadFile(*vaultFileParam[0]); err == nil {
-				vaultPass = string(bin)
-			}
-		} else {
-			return nil, errors.New("--vault-password-file param is invalid")
-		}
-	}
-	/*
-	   --ask-vault-pass
-	*/
-	if vaultPassParam, err := getFullNameParam(args, "--ask-vault-pass"); err == nil {
-		if len(vaultPassParam) == 1 {
-			vaultPass = *vaultPassParam[0]
-		} else {
-			return nil, errors.New("--ask-vault-pass param is invalid")
-		}
-	}
-	if vaultPass != "" {
-		result.Vault = &vaultPass
-	}
-
-	/*
-	   awsのprofileの定義関係
-	*/
-	profileParam, err := getFullNameParam(args, "--profile")
-	if err != nil {
-		return nil, err
-	} else if len(profileParam) >= 2 {
-		return nil, errors.New("'--profile' parameter can not be specified more than once.")
-	}
-	if len(profileParam) == 1 {
-		result.Profile = profileParam[0]
-	}
-
-	return result, nil
-}
-
-func (c *Deploy) Help() string {
-	help := ""
-	help += "usage: deploy [options ...]\n"
-	help += "options:\n"
-	help += "    -f thor_setting.json\n"
-	help += "\n"
-	help += "    --profile=${aws profile name}\n"
-	help += "        --profile option is arbitrary parameter.\n"
-	help += "    --vault-password-file=${vault pass file}\n"
-	help += "\n"
-	help += "    --ask-vault-pass=${vault pass string}\n"
-
-	return help
-}
-
-func readExternalVariablesFromFile(path string) ([][]byte, error) {
-	var result = [][]byte{}
-	abs, err := filepath.Abs(path)
+	plainText, err := kms.SetKeyID(*kmsKeyID).SetAWSConfig(awsConfig).Decrypt()
 	if err != nil {
 		return nil, err
 	}
-	infos, err := ioutil.ReadDir(abs)
+	return plainText, nil
+}
+
+func readConf(baseConfPath string, externalPathList []string) (*deployConfigure, error) {
+	var root = *externalPath
+	var ret = &deployConfigure{}
+	base, err := ioutil.ReadFile(baseConfPath)
+	baseStr := string(base)
 	if err != nil {
 		return nil, err
 	}
-
-	for _, info := range infos {
-		if !info.IsDir() {
-			bin, err := ioutil.ReadFile(abs + "/" + info.Name())
-			if err != nil {
-				return nil, err
-			}
-			result = append(result, bin)
-		}
-	}
-
-	return result, nil
-}
-
-// 分離されたファイルを読む
-func readExternalVariables(pathes ...string) ([][]byte, error) {
-	var result = [][]byte{}
-	if len(pathes) == 0 {
-		return readExternalVariablesFromFile("./externals")
-	}
-	for _, path := range pathes {
-		r, err := readExternalVariablesFromFile(path)
+	root = strings.TrimSuffix(root, "/")
+	for _, externalPath := range externalPathList {
+		external, err := ioutil.ReadFile(root + "/" + externalPath)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, r...)
-	}
-	return result, nil
-}
-
-func readConf(params *deployParam) (*deployConfigure, error) {
-	var config = &deployConfigure{}
-	deployConfigureJSON, err := ioutil.ReadFile(*params.File)
-	if err != nil {
-		return nil, err
-	}
-	externals, err := readExternalVariables()
-	if err != nil {
-		return nil, err
-	}
-	if len(externals) != 0 {
-		base := string(deployConfigureJSON)
-		for _, external := range externals {
-			if api.IsSecret(external) {
-				if params.Vault == nil {
-					return nil, errors.New("vault pass is empty")
-				}
-				plain, err := api.Decrypt(external, *params.Vault)
-				if err != nil {
-					return nil, err
-				}
-				base, err = lib.Embedde(base, string(plain))
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				var err error
-				base, err = lib.Embedde(base, string(external))
-				if err != nil {
-					return nil, err
-				}
+		if isEncrypted(external) {
+			plain, err := decrypt(external)
+			if err != nil {
+				return nil, err
 			}
+			external = plain
 		}
-		deployConfigureJSON = []byte(base)
+		baseStr, err = lib.Embedde(baseStr, string(external))
+		if err != nil {
+			return nil, err
+		}
 	}
-
-	if err := json.Unmarshal(deployConfigureJSON, config); err != nil {
+	if err := json.Unmarshal([]byte(baseStr), ret); err != nil {
 		return nil, err
 	}
-	return config, err
+	return ret, nil
 }
+
+type Deploy struct{}
 
 func (c *Deploy) Run(args []string) int {
-	params, err := parseDeployArgs(args)
-	if err != nil {
+	var config = &deployConfigure{}
+	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
-	var cred *credentials.Credentials
-	if params.Profile != nil {
-		cred = credentials.NewSharedCredentials("", "default")
+	if *file == "" {
+		file = f
 	}
+	cred = credentials.NewSharedCredentials("", *profile)
 	awsConfig := &aws.Config{
 		Credentials: cred,
-		Region:      aws.String("ap-northeast-1"),
+		Region:      region,
 	}
 
-	config, err := readConf(params)
+	externalList, err := fileList(*externalPath)
 	if err != nil {
 		log.Fatalln(err)
+	}
+	if externalList != nil {
+		c, err := readConf(*file, externalList)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		config = c
+	} else {
+		bin, err := ioutil.ReadFile(*file)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if err := json.Unmarshal(bin, config); err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	result, err := api.Deploy(awsConfig, config.Setting)
@@ -265,12 +183,17 @@ func (c *Deploy) Synopsis() string {
 	synopsis += "options:\n"
 	synopsis += "    -f thor_setting.json\n"
 	synopsis += "\n"
-	synopsis += "    --profile=${aws profile name}\n"
-	synopsis += "        --profile option is arbitrary parameter.\n"
-	synopsis += "    --vault-password-file=${vault pass file}"
-	synopsis += "\n"
-	synopsis += "    --ask-vault-pass=${vault pass string}\n"
+	synopsis += "    -profile=${aws profile name}\n"
+	synopsis += "        -profile option is arbitrary parameter.\n"
+	synopsis += "    -region\n"
+	synopsis += "        aws region\n"
+	synopsis += "    -external_path\n"
+	synopsis += "        setting external path file\n"
 	synopsis += "===================================================\n"
 
 	return synopsis
+}
+
+func (c *Deploy) Help() string {
+	return c.Synopsis()
 }

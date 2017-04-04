@@ -1,144 +1,125 @@
 package vault
 
 import (
-	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strings"
 
-	"github.com/jobtalk/thor/api"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/jobtalk/thor/lib"
 )
 
-// --hoge=hugaみたいなやつ
-func getFullNameParam(args []string, key string) ([]*string, error) {
-	var result = []*string{}
-	for _, v := range args {
-		if strings.Contains(v, key) {
-			splitStr := strings.Split(v, "=")
-			if len(splitStr) == 1 {
-				param := "true"
-				result = append(result, &param)
-			} else if len(splitStr) != 2 {
-				return nil, errors.New(fmt.Sprintf("%s is illegal parameter", key))
-			} else if splitStr[0] == key {
-				result = append(result, &splitStr[1])
-			}
-		}
-	}
-	return result, nil
+var flagSet = &flag.FlagSet{}
+
+var (
+	kmsKeyID    *string
+	encryptFlag *bool
+	decryptFlag *bool
+	file        *string
+	f           *string
+	profile     *string
+	region      *string
+)
+
+func init() {
+	kmsKeyID = flagSet.String("key_id", "", "Amazon KMS key ID")
+	encryptFlag = flagSet.Bool("encrypt", false, "encrypt mode")
+	decryptFlag = flagSet.Bool("decrypt", false, "decrypt mode")
+	profile = flagSet.String("profile", "default", "aws credentials profile name")
+	region = flagSet.String("region", "ap-northeast-1", "aws region")
+
+	file = flagSet.String("file", "", "target file")
+	f = flagSet.String("f", "", "target file")
 }
 
-// -f hogeみたいなやつ
-func getValFromArgs(args []string, key string) ([]*string, error) {
-	var result = []*string{}
-	for i, v := range args {
-		if v == key {
-			// vが一番最後じゃないとき
-			if i+1 != len(args) {
-				result = append(result, &args[i+1])
-			} else {
-				return nil, errors.New(fmt.Sprintf("%s is illegal parameter", key))
-			}
-		}
-	}
-	return result, nil
-}
-
-type vaultParam struct {
-	Pass *string
-	Path *string
-}
-
-func (v *vaultParam) validate() error {
-	if v.Pass == nil {
-		return errors.New("pass is empty")
-	} else if v.Path == nil {
-		return errors.New("path is empty")
-	} else if *v.Pass == "" {
-		return errors.New("pass is empty")
-	} else if *v.Path == "" {
-		return errors.New("path is empty")
-	}
-	return nil
-}
-
-func parseVaultArgs(args []string) (*vaultParam, error) {
-	var result = &vaultParam{}
-	passPram, err := getValFromArgs(args, "-p")
+func encrypt(keyID string, fileName string, awsConfig *aws.Config) error {
+	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if 2 <= len(passPram) {
-		return nil, errors.New("'-p' parameter can not be specified more than once.")
-	} else if 0 == len(passPram) {
-		return nil, errors.New("'-p' parameter is empty")
-	}
-	result.Pass = passPram[0]
-
-	pathParam, err := getValFromArgs(args, "-f")
+	kms := lib.NewKMS()
+	_, err = kms.SetKeyID(keyID).SetAWSConfig(awsConfig).Encrypt(bin)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if 2 <= len(pathParam) {
-		return nil, errors.New("'-f' parameter can not be specified more than once.")
-	} else if 0 == len(pathParam) {
-		return nil, errors.New("'-f' parameter is empty")
+
+	return ioutil.WriteFile(fileName, []byte(kms.String()), 0644)
+}
+
+func decrypt(keyID string, fileName string, awsConfig *aws.Config) error {
+	bin, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return err
 	}
-	result.Path = pathParam[0]
-	return result, nil
+	kms := lib.NewKMSFromBinary(bin)
+	if kms == nil {
+		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
+	}
+	plainText, err := kms.SetKeyID(keyID).SetAWSConfig(awsConfig).Decrypt()
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(fileName, plainText, 0644)
 }
 
 type Vault struct{}
 
 func (c *Vault) Help() string {
-	help := ""
-	help += "usage: vault [options ...]\n"
-	help += "options:\n"
-	help += "    -f vault target json\n"
-	help += "\n"
-	help += "    -p vault pass\n"
-
-	return help
+	var msg string
+	msg += "usage: thor vault [options ...]\n"
+	msg += "options:\n"
+	msg += "    -key_id\n"
+	msg += "        set kms key id\n"
+	msg += "    -encrypt\n"
+	msg += "        use encrypt mode\n"
+	msg += "    -decrypt\n"
+	msg += "        use decrypt mode\n"
+	msg += "    -file\n"
+	msg += "        setting target file\n"
+	msg += "    -f"
+	msg += "        setting target file\n"
+	msg += "    -profile\n"
+	msg += "        aws credential name\n"
+	msg += "    -region\n"
+	msg += "        aws region name\n"
+	msg += "===================================================\n"
+	return msg
 }
 
 func (c *Vault) Run(args []string) int {
-	param, err := parseVaultArgs(args)
-	if err != nil {
+	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
-	if err := param.validate(); err != nil {
-		log.Fatalln(err)
-	}
-	bin, err := ioutil.ReadFile(*param.Path)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	vaulter := api.New(bin)
-	if err := vaulter.Encrypt(*param.Pass); err != nil {
-		log.Fatalln(err)
-	}
-	vaultedJSON, err := json.Marshal(vaulter)
-	if err != nil {
-		log.Fatalln(err)
+	var cred *credentials.Credentials
+	cred = credentials.NewSharedCredentials("", *profile)
+	awsConfig := &aws.Config{
+		Credentials: cred,
+		Region:      region,
 	}
 
-	if err := ioutil.WriteFile(*param.Path, vaultedJSON, 0644); err != nil {
-		log.Fatalln(err)
+	if *file == "" {
+		file = f
 	}
-
+	if *encryptFlag == *decryptFlag {
+		log.Fatalln("Choose whether to execute A or B.")
+	}
+	if *decryptFlag {
+		err := decrypt(*kmsKeyID, *file, awsConfig)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	} else if *encryptFlag {
+		err := encrypt(*kmsKeyID, *file, awsConfig)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
 	return 0
 }
 
 func (c *Vault) Synopsis() string {
-	synopsis := ""
-	synopsis += "usage: thor vault [options ...]\n"
-	synopsis += "options:\n"
-	synopsis += "    -f vault target json\n"
-	synopsis += "\n"
-	synopsis += "    -p vault password\n"
-	synopsis += "===================================================\n"
-
-	return synopsis
+	return c.Help()
 }
