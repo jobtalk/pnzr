@@ -7,12 +7,12 @@ ecs deploy docker container
 
 ## install
 ```
-$ go get -u github.com/jobtalk/thor/cmd/thor
+$ go get -u github.com/jobtalk/thor
 ```
 
 ## Deploy
 ```
-$ thor deploy -f config.json --profile credential-name
+$ thor deploy -f config.json
 ```
 
 ## Option
