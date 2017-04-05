@@ -6,7 +6,7 @@ release:
 .PHONY: release
 	
 build:
-		@gox -os="linux darwin windows openbsd" ./...
+		@gox -os="linux darwin" -arch="amd64" ./...
 .PHONY: build
 
 
