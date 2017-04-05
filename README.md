@@ -17,6 +17,8 @@ $ thor deploy -f config.json --profile credential-name
 
 ## Option
 ```
+
+$ go run main.go -h
 Usage: thor [--version] [--help] <command> [<args>]
 
 Available commands are:
@@ -24,10 +26,12 @@ Available commands are:
 options:
     -f thor_setting.json
 
-    --profile=${aws profile name}
-        --profile option is arbitrary parameter.
-    --vault-password-file=${vault pass file}
-    --ask-vault-pass=${vault pass string}
+    -profile=${aws profile name}
+        -profile option is arbitrary parameter.
+    -region
+        aws region
+    -external_path
+        setting external path file
 ===================================================
 
     mkelb     usage: thor mkelb [options ...]
@@ -40,8 +44,18 @@ options:
 
     vault     usage: thor vault [options ...]
 options:
-    -f vault target json
-
-    -p vault password
+    -key_id
+        set kms key id
+    -encrypt
+        use encrypt mode
+    -decrypt
+        use decrypt mode
+    -file
+        setting target file
+    -f        setting target file
+    -profile
+        aws credential name
+    -region
+        aws region name
 ===================================================
 ```
