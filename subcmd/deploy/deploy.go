@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -17,6 +18,8 @@ import (
 	"github.com/jobtalk/thor/lib"
 	"github.com/jobtalk/thor/lib/setting"
 )
+
+var re = regexp.MustCompile(`.*\.json$`)
 
 var flagSet = &flag.FlagSet{}
 var cred *credentials.Credentials
@@ -50,7 +53,7 @@ func fileList(root string) ([]string, error) {
 			}
 
 			rel, err := filepath.Rel(root, path)
-			if strings.Contains(rel, ".json") {
+			if re.MatchString(rel) {
 				ret = append(ret, rel)
 			}
 
