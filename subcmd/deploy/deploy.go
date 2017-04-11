@@ -159,11 +159,15 @@ func (c *Deploy) Run(args []string) int {
 	if err != nil {
 		log.Fatal(err)
 	}
-	baseStr, err := lib.Embedde(string(baseConfBinary), *outerVals)
-	if err != nil {
-		log.Fatal(err)
+
+	if *outerVals != "" {
+		baseStr, err := lib.Embedde(string(baseConfBinary), *outerVals)
+		if err != nil {
+			log.Fatal(err)
+		}
+		baseConfBinary = []byte(baseStr)
 	}
-	baseConfBinary = []byte(baseStr)
+
 	if externalList != nil {
 		c, err := readConf(baseConfBinary, externalList)
 		if err != nil {
