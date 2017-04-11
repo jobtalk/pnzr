@@ -201,7 +201,7 @@ func (c *Deploy) Synopsis() string {
 	synopsis += "    -external_path\n"
 	synopsis += "        setting external path file\n"
 	synopsis += "    -V\n"
-	synopsis += "        setting outer values"
+	synopsis += "        setting outer values\n"
 	synopsis += "===================================================\n"
 
 	return synopsis
