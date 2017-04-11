@@ -30,6 +30,7 @@ var (
 	kmsKeyID     *string
 	region       *string
 	externalPath *string
+	outerVals    *string
 )
 
 func init() {
@@ -39,6 +40,7 @@ func init() {
 	profile = flagSet.String("profile", "default", "aws credentials profile name")
 	region = flagSet.String("region", "ap-northeast-1", "aws region")
 	externalPath = flagSet.String("external_path", "", "external conf path")
+	outerVals = flagSet.String("V", "", "outer values")
 }
 
 func fileList(root string) ([]string, error) {
@@ -104,14 +106,11 @@ func decrypt(bin []byte) ([]byte, error) {
 	return plainText, nil
 }
 
-func readConf(baseConfPath string, externalPathList []string) (*deployConfigure, error) {
+func readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
 	var root = *externalPath
 	var ret = &deployConfigure{}
-	base, err := ioutil.ReadFile(baseConfPath)
 	baseStr := string(base)
-	if err != nil {
-		return nil, err
-	}
+
 	root = strings.TrimSuffix(root, "/")
 	for _, externalPath := range externalPathList {
 		external, err := ioutil.ReadFile(root + "/" + externalPath)
@@ -156,8 +155,17 @@ func (c *Deploy) Run(args []string) int {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	baseConfBinary, err := ioutil.ReadFile(*file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	baseStr, err := lib.Embedde(string(baseConfBinary), *outerVals)
+	if err != nil {
+		log.Fatal(err)
+	}
+	baseConfBinary = []byte(baseStr)
 	if externalList != nil {
-		c, err := readConf(*file, externalList)
+		c, err := readConf(baseConfBinary, externalList)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -192,6 +200,8 @@ func (c *Deploy) Synopsis() string {
 	synopsis += "        aws region\n"
 	synopsis += "    -external_path\n"
 	synopsis += "        setting external path file\n"
+	synopsis += "    -V\n"
+	synopsis += "        setting outer values"
 	synopsis += "===================================================\n"
 
 	return synopsis
