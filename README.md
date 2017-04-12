@@ -19,6 +19,7 @@ $ thor deploy -f config.json
 ```
 
 $ go run main.go -h
+
 Usage: thor [--version] [--help] <command> [<args>]
 
 Available commands are:
@@ -30,8 +31,10 @@ options:
         -profile option is arbitrary parameter.
     -region
         aws region
-    -external_path
-        setting external path file
+    -vars_path
+        setting external values path file
+    -V
+        setting outer values
 ===================================================
 
     mkelb     usage: thor mkelb [options ...]
