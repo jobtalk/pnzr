@@ -50,6 +50,9 @@ func fileList(root string) ([]string, error) {
 	ret := []string{}
 	err := filepath.Walk(root,
 		func(path string, info os.FileInfo, err error) error {
+			if info == nil {
+				return errors.New("file info is nil")
+			}
 			if info.IsDir() {
 				return nil
 			}
@@ -162,10 +165,9 @@ func (c *Deploy) Run(args []string) int {
 
 	if *outerVals != "" {
 		baseStr, err := lib.Embedde(string(baseConfBinary), *outerVals)
-		if err != nil {
-			log.Fatal(err)
+		if err == nil {
+			baseConfBinary = []byte(baseStr)
 		}
-		baseConfBinary = []byte(baseStr)
 	}
 
 	if externalList != nil {
