@@ -39,7 +39,7 @@ func init() {
 	f = flagSet.String("f", "", "target file")
 	profile = flagSet.String("profile", "default", "aws credentials profile name")
 	region = flagSet.String("region", "ap-northeast-1", "aws region")
-	externalPath = flagSet.String("external_path", "", "external conf path")
+	externalPath = flagSet.String("vars_path", "", "external conf path")
 	outerVals = flagSet.String("V", "", "outer values")
 }
 
@@ -204,8 +204,8 @@ func (c *Deploy) Synopsis() string {
 	synopsis += "        -profile option is arbitrary parameter.\n"
 	synopsis += "    -region\n"
 	synopsis += "        aws region\n"
-	synopsis += "    -external_path\n"
-	synopsis += "        setting external path file\n"
+	synopsis += "    -vars_path\n"
+	synopsis += "        setting external values path file\n"
 	synopsis += "    -V\n"
 	synopsis += "        setting outer values\n"
 	synopsis += "===================================================\n"
