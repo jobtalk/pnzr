@@ -4,7 +4,9 @@ VERSION ?= `git show --quiet --pretty=format:"%cd" HEAD | sed 's/ /_/g' | sed 's
 build:
 	@mkdir -p bin/darwin
 	@mkdir -p bin/linux
+	@echo "build linux binary"
 	@GOOS=linux GOARCH=amd64 go build -o bin/linux/thor
+	@echo "build darwin binary"
 	@GOOS=darwin GOARCH=amd64 go build -o bin/darwin/thor
 .PHONY: build
 

@@ -14,6 +14,11 @@ jobs:
                     go get github.com/Masterminds/glide
                     go install github.com/Masterminds/glide
             - run:
+                name: "Install github-release"
+                command: |
+                    go get github.com/aktau/github-release
+                    go install github.com/aktau/github-release
+            - run:
                 name: "Install packages"
                 command: |
                     glide i
@@ -21,3 +26,7 @@ jobs:
                 name: "run test"
                 command: |
                     go test $(glide novendor)
+            - run:
+                name: "build thor"
+                command: |
+                    make
