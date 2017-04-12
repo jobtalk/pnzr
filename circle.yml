@@ -31,7 +31,7 @@ jobs:
                 command: |
                     if [ "${CIRCLE_BRANCH}" == "master" ]; then
                         make
-                    elif [[ "${CIRCLE_BRANCH}" =~ "^release-.*" ]]; then
+                    elif [[ "${CIRCLE_BRANCH}" =~ ^release-.* ]]; then
                         VERSION=${CIRCLE_BRANCH#release-} make
                     fi
             - deploy:
@@ -46,7 +46,7 @@ jobs:
             - deploy:
                 name: "release release branch"
                 command: |
-                    if [[ "$CIRCLE_BRANCH" =~ "^release-.*" ]]; then
+                    if [[ "$CIRCLE_BRANCH" =~ ^release-.* ]]; then
                         VERSION=${CIRCLE_BRANCH#release-} make
                         github-release release -u jobtalk -r thor -t "${VERSION}" -n "${VERSION}" -d "${VERSION}" --draft
                         github-release upload -u jobtalk -r thor -t "${VERSION}" --name "thor-darwin-amd64.tar.gz" --file bin/darwin/thor-darwin-amd64.tar.gz
