@@ -14,6 +14,11 @@ jobs:
                     go get github.com/Masterminds/glide
                     go install github.com/Masterminds/glide
             - run:
+                name: "Install github-release"
+                command: |
+                    go get github.com/aktau/github-release
+                    go install github.com/aktau/github-release
+            - run:
                 name: "Install packages"
                 command: |
                     glide i
@@ -21,3 +26,16 @@ jobs:
                 name: "run test"
                 command: |
                     go test $(glide novendor)
+            - run:
+                name: "build thor"
+                command: |
+                    make
+            - deploy:
+                name: "release head version"
+                command: |
+                    if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                        HASH=$(git rev-parse --short HEAD)
+                        github-release release -u jobtalk -r thor -t "${HASH}" -n head -d "${HASH}" -p
+                        github-release upload -u jobtalk -r thor -t "${HASH}" --name "thor-darwin-amd64.tar.gz" --file bin/darwin/thor-darwin-amd64.tar.gz
+                        github-release upload -u jobtalk -r thor -t "${HASH}" --name "thor-linux-amd64.tar.gz" --file bin/linux/thor-linux-amd64.tar.gz
+                    fi
