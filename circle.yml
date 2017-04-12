@@ -35,5 +35,5 @@ jobs:
                 command: |
                     if [ "${CIRCLE_BRANCH}" == "make" ]; then
                         HASH=$(git rev-parse --short HEAD)
-                        github-release release --user jobtalk --repo thor --name "${HASH}" --pre-release --description $(date) --tag $HASH
+                        github-release release -u jobtalk -r thor -t "${HASH}" -n head -d "${HASH}" -p
                     fi
