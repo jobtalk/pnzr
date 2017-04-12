@@ -36,4 +36,6 @@ jobs:
                     if [ "${CIRCLE_BRANCH}" == "make" ]; then
                         HASH=$(git rev-parse --short HEAD)
                         github-release release -u jobtalk -r thor -t "${HASH}" -n head -d "${HASH}" -p
+                        github-release upload -u jobtalk -r thor -t "${HASH}" --name "thor-darwin-amd64.tar.gz" --file bin/darwin/thor-darwin-amd64.tar.gz
+                        github-release upload -u jobtalk -r thor -t "${HASH}" --name "thor-linux-amd64.tar.gz" --file bin/linux/thor-linux-amd64.tar.gz
                     fi
