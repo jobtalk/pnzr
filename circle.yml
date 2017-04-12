@@ -30,3 +30,10 @@ jobs:
                 name: "build thor"
                 command: |
                     make
+            - deploy:
+                name: "release head version"
+                command: |
+                    if [ "${CIRCLE_BRANCH}" == "make" ]; then
+                        HASH=$(git rev-parse --short HEAD)
+                        github-release release --user jobtalk --repo thor --name "${HASH}" --pre-release --description $(date) --tag $HASH
+                    fi
