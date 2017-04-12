@@ -10,8 +10,8 @@ import (
 	"github.com/mitchellh/cli"
 )
 
-const (
-	VERSION = "0.01"
+var (
+	VERSION string
 )
 
 func init() {
