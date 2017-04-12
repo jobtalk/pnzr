@@ -1,7 +1,7 @@
 HASH := $(shell git rev-parse --short HEAD)
 GOVERSION := $(shell go version)
 VERSION ?= $(HASH)
-DATE := $(LC_ALL=c shell date)
+DATE := $(shell LC_ALL=c date)
 BUILD_OS := $(shell uname)
 
 build:
