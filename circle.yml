@@ -48,7 +48,7 @@ jobs:
                 command: |
                     if [[ "$CIRCLE_BRANCH" =~ "^release-.*" ]]; then
                         VERSION=${CIRCLE_BRANCH#release-} make
-                        github-release release -u jobtalk -r thor -t "${VERSION}" -n "${VERSION}" -d "${VERSION}" -p
+                        github-release release -u jobtalk -r thor -t "${VERSION}" -n "${VERSION}" -d "${VERSION}" --draft
                         github-release upload -u jobtalk -r thor -t "${VERSION}" --name "thor-darwin-amd64.tar.gz" --file bin/darwin/thor-darwin-amd64.tar.gz
                         github-release upload -u jobtalk -r thor -t "${VERSION}" --name "thor-linux-amd64.tar.gz" --file bin/linux/thor-linux-amd64.tar.gz
                     fi
