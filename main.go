@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"time"
 
 	"github.com/jobtalk/thor/subcmd/deploy"
 	"github.com/jobtalk/thor/subcmd/mkelb"
@@ -30,9 +29,6 @@ func generateBuildInfo() string {
 func init() {
 	if VERSION == "" {
 		VERSION = "unknown"
-	}
-	if BUILD_DATE == "" {
-		BUILD_DATE = time.Now().String()
 	}
 	VERSION = generateBuildInfo()
 	log.SetFlags(log.Llongfile)
