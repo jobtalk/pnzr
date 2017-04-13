@@ -5,9 +5,16 @@ ecs deploy docker container
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
 
-## install
+## Installation
+
+On macOS, or Linux run the following:
 ```
-$ go get -u github.com/jobtalk/thor
+$ curl https://raw.githubusercontent.com/jobtalk/thor/master/install.sh | sh
+```
+
+Note that you may need to run the sudo version below, or alternatively chown /usr/local:
+```
+$ curl https://raw.githubusercontent.com/jobtalk/thor/master/install.sh | sudo sh
 ```
 
 ## Deploy
