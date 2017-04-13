@@ -17,7 +17,6 @@ $ thor deploy -f config.json
 
 ## Option
 ```
-
 $ go run main.go -h
 
 Usage: thor [--version] [--help] <command> [<args>]
