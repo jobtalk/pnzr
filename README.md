@@ -6,7 +6,9 @@ ecs deploy docker container
 
 
 ## Installation
+Can be installed in either way.
 
+### Use install script
 On macOS, or Linux run the following:
 ```
 $ curl https://raw.githubusercontent.com/jobtalk/thor/master/install.sh | sh
@@ -15,6 +17,11 @@ $ curl https://raw.githubusercontent.com/jobtalk/thor/master/install.sh | sh
 Note that you may need to run the sudo version below, or alternatively chown /usr/local:
 ```
 $ curl https://raw.githubusercontent.com/jobtalk/thor/master/install.sh | sudo sh
+```
+
+### Use Go get
+```
+$ go get -u github.com/jobtalk/thor
 ```
 
 ## Deploy
