@@ -40,8 +40,8 @@ jobs:
                     if [ "${CIRCLE_BRANCH}" == "master" ]; then
                         HASH=$(git rev-parse --short HEAD)
                         github-release release -u jobtalk -r thor -t "${HASH}" -n "${HASH}" -d "${HASH}" -p
-                        github-release upload -u jobtalk -r thor -t "${HASH}" --name "thor-darwin-amd64" --file bin/darwin/thor-darwin-amd64
-                        github-release upload -u jobtalk -r thor -t "${HASH}" --name "thor-linux-amd64" --file bin/linux/thor-linux-amd64
+                        github-release upload -u jobtalk -r thor -t "${HASH}" --name "thor-darwin-amd64" --file bin/darwin/thor
+                        github-release upload -u jobtalk -r thor -t "${HASH}" --name "thor-linux-amd64" --file bin/linux/thor
                     fi
             - deploy:
                 name: "release release branch"
@@ -50,6 +50,6 @@ jobs:
                         VERSION=${CIRCLE_BRANCH#release-} make
                         VERSION=${CIRCLE_BRANCH#release-}
                         github-release release -u jobtalk -r thor -t "${VERSION}" -n "${VERSION}" -d "${VERSION}"
-                        github-release upload -u jobtalk -r thor -t "${VERSION}" --name "thor-darwin-amd64" --file bin/darwin/thor-darwin-amd64
-                        github-release upload -u jobtalk -r thor -t "${VERSION}" --name "thor-linux-amd64" --file bin/linux/thor-linux-amd64
+                        github-release upload -u jobtalk -r thor -t "${VERSION}" --name "thor-darwin-amd64" --file bin/darwin/thor
+                        github-release upload -u jobtalk -r thor -t "${VERSION}" --name "thor-linux-amd64" --file bin/linux/thor
                     fi
