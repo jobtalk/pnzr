@@ -1,38 +1,38 @@
-hash: 8b8f06223d737e6aeea79ea32af572030056ef280303d91d405d16fab7390193
-updated: 2017-04-14T18:46:01.855331305+09:00
+hash: ac79261c026cd667f91620ff8640f2529967a400ee140d89cdf3c82228010def
+updated: 2017-04-14T18:51:11.020712914+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: baba9e786eae5ba978f2007f8e718557b29157c8
+  version: 7be45195c3af1b54a609812f90c05a7e492e2491
   subpackages:
   - aws
-  - aws/credentials
-  - aws/session
-  - service/ecs
-  - service/elbv2
-  - service/kms
   - aws/awserr
-  - aws/endpoints
   - aws/awsutil
   - aws/client
   - aws/client/metadata
-  - aws/request
-  - aws/signer/v4
-  - private/protocol/query
   - aws/corehandlers
-  - aws/credentials/stscreds
-  - aws/defaults
-  - private/protocol/jsonrpc
-  - private/protocol
-  - private/protocol/rest
-  - private/protocol/query/queryutil
-  - private/protocol/xml/xmlutil
-  - service/sts
+  - aws/credentials
   - aws/credentials/ec2rolecreds
   - aws/credentials/endpointcreds
+  - aws/credentials/stscreds
+  - aws/defaults
   - aws/ec2metadata
+  - aws/endpoints
+  - aws/request
+  - aws/session
+  - aws/signer/v4
+  - private/protocol
   - private/protocol/json/jsonutil
+  - private/protocol/jsonrpc
+  - private/protocol/query
+  - private/protocol/query/queryutil
+  - private/protocol/rest
+  - private/protocol/xml/xmlutil
+  - service/ecs
+  - service/elbv2
+  - service/kms
+  - service/sts
 - name: github.com/bgentry/speakeasy
   version: 675b82c74c0ed12283ee81ba8a534c8982c07b85
 - name: github.com/go-ini/ini
@@ -47,4 +47,4 @@ imports:
   version: f3918c30c5c2cb527c0b071a27c35120a6c0719a
   subpackages:
   - unix
-devImports: []
+testImports: []
