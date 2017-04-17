@@ -7,19 +7,44 @@ import (
 	"github.com/jobtalk/thor/lib/setting"
 )
 
+func createTargetGroup(awsConfig *aws.Config, s *elbv2.CreateTargetGroupInput) (*elbv2.CreateTargetGroupOutput, error) {
+	resultTargetGroup, err := lib.CreateTargetGroup(awsConfig, s)
+	if err != nil {
+		return nil, err
+	}
+	return resultTargetGroup, nil
+}
+
+func createLoadBalancer(awsConfig *aws.Config, s *elbv2.CreateLoadBalancerInput) (*elbv2.CreateLoadBalancerOutput, error) {
+	r, err := lib.CreateLoadBalancer(awsConfig, s)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
 func MkELB(awsConfig *aws.Config, s *setting.ELB) (interface{}, error) {
 	var result = []interface{}{}
-	resultTargetGroup, err := lib.CreateTargetGroup(awsConfig, s.TargetGroup)
-	if err != nil {
-		return nil, err
-	}
-	result = append(result, resultTargetGroup)
+	var resultTargetGroup *elbv2.CreateTargetGroupOutput
+	var resultLoadBalancer *elbv2.CreateLoadBalancerOutput
 
-	resultLoadBalancer, err := lib.CreateLoadBalancer(awsConfig, s.LB)
-	if err != nil {
-		return nil, err
+	if s.TargetGroup != nil {
+		r, err := createTargetGroup(awsConfig, s.TargetGroup)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, r)
+		resultTargetGroup = r
 	}
-	result = append(result, resultLoadBalancer)
+
+	if s.LB != nil {
+		r, err := createLoadBalancer(awsConfig, s.LB)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, r)
+		resultLoadBalancer = r
+	}
 
 	defaultAction := &elbv2.Action{
 		TargetGroupArn: resultTargetGroup.TargetGroups[0].TargetGroupArn,
