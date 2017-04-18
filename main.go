@@ -10,6 +10,7 @@ import (
 	"github.com/jobtalk/thor/subcmd/mkelb"
 	"github.com/jobtalk/thor/subcmd/update"
 	"github.com/jobtalk/thor/subcmd/vault"
+	"github.com/jobtalk/thor/vars"
 	"github.com/mitchellh/cli"
 )
 
@@ -33,6 +34,10 @@ func init() {
 	}
 	VERSION = generateBuildInfo()
 	log.SetFlags(log.Llongfile)
+
+	vars.VERSION = &VERSION
+	vars.BUILD_DATE = &BUILD_DATE
+	vars.BUILD_OS = &BUILD_OS
 }
 
 func main() {
