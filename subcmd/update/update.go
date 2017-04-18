@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"runtime"
 
 	"github.com/jobtalk/thor/vars"
@@ -92,7 +91,7 @@ func (c *Update) Run(args []string) int {
 	}
 	binaryURL := fmt.Sprintf("https://github.com/jobtalk/thor/releases/download/%s/thor-%s", latest, platform)
 
-	dir, err := filepath.Abs(os.Args[0]) // Get the absolute path at Executing file. Reference：http://stackoverflow.com/questions/18537257/golang-how-to-get-the-directory-of-the-currently-running-file
+	dir, err := os.Executable()
 	if err != nil {
 		log.Println(err)
 		return 255
