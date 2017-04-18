@@ -26,6 +26,13 @@ $ curl https://raw.githubusercontent.com/jobtalk/thor/master/install.sh | sudo s
 $ go get -u github.com/jobtalk/thor
 ```
 
+### Use Homebrew
+```
+$ brew tap ieee0824/thor
+$ brew update
+$ brew install
+```
+
 ## Deploy
 ```
 $ thor deploy -f config.json
