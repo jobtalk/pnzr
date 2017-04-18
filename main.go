@@ -32,12 +32,13 @@ func init() {
 	if VERSION == "" {
 		VERSION = "unknown"
 	}
+	vars.VERSION = VERSION
+	vars.BUILD_DATE = BUILD_DATE
+	vars.BUILD_OS = BUILD_OS
+
 	VERSION = generateBuildInfo()
 	log.SetFlags(log.Llongfile)
 
-	vars.VERSION = &VERSION
-	vars.BUILD_DATE = &BUILD_DATE
-	vars.BUILD_OS = &BUILD_OS
 }
 
 func main() {
