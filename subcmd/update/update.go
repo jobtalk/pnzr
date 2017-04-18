@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/jobtalk/thor/vars"
 )
 
 const (
@@ -80,6 +82,10 @@ func (c *Update) Run(args []string) int {
 		platform = "linux-amd64"
 	}
 	latest := tags[0].Name
+	if *vars.VERSION == latest {
+		fmt.Println("this version is latest")
+		return 0
+	}
 	if latest == "" {
 		fmt.Println("can not get latest version")
 		return 255
