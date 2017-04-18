@@ -82,7 +82,7 @@ func (c *Update) Run(args []string) int {
 		platform = "linux-amd64"
 	}
 	latest := tags[0].Name
-	if *vars.VERSION == latest {
+	if vars.VERSION == latest {
 		fmt.Println("this version is latest")
 		return 0
 	}
