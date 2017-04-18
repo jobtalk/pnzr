@@ -35,7 +35,7 @@ install() {
 		echo "Error requesting. Download binary from https://github.com/jobtalk/thor/releases"
 		exit 1
 	else
-		echo "Downloading Apex binary from https://github.com/jobtalk/thor/releases/download/$LATEST/thor-$PLATFORM to $DEST"
+		echo "Downloading thor binary from https://github.com/jobtalk/thor/releases/download/$LATEST/thor-$PLATFORM to $DEST"
 		if curl -sL https://github.com/jobtalk/thor/releases/download/$LATEST/thor-$PLATFORM -o $DEST; then
 			chmod +x $DEST
 			echo "thor installation was successful"
