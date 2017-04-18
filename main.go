@@ -8,6 +8,7 @@ import (
 
 	"github.com/jobtalk/thor/subcmd/deploy"
 	"github.com/jobtalk/thor/subcmd/mkelb"
+	"github.com/jobtalk/thor/subcmd/update"
 	"github.com/jobtalk/thor/subcmd/vault"
 	"github.com/mitchellh/cli"
 )
@@ -46,6 +47,9 @@ func main() {
 		},
 		"vault": func() (cli.Command, error) {
 			return &vault.Vault{}, nil
+		},
+		"update": func() (cli.Command, error) {
+			return &update.Update{}, nil
 		},
 	}
 	exitCode, err := c.Run()

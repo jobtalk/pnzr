@@ -10,7 +10,7 @@ import (
 // 存在するときはアップデートする
 func Deploy(awsConfig *aws.Config, s *setting.Setting) (interface{}, error) {
 	var result = []interface{}{}
-	if s.ECS != nil {
+	if s.ECS != nil && s.ELB != nil {
 		resultMkELB, err := MkELB(awsConfig, s.ELB)
 		if err != nil {
 			return nil, err
