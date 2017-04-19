@@ -30,7 +30,7 @@ $ go get -u github.com/jobtalk/thor
 ```
 $ brew tap ieee0824/thor
 $ brew update
-$ brew install
+$ brew install thor
 ```
 
 ## Deploy
