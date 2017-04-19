@@ -46,16 +46,21 @@ func MkELB(awsConfig *aws.Config, s *setting.ELB) (interface{}, error) {
 		resultLoadBalancer = r
 	}
 
-	defaultAction := &elbv2.Action{
-		TargetGroupArn: resultTargetGroup.TargetGroups[0].TargetGroupArn,
-		Type:           aws.String("forward"),
+	var defaultAction *elbv2.Action
+	if len(resultTargetGroup.TargetGroups) != 0 {
+		defaultAction = &elbv2.Action{
+			TargetGroupArn: resultTargetGroup.TargetGroups[0].TargetGroupArn,
+			Type:           aws.String("forward"),
+		}
 	}
 
 	s.Listener.DefaultActions = []*elbv2.Action{
 		defaultAction,
 	}
 
-	s.Listener.LoadBalancerArn = resultLoadBalancer.LoadBalancers[0].LoadBalancerArn
+	if resultLoadBalancer != nil && len(resultLoadBalancer.LoadBalancers) != 0 {
+		s.Listener.LoadBalancerArn = resultLoadBalancer.LoadBalancers[0].LoadBalancerArn
+	}
 
 	resultLister, err := lib.CreateListener(awsConfig, s.Listener)
 	if err != nil {
