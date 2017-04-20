@@ -154,7 +154,7 @@ func (c *Deploy) Run(args []string) int {
 	if *file == "" {
 		file = f
 	}
-	if awsAccessKeyID != "" && awsSecretKeyID != "" {
+	if *awsAccessKeyID != "" && *awsSecretKeyID != "" {
 		cred = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
 	} else {
 		cred = credentials.NewSharedCredentials("", *profile)

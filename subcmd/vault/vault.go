@@ -99,7 +99,7 @@ func (c *Vault) Run(args []string) int {
 		log.Fatalln(err)
 	}
 	var cred *credentials.Credentials
-	if awsAccessKeyID != "" && awsSecretKeyID != "" {
+	if *awsAccessKeyID != "" && *awsSecretKeyID != "" {
 		cred = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
 	} else {
 		cred = credentials.NewSharedCredentials("", *profile)
