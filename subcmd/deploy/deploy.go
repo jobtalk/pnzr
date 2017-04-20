@@ -218,6 +218,10 @@ func (c *Deploy) Synopsis() string {
 	synopsis += "        setting external values path file\n"
 	synopsis += "    -V\n"
 	synopsis += "        setting outer values\n"
+	synopsis += "    -aws-access-key-id\n"
+	synopsis += "        setting aws access key id\n"
+	synopsis += "    -aws-secret-key-id\n"
+	synopsis += "        setting aws secret key id\n"
 	synopsis += "===================================================\n"
 
 	return synopsis
