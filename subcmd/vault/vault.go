@@ -90,6 +90,10 @@ func (c *Vault) Help() string {
 	msg += "        aws credential name\n"
 	msg += "    -region\n"
 	msg += "        aws region name\n"
+	msg += "    -aws-access-key-id\n"
+	msg += "        setting aws access key id\n"
+	msg += "    -aws-secret-key-id\n"
+	msg += "        setting aws secret key id\n"
 	msg += "===================================================\n"
 	return msg
 }
