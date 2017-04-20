@@ -15,13 +15,15 @@ import (
 var flagSet = &flag.FlagSet{}
 
 var (
-	kmsKeyID    *string
-	encryptFlag *bool
-	decryptFlag *bool
-	file        *string
-	f           *string
-	profile     *string
-	region      *string
+	kmsKeyID       *string
+	encryptFlag    *bool
+	decryptFlag    *bool
+	file           *string
+	f              *string
+	profile        *string
+	region         *string
+	awsAccessKeyID *string
+	awsSecretKeyID *string
 )
 
 func init() {
@@ -30,6 +32,9 @@ func init() {
 	decryptFlag = flagSet.Bool("decrypt", false, "decrypt mode")
 	profile = flagSet.String("profile", "default", "aws credentials profile name")
 	region = flagSet.String("region", "ap-northeast-1", "aws region")
+
+	awsAccessKeyID = flagSet.String("aws-access-key-id", "", "aws access key id")
+	awsSecretKeyID = flagSet.String("aws-secret-key-id", "", "aws secret key id")
 
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
@@ -94,7 +99,12 @@ func (c *Vault) Run(args []string) int {
 		log.Fatalln(err)
 	}
 	var cred *credentials.Credentials
-	cred = credentials.NewSharedCredentials("", *profile)
+	if *awsAccessKeyID != "" && *awsSecretKeyID != "" {
+		cred = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
+	} else {
+		cred = credentials.NewSharedCredentials("", *profile)
+	}
+
 	awsConfig := &aws.Config{
 		Credentials: cred,
 		Region:      region,
