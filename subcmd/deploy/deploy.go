@@ -24,13 +24,15 @@ var re = regexp.MustCompile(`.*\.json$`)
 var flagSet = &flag.FlagSet{}
 var cred *credentials.Credentials
 var (
-	file         *string
-	f            *string
-	profile      *string
-	kmsKeyID     *string
-	region       *string
-	externalPath *string
-	outerVals    *string
+	file           *string
+	f              *string
+	profile        *string
+	kmsKeyID       *string
+	region         *string
+	externalPath   *string
+	outerVals      *string
+	awsAccessKeyID *string
+	awsSecretKeyID *string
 )
 
 func init() {
@@ -41,6 +43,10 @@ func init() {
 	region = flagSet.String("region", "ap-northeast-1", "aws region")
 	externalPath = flagSet.String("vars_path", "", "external conf path")
 	outerVals = flagSet.String("V", "", "outer values")
+
+	awsAccessKeyID = flagSet.String("aws-access-key-id", "", "aws access key id")
+	awsSecretKeyID = flagSet.String("aws-secret-key-id", "", "aws secret key id")
+
 }
 
 func fileList(root string) ([]string, error) {
@@ -148,7 +154,11 @@ func (c *Deploy) Run(args []string) int {
 	if *file == "" {
 		file = f
 	}
-	cred = credentials.NewSharedCredentials("", *profile)
+	if awsAccessKeyID != "" && awsSecretKeyID != "" {
+		cred = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
+	} else {
+		cred = credentials.NewSharedCredentials("", *profile)
+	}
 	awsConfig := &aws.Config{
 		Credentials: cred,
 		Region:      region,
