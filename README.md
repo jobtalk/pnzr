@@ -33,8 +33,8 @@ $ brew update
 $ brew install thor
 ```
 ## Detailed instructions
-Please read the wiki.
-https://github.com/jobtalk/thor/wiki
+Please read the [wiki](https://github.com/jobtalk/thor/wiki).
+
 
 ## Deploy
 ```
