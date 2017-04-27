@@ -200,7 +200,11 @@ func (c *Deploy) Run(args []string) int {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(result)
+	resultJSON, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(resultJSON))
 	return 0
 }
 
