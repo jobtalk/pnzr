@@ -33,6 +33,7 @@ var (
 	outerVals      *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
+	tagOverride    *string
 )
 
 func init() {
@@ -43,10 +44,18 @@ func init() {
 	region = flagSet.String("region", "ap-northeast-1", "aws region")
 	externalPath = flagSet.String("vars_path", "", "external conf path")
 	outerVals = flagSet.String("V", "", "outer values")
+	tagOverride = flagSet.String("t", "master", "tag override param")
 
 	awsAccessKeyID = flagSet.String("aws-access-key-id", "", "aws access key id")
 	awsSecretKeyID = flagSet.String("aws-secret-key-id", "", "aws secret key id")
+}
 
+func parseDockerImage(image string) (url, tag string) {
+	r := strings.Split(image, ":")
+	if len(r) == 2 {
+		return r[0], r[1]
+	}
+	return r[0], ""
 }
 
 func fileList(root string) ([]string, error) {
@@ -193,6 +202,17 @@ func (c *Deploy) Run(args []string) int {
 		}
 		if err := json.Unmarshal(bin, config); err != nil {
 			log.Fatalln(err)
+		}
+	}
+
+	for i, containerDefinition := range config.ECS.TaskDefinition.ContainerDefinitions {
+		imageName, tag := parseDockerImage(*containerDefinition.Image)
+		if tag == "$tag" {
+			image := imageName + *tagOverride
+			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
+		} else if tag == "" {
+			image := imageName + "master"
+			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
 		}
 	}
 
