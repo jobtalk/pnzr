@@ -44,7 +44,7 @@ func init() {
 	region = flagSet.String("region", "ap-northeast-1", "aws region")
 	externalPath = flagSet.String("vars_path", "", "external conf path")
 	outerVals = flagSet.String("V", "", "outer values")
-	tagOverride = flagSet.String("t", "master", "tag override param")
+	tagOverride = flagSet.String("t", "latest", "tag override param")
 
 	awsAccessKeyID = flagSet.String("aws-access-key-id", "", "aws access key id")
 	awsSecretKeyID = flagSet.String("aws-secret-key-id", "", "aws secret key id")
@@ -208,10 +208,10 @@ func (c *Deploy) Run(args []string) int {
 	for i, containerDefinition := range config.ECS.TaskDefinition.ContainerDefinitions {
 		imageName, tag := parseDockerImage(*containerDefinition.Image)
 		if tag == "$tag" {
-			image := imageName + *tagOverride
+			image := imageName + ":" + *tagOverride
 			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
 		} else if tag == "" {
-			image := imageName + "master"
+			image := imageName + ":" + "latest"
 			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
 		}
 	}
