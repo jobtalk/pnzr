@@ -7,25 +7,34 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/aws/aws-sdk-go/service/ecs/ecsiface"
 )
 
 type Service struct {
 	Name *string
 }
 
-func RegisterTaskDefinition(awsConfig *aws.Config, registerTaskDefinitionInput *ecs.RegisterTaskDefinitionInput) (*ecs.RegisterTaskDefinitionOutput, error) {
-	svc := ecs.New(session.New(), awsConfig)
-	return svc.RegisterTaskDefinition(registerTaskDefinitionInput)
+type ECS struct {
+	svc ecsiface.ECSAPI
 }
 
-func ListServices(awsConfig *aws.Config, params *ecs.ListServicesInput) (*ecs.ListServicesOutput, error) {
+func NewECS(awsConfig *aws.Config) *ECS {
+	return &ECS{
+		svc: ecs.New(session.New(), awsConfig),
+	}
+}
+
+func (e *ECS) RegisterTaskDefinition(registerTaskDefinitionInput *ecs.RegisterTaskDefinitionInput) (*ecs.RegisterTaskDefinitionOutput, error) {
+	return e.svc.RegisterTaskDefinition(registerTaskDefinitionInput)
+}
+
+func (e *ECS) ListServices(params *ecs.ListServicesInput) (*ecs.ListServicesOutput, error) {
 	var (
 		ret     = &ecs.ListServicesOutput{}
 		pageNum int
-		svc     = ecs.New(session.New(), awsConfig)
 	)
 
-	err := svc.ListServicesPages(params, func(page *ecs.ListServicesOutput, lastPage bool) bool {
+	err := e.svc.ListServicesPages(params, func(page *ecs.ListServicesOutput, lastPage bool) bool {
 		pageNum++
 		ret.ServiceArns = append(ret.ServiceArns, page.ServiceArns...)
 		return pageNum <= 1000
@@ -36,17 +45,16 @@ func ListServices(awsConfig *aws.Config, params *ecs.ListServicesInput) (*ecs.Li
 	return ret, nil
 }
 
-func CreateService(awsConfig *aws.Config, createServiceInput *ecs.CreateServiceInput) (*ecs.CreateServiceOutput, error) {
-	svc := ecs.New(session.New(), awsConfig)
-	return svc.CreateService(createServiceInput)
+func (e *ECS) CreateService(createServiceInput *ecs.CreateServiceInput) (*ecs.CreateServiceOutput, error) {
+	return e.svc.CreateService(createServiceInput)
 }
 
-func UpdateService(awsConfig *aws.Config, updateServiceInput *ecs.UpdateServiceInput) (*ecs.UpdateServiceOutput, error) {
-	svc := ecs.New(session.New(), awsConfig)
-	return svc.UpdateService(updateServiceInput)
+func (e *ECS) UpdateService(updateServiceInput *ecs.UpdateServiceInput) (*ecs.UpdateServiceOutput, error) {
+	return e.svc.UpdateService(updateServiceInput)
 }
 
 func UpsertService(awsConfig *aws.Config, createServiceInput *ecs.CreateServiceInput) (interface{}, error) {
+	ecsClient := NewECS(awsConfig)
 	if len(createServiceInput.LoadBalancers) != 0 && targetGroupARN != nil {
 		createServiceInput.LoadBalancers[0].TargetGroupArn = targetGroupARN
 	}
@@ -58,7 +66,7 @@ func UpsertService(awsConfig *aws.Config, createServiceInput *ecs.CreateServiceI
 		return nil, err
 	}
 	if !ok {
-		return CreateService(awsConfig, createServiceInput)
+		return ecsClient.CreateService(createServiceInput)
 	}
 
 	updateServiceInput := &ecs.UpdateServiceInput{}
@@ -67,14 +75,15 @@ func UpsertService(awsConfig *aws.Config, createServiceInput *ecs.CreateServiceI
 	updateServiceInput.DesiredCount = createServiceInput.DesiredCount
 	updateServiceInput.Service = createServiceInput.ServiceName
 	updateServiceInput.TaskDefinition = createServiceInput.TaskDefinition
-	return UpdateService(awsConfig, updateServiceInput)
+	return ecsClient.UpdateService(updateServiceInput)
 }
 
 func IsExistService(awsConfig *aws.Config, clusetrName string, serviceName string) (bool, error) {
+	ecsClient := NewECS(awsConfig)
 	listInput := &ecs.ListServicesInput{
 		Cluster: aws.String(clusetrName),
 	}
-	result, err := ListServices(awsConfig, listInput)
+	result, err := ecsClient.ListServices(listInput)
 	if err != nil {
 		return false, err
 	}
