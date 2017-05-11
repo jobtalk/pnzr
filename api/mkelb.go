@@ -8,7 +8,8 @@ import (
 )
 
 func createTargetGroup(awsConfig *aws.Config, s *elbv2.CreateTargetGroupInput) (*elbv2.CreateTargetGroupOutput, error) {
-	resultTargetGroup, err := lib.CreateTargetGroup(awsConfig, s)
+	elbclient := lib.NewELB(awsConfig)
+	resultTargetGroup, err := elbclient.CreateTargetGroup(s)
 	if err != nil {
 		return nil, err
 	}
@@ -16,7 +17,8 @@ func createTargetGroup(awsConfig *aws.Config, s *elbv2.CreateTargetGroupInput) (
 }
 
 func createLoadBalancer(awsConfig *aws.Config, s *elbv2.CreateLoadBalancerInput) (*elbv2.CreateLoadBalancerOutput, error) {
-	r, err := lib.CreateLoadBalancer(awsConfig, s)
+	elbclient := lib.NewELB(awsConfig)
+	r, err := elbclient.CreateLoadBalancer(s)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +64,8 @@ func MkELB(awsConfig *aws.Config, s *setting.ELB) (interface{}, error) {
 		s.Listener.LoadBalancerArn = resultLoadBalancer.LoadBalancers[0].LoadBalancerArn
 	}
 
-	resultLister, err := lib.CreateListener(awsConfig, s.Listener)
+	elbclient := lib.NewELB(awsConfig)
+	resultLister, err := elbclient.CreateListener(s.Listener)
 	if err != nil {
 		return nil, err
 	}

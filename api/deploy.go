@@ -10,6 +10,7 @@ import (
 // serviceが存在しない時はサービスを作る
 // 存在するときはアップデートする
 func Deploy(awsConfig *aws.Config, s *setting.Setting) (interface{}, error) {
+	ecsClient := lib.NewECS(awsConfig)
 	var result = []interface{}{}
 	if s.ELB != nil {
 		resultMkELB, err := MkELB(awsConfig, s.ELB)
@@ -32,7 +33,7 @@ func Deploy(awsConfig *aws.Config, s *setting.Setting) (interface{}, error) {
 		}
 	}
 	if s.ECS != nil && s.ECS.TaskDefinition != nil {
-		resultTaskDefinition, err := lib.RegisterTaskDefinition(awsConfig, s.ECS.TaskDefinition)
+		resultTaskDefinition, err := ecsClient.RegisterTaskDefinition(s.ECS.TaskDefinition)
 		if err != nil {
 			return nil, err
 		}
