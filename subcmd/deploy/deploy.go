@@ -246,6 +246,12 @@ func (c *Deploy) Synopsis() string {
 	synopsis += "        setting aws access key id\n"
 	synopsis += "    -aws-secret-key-id\n"
 	synopsis += "        setting aws secret key id\n"
+	synopsis += "    -t tag name\n"
+	synopsis += "        setting docker tag\n"
+	synopsis += "        defining as follows will replace $tag.\n"
+	synopsis += "        \"Image\":\"image-name:$tag\"\n"
+	synopsis += "    -key_id \n"
+	synopsis += "        set kms key id\n"
 	synopsis += "===================================================\n"
 
 	return synopsis
