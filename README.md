@@ -1,7 +1,7 @@
-# eriri
+# pnzr
 ecs deploy docker container
 
-[![CircleCI](https://circleci.com/gh/jobtalk/eriri.svg?style=shield)](https://circleci.com/gh/jobtalk/eriri)
+[![CircleCI](https://circleci.com/gh/jobtalk/pnzr.svg?style=shield)](https://circleci.com/gh/jobtalk/pnzr)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
 ## Support Go version
@@ -13,44 +13,44 @@ Can be installed in either way.
 ### Use install script
 On macOS, or Linux run the following:
 ```
-$ curl https://raw.githubusercontent.com/jobtalk/eriri/master/install.sh | sh
+$ curl https://raw.githubusercontent.com/jobtalk/pnzr/master/install.sh | sh
 ```
 
 Note that you may need to run the sudo version below, or alternatively chown /usr/local:
 ```
-$ curl https://raw.githubusercontent.com/jobtalk/eriri/master/install.sh | sudo sh
+$ curl https://raw.githubusercontent.com/jobtalk/pnzr/master/install.sh | sudo sh
 ```
 
 ### Use Go get
 ```
-$ go get -u github.com/jobtalk/eriri
+$ go get -u github.com/jobtalk/pnzr
 ```
 
 ### Use Homebrew
 ```
-$ brew tap ieee0824/eriri
+$ brew tap ieee0824/pnzr
 $ brew update
-$ brew install eriri
+$ brew install pnzr
 ```
 ## Detailed instructions
-Please read the [wiki](https://github.com/jobtalk/eriri/wiki).
+Please read the [wiki](https://github.com/jobtalk/pnzr/wiki).
 
 
 ## Deploy
 ```
-$ eriri deploy -f config.json
+$ pnzr deploy -f config.json
 ```
 
 ## Option
 ```
 $ go run main.go -h
 
-Usage: eriri [--version] [--help] <command> [<args>]
+Usage: pnzr [--version] [--help] <command> [<args>]
 
 Available commands are:
-    deploy    usage: eriri deploy [options ...]
+    deploy    usage: pnzr deploy [options ...]
 options:
-    -f eriri_setting.json
+    -f pnzr_setting.json
 
     -profile=${aws profile name}
         -profile option is arbitrary parameter.
@@ -62,15 +62,15 @@ options:
         setting outer values
 ===================================================
 
-    mkelb     usage: eriri mkelb [options ...]
+    mkelb     usage: pnzr mkelb [options ...]
 options:
-    -f eriri_setting.json
+    -f pnzr_setting.json
 
     --profile=${aws profile name}
         --profile option is arbitrary parameter.
 ===================================================
 
-    vault     usage: eriri vault [options ...]
+    vault     usage: pnzr vault [options ...]
 options:
     -key_id
         set kms key id

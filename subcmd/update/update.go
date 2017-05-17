@@ -9,11 +9,11 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/jobtalk/eriri/vars"
+	"github.com/jobtalk/pnzr/vars"
 )
 
 const (
-	GITHUB_API = "https://api.github.com/repos/jobtalk/eriri/tags"
+	GITHUB_API = "https://api.github.com/repos/jobtalk/pnzr/tags"
 )
 
 var client = &http.Client{}
@@ -89,7 +89,7 @@ func (c *Update) Run(args []string) int {
 		fmt.Println("can not get latest version")
 		return 255
 	}
-	binaryURL := fmt.Sprintf("https://github.com/jobtalk/eriri/releases/download/%s/eriri-%s", latest, platform)
+	binaryURL := fmt.Sprintf("https://github.com/jobtalk/pnzr/releases/download/%s/pnzr-%s", latest, platform)
 
 	dir, err := os.Executable()
 	if err != nil {

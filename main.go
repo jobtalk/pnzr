@@ -6,13 +6,13 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/jobtalk/eriri/subcmd/deploy"
-	"github.com/jobtalk/eriri/subcmd/mkelb"
-	"github.com/jobtalk/eriri/subcmd/update"
-	"github.com/jobtalk/eriri/subcmd/vault"
-	"github.com/jobtalk/eriri/subcmd/vault_edit"
-	"github.com/jobtalk/eriri/subcmd/vault_view"
-	"github.com/jobtalk/eriri/vars"
+	"github.com/jobtalk/pnzr/subcmd/deploy"
+	"github.com/jobtalk/pnzr/subcmd/mkelb"
+	"github.com/jobtalk/pnzr/subcmd/update"
+	"github.com/jobtalk/pnzr/subcmd/vault"
+	"github.com/jobtalk/pnzr/subcmd/vault_edit"
+	"github.com/jobtalk/pnzr/subcmd/vault_view"
+	"github.com/jobtalk/pnzr/vars"
 	"github.com/mitchellh/cli"
 )
 
@@ -44,7 +44,7 @@ func init() {
 }
 
 func main() {
-	c := cli.NewCLI("eriri", VERSION)
+	c := cli.NewCLI("pnzr", VERSION)
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"deploy": func() (cli.Command, error) {
