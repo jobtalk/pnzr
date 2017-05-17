@@ -10,6 +10,8 @@ import (
 	"github.com/jobtalk/thor/subcmd/mkelb"
 	"github.com/jobtalk/thor/subcmd/update"
 	"github.com/jobtalk/thor/subcmd/vault"
+	"github.com/jobtalk/thor/subcmd/vault_edit"
+	"github.com/jobtalk/thor/subcmd/vault_view"
 	"github.com/jobtalk/thor/vars"
 	"github.com/mitchellh/cli"
 )
@@ -56,6 +58,12 @@ func main() {
 		},
 		"update": func() (cli.Command, error) {
 			return &update.Update{}, nil
+		},
+		"vault-edit": func() (cli.Command, error) {
+			return &vedit.VaultEdit{}, nil
+		},
+		"vault-view": func() (cli.Command, error) {
+			return &vview.VaultView{}, nil
 		},
 	}
 	exitCode, err := c.Run()

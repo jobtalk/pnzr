@@ -1,4 +1,4 @@
-package vault
+package vedit
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+	"os/exec"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -16,8 +18,6 @@ var flagSet = &flag.FlagSet{}
 
 var (
 	kmsKeyID       *string
-	encryptFlag    *bool
-	decryptFlag    *bool
 	file           *string
 	f              *string
 	profile        *string
@@ -28,8 +28,6 @@ var (
 
 func init() {
 	kmsKeyID = flagSet.String("key_id", "", "Amazon KMS key ID")
-	encryptFlag = flagSet.Bool("encrypt", false, "encrypt mode")
-	decryptFlag = flagSet.Bool("decrypt", false, "decrypt mode")
 	profile = flagSet.String("profile", "default", "aws credentials profile name")
 	region = flagSet.String("region", "ap-northeast-1", "aws region")
 
@@ -70,18 +68,14 @@ func decrypt(keyID string, fileName string, awsConfig *aws.Config) error {
 	return ioutil.WriteFile(fileName, plainText, 0644)
 }
 
-type Vault struct{}
+type VaultEdit struct{}
 
-func (c *Vault) Help() string {
+func (c *VaultEdit) Help() string {
 	var msg string
-	msg += "usage: thor vault [options ...]\n"
+	msg += "usage: thor vault-edit [options ...]\n"
 	msg += "options:\n"
 	msg += "    -key_id\n"
 	msg += "        set kms key id\n"
-	msg += "    -encrypt\n"
-	msg += "        use encrypt mode\n"
-	msg += "    -decrypt\n"
-	msg += "        use decrypt mode\n"
 	msg += "    -file\n"
 	msg += "        setting target file\n"
 	msg += "    -f"
@@ -98,7 +92,23 @@ func (c *Vault) Help() string {
 	return msg
 }
 
-func (c *Vault) Run(args []string) int {
+func (c *VaultEdit) Synopsis() string {
+	return c.Help()
+}
+
+func getEditor() string {
+	if e := os.Getenv("THOR_EDITOR"); e != "" {
+		return e
+	}
+
+	if e := os.Getenv("EDITOR"); e != "" {
+		return e
+	}
+
+	return "nano"
+}
+
+func (c *VaultEdit) Run(args []string) int {
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
@@ -117,23 +127,22 @@ func (c *Vault) Run(args []string) int {
 	if *file == "" {
 		file = f
 	}
-	if *encryptFlag == *decryptFlag {
-		log.Fatalln("Choose whether to execute encrypt or decrypt.")
-	}
-	if *decryptFlag {
-		err := decrypt(*kmsKeyID, *file, awsConfig)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	} else if *encryptFlag {
-		err := encrypt(*kmsKeyID, *file, awsConfig)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}
-	return 0
-}
 
-func (c *Vault) Synopsis() string {
-	return c.Help()
+	if err := decrypt(*kmsKeyID, *file, awsConfig); err != nil {
+		log.Fatalln(err)
+	}
+
+	cmd := exec.Command(getEditor(), *file)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	cmd.Run()
+
+	if err := encrypt(*kmsKeyID, *file, awsConfig); err != nil {
+		log.Fatalln(err)
+	}
+
+	return 0
 }
