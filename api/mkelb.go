@@ -3,8 +3,8 @@ package api
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/jobtalk/thor/lib"
-	"github.com/jobtalk/thor/lib/setting"
+	"github.com/jobtalk/pnzr/lib"
+	"github.com/jobtalk/pnzr/lib/setting"
 )
 
 func createTargetGroup(awsConfig *aws.Config, s *elbv2.CreateTargetGroupInput) (*elbv2.CreateTargetGroupOutput, error) {

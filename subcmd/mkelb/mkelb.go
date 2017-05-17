@@ -10,8 +10,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/jobtalk/thor/api"
-	"github.com/jobtalk/thor/lib/setting"
+	"github.com/jobtalk/pnzr/api"
+	"github.com/jobtalk/pnzr/lib/setting"
 )
 
 // --hoge=hugaみたいなやつ
@@ -98,7 +98,7 @@ func (c *MkELB) Help() string {
 	help := ""
 	help += "usage: mkelb [options ...]\n"
 	help += "options:\n"
-	help += "    -f thor_setting.json\n"
+	help += "    -f pnzr_setting.json\n"
 	help += "\n"
 	help += "    --profile=${aws profile name}\n"
 	help += "        --profile option is arbitrary parameter.\n"
@@ -138,9 +138,9 @@ func (c *MkELB) Run(args []string) int {
 
 func (c *MkELB) Synopsis() string {
 	synopsis := ""
-	synopsis += "usage: thor mkelb [options ...]\n"
+	synopsis += "usage: pnzr mkelb [options ...]\n"
 	synopsis += "options:\n"
-	synopsis += "    -f thor_setting.json\n"
+	synopsis += "    -f pnzr_setting.json\n"
 	synopsis += "\n"
 	synopsis += "    --profile=${aws profile name}\n"
 	synopsis += "        --profile option is arbitrary parameter.\n"
