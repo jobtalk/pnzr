@@ -11,7 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/jobtalk/thor/lib"
+	"github.com/jobtalk/eriri/lib"
 )
 
 var flagSet = &flag.FlagSet{}
@@ -72,7 +72,7 @@ type VaultEdit struct{}
 
 func (c *VaultEdit) Help() string {
 	var msg string
-	msg += "usage: thor vault-edit [options ...]\n"
+	msg += "usage: eriri vault-edit [options ...]\n"
 	msg += "options:\n"
 	msg += "    -key_id\n"
 	msg += "        set kms key id\n"
@@ -97,7 +97,7 @@ func (c *VaultEdit) Synopsis() string {
 }
 
 func getEditor() string {
-	if e := os.Getenv("THOR_EDITOR"); e != "" {
+	if e := os.Getenv("eriri_EDITOR"); e != "" {
 		return e
 	}
 

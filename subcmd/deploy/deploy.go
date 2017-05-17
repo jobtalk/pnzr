@@ -14,9 +14,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/jobtalk/thor/api"
-	"github.com/jobtalk/thor/lib"
-	"github.com/jobtalk/thor/lib/setting"
+	"github.com/jobtalk/eriri/api"
+	"github.com/jobtalk/eriri/lib"
+	"github.com/jobtalk/eriri/lib/setting"
 )
 
 var re = regexp.MustCompile(`.*\.json$`)
@@ -230,9 +230,9 @@ func (c *Deploy) Run(args []string) int {
 
 func (c *Deploy) Synopsis() string {
 	synopsis := ""
-	synopsis += "usage: thor deploy [options ...]\n"
+	synopsis += "usage: eriri deploy [options ...]\n"
 	synopsis += "options:\n"
-	synopsis += "    -f thor_setting.json\n"
+	synopsis += "    -f eriri_setting.json\n"
 	synopsis += "\n"
 	synopsis += "    -profile=${aws profile name}\n"
 	synopsis += "        -profile option is arbitrary parameter.\n"

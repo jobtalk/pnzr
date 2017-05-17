@@ -9,7 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/jobtalk/thor/lib"
+	"github.com/jobtalk/eriri/lib"
 )
 
 var flagSet = &flag.FlagSet{}
@@ -74,7 +74,7 @@ type Vault struct{}
 
 func (c *Vault) Help() string {
 	var msg string
-	msg += "usage: thor vault [options ...]\n"
+	msg += "usage: eriri vault [options ...]\n"
 	msg += "options:\n"
 	msg += "    -key_id\n"
 	msg += "        set kms key id\n"

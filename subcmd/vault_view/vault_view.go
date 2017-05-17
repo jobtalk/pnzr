@@ -11,7 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/jobtalk/thor/lib"
+	"github.com/jobtalk/eriri/lib"
 )
 
 var flagSet = &flag.FlagSet{}
@@ -72,7 +72,7 @@ type VaultView struct{}
 
 func (c *VaultView) Help() string {
 	var msg string
-	msg += "usage: thor vault-view [options ...]\n"
+	msg += "usage: eriri vault-view [options ...]\n"
 	msg += "options:\n"
 	msg += "    -key_id\n"
 	msg += "        set kms key id\n"

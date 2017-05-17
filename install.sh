@@ -27,18 +27,18 @@ install() {
 			exit 1
 		fi
 	fi
-	LATEST=$(curl -s https://api.github.com/repos/jobtalk/thor/tags | grep -Eo '"name":.*[^\\]",'  | head -n 1 | sed 's/[," ]//g' | cut -d ':' -f 2)
-	URL="https://github.com/jobtalk/thor/releases/download/$LATEST/thor-$PLATFORM"
-	DEST=${DEST:-/usr/local/bin/thor}
+	LATEST=$(curl -s https://api.github.com/repos/jobtalk/eriri/tags | grep -Eo '"name":.*[^\\]",'  | head -n 1 | sed 's/[," ]//g' | cut -d ':' -f 2)
+	URL="https://github.com/jobtalk/eriri/releases/download/$LATEST/eriri-$PLATFORM"
+	DEST=${DEST:-/usr/local/bin/eriri}
 
 	if [ -z $LATEST ] ; then
-		echo "Error requesting. Download binary from https://github.com/jobtalk/thor/releases"
+		echo "Error requesting. Download binary from https://github.com/jobtalk/eriri/releases"
 		exit 1
 	else
-		echo "Downloading thor binary from https://github.com/jobtalk/thor/releases/download/$LATEST/thor-$PLATFORM to $DEST"
-		if curl -sL https://github.com/jobtalk/thor/releases/download/$LATEST/thor-$PLATFORM -o $DEST; then
+		echo "Downloading eriri binary from https://github.com/jobtalk/eriri/releases/download/$LATEST/eriri-$PLATFORM to $DEST"
+		if curl -sL https://github.com/jobtalk/eriri/releases/download/$LATEST/eriri-$PLATFORM -o $DEST; then
 			chmod +x $DEST
-			echo "thor installation was successful"
+			echo "eriri installation was successful"
 		else
 			echo "Installation failed. You may need elevated permissions."
 		fi
