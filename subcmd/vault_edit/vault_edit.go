@@ -97,7 +97,7 @@ func (c *VaultEdit) Synopsis() string {
 }
 
 func getEditor() string {
-	if e := os.Getenv("pnzr_EDITOR"); e != "" {
+	if e := os.Getenv("PNZR_EDITOR"); e != "" {
 		return e
 	}
 
