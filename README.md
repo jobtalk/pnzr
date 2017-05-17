@@ -26,12 +26,6 @@ $ curl https://raw.githubusercontent.com/jobtalk/pnzr/master/install.sh | sudo s
 $ go get -u github.com/jobtalk/pnzr
 ```
 
-### Use Homebrew
-```
-$ brew tap ieee0824/pnzr
-$ brew update
-$ brew install pnzr
-```
 ## Detailed instructions
 Please read the [wiki](https://github.com/jobtalk/pnzr/wiki).
 
