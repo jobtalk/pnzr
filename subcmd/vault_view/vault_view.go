@@ -1,6 +1,7 @@
 package vview
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -38,34 +39,20 @@ func init() {
 	f = flagSet.String("f", "", "target file")
 }
 
-func encrypt(keyID string, fileName string, awsConfig *aws.Config) error {
+func decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, error) {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return err
-	}
-	kms := lib.NewKMS()
-	_, err = kms.SetKeyID(keyID).SetAWSConfig(awsConfig).Encrypt(bin)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(fileName, []byte(kms.String()), 0644)
-}
-
-func decrypt(keyID string, fileName string, awsConfig *aws.Config) error {
-	bin, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		return err
+		return nil, err
 	}
 	kms := lib.NewKMSFromBinary(bin)
 	if kms == nil {
-		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
+		return nil, errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}
 	plainText, err := kms.SetKeyID(keyID).SetAWSConfig(awsConfig).Decrypt()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return ioutil.WriteFile(fileName, plainText, 0644)
+	return plainText, nil
 }
 
 type VaultView struct{}
@@ -116,21 +103,17 @@ func (c *VaultView) Run(args []string) int {
 		file = f
 	}
 
-	if err := decrypt(*kmsKeyID, *file, awsConfig); err != nil {
+	plain, err := decrypt(*kmsKeyID, *file, awsConfig)
+	if err != nil {
 		log.Fatalln(err)
 	}
 
-	cmd := exec.Command("less", *file)
-
-	cmd.Stdin = os.Stdin
+	cmd := exec.Command("less")
+	cmd.Stdin = bytes.NewReader(plain)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	cmd.Run()
-
-	if err := encrypt(*kmsKeyID, *file, awsConfig); err != nil {
-		log.Fatalln(err)
-	}
 
 	return 0
 }
