@@ -1,6 +1,7 @@
 package vview
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -106,15 +107,9 @@ func (c *VaultView) Run(args []string) int {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	file, err := ioutil.TempFile(os.TempDir(), "pnzr")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer os.Remove(file.Name())
-	file.Write(plain)
 
-	cmd := exec.Command("less", file.Name())
-	cmd.Stdin = os.Stdin
+	cmd := exec.Command("less")
+	cmd.Stdin = bytes.NewReader(plain)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
