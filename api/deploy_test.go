@@ -10,8 +10,10 @@ import (
 )
 
 func TestDeploy(t *testing.T) {
-	taskDefinition := &ecs.RegisterTaskDefinitionInput{}
-	service := &ecs.CreateServiceInput{}
+	family := "taskdef-a"
+	taskDefinition := &ecs.RegisterTaskDefinitionInput{Family: &family}
+	serviceName := "service-a"
+	service := &ecs.CreateServiceInput{ServiceName: &serviceName}
 
 	// Settings
 	onlyService := setting.Setting{
@@ -27,41 +29,65 @@ func TestDeploy(t *testing.T) {
 		},
 	}
 
-	// onlyService
+	// UpsertService のみが呼ばれる
 	{
-		deploy, isRegisterTaskDefinitionCalled, isUpsertServiceCalled := mockDeploy()
+		deploy, fnArgs := mockDeploy()
 		deploy.Deploy(&onlyService)
-		if *isRegisterTaskDefinitionCalled {
+		if fnArgs.RegisterTaskDefinitionInput != nil {
 			t.Fatalf("RegisterTaskDefinition should not be called")
 		}
-		if !*isUpsertServiceCalled {
-			t.Fatalf("UpsertService should be called")
+		if *fnArgs.UpsertServiceInput.ServiceName != serviceName {
+			t.Log(*fnArgs.UpsertServiceInput.ServiceName)
+			t.Fatalf("UpsertService should be called with %s", serviceName)
 		}
 	}
 
-	// onlyTaskDefinition
+	// RegisterTaskDefinition のみが呼ばれる
 	{
-		deploy, isRegisterTaskDefinitionCalled, isUpsertServiceCalled := mockDeploy()
+		deploy, fnArgs := mockDeploy()
 		deploy.Deploy(&onlyTaskDefinition)
-		if !*isRegisterTaskDefinitionCalled {
-			t.Fatalf("RegisterTaskDefinition should be called")
+		if *fnArgs.RegisterTaskDefinitionInput.Family != family {
+			t.Log(*fnArgs.RegisterTaskDefinitionInput.Family)
+			t.Fatalf("RegisterTaskDefinition should be called with %s", family)
 		}
-		if *isUpsertServiceCalled {
+		if fnArgs.UpsertServiceInput != nil {
 			t.Fatalf("UpsertService should not be called")
 		}
 	}
 
-	// both
+	// UpsertService, RegisterTaskDefinition 両方が呼ばれる
 	{
-		deploy, isRegisterTaskDefinitionCalled, isUpsertServiceCalled := mockDeploy()
+		deploy, fnArgs := mockDeploy()
 		deploy.Deploy(&both)
-		if !*isRegisterTaskDefinitionCalled {
-			t.Fatalf("RegisterTaskDefinition should be called")
+		if *fnArgs.RegisterTaskDefinitionInput.Family != family {
+			t.Log(*fnArgs.RegisterTaskDefinitionInput.Family)
+			t.Fatalf("RegisterTaskDefinition should be called with %s", family)
 		}
-		if !*isUpsertServiceCalled {
-			t.Fatalf("UpsertService should not be called")
+		if *fnArgs.UpsertServiceInput.ServiceName != serviceName {
+			t.Log(*fnArgs.UpsertServiceInput.ServiceName)
+			t.Fatalf("UpsertService should be called with %s", serviceName)
 		}
 	}
+}
+
+type mockedFnArgs struct {
+	RegisterTaskDefinitionInput *ecs.RegisterTaskDefinitionInput
+	UpsertServiceInput          *ecs.CreateServiceInput
+}
+
+func mockDeploy() (*DeployDeps, *mockedFnArgs) {
+	fnArgs := mockedFnArgs{RegisterTaskDefinitionInput: nil, UpsertServiceInput: nil}
+	ecs := mockedECS{
+		registerTaskDefinition: func(in *ecs.RegisterTaskDefinitionInput) (*ecs.RegisterTaskDefinitionOutput, error) {
+			fnArgs = mockedFnArgs{RegisterTaskDefinitionInput: in, UpsertServiceInput: fnArgs.UpsertServiceInput}
+			return nil, nil
+		},
+		upsertService: func(in *ecs.CreateServiceInput) (interface{}, error) {
+			fnArgs = mockedFnArgs{RegisterTaskDefinitionInput: fnArgs.RegisterTaskDefinitionInput, UpsertServiceInput: in}
+			return nil, nil
+		},
+	}
+	return &DeployDeps{ecs: ecs}, &fnArgs
 }
 
 type mockedECS struct {
@@ -78,20 +104,4 @@ func (m mockedECS) RegisterTaskDefinition(in *ecs.RegisterTaskDefinitionInput) (
 func (m mockedECS) UpsertService(in *ecs.CreateServiceInput) (interface{}, error) {
 	m.upsertService(in)
 	return nil, nil
-}
-
-func mockDeploy() (*DeployDeps, *bool, *bool) {
-	isRegisterTaskDefinitionCalled := false
-	isUpsertServiceCalled := false
-	ecs := mockedECS{
-		registerTaskDefinition: func(in *ecs.RegisterTaskDefinitionInput) (*ecs.RegisterTaskDefinitionOutput, error) {
-			isRegisterTaskDefinitionCalled = true
-			return nil, nil
-		},
-		upsertService: func(in *ecs.CreateServiceInput) (interface{}, error) {
-			isUpsertServiceCalled = true
-			return nil, nil
-		},
-	}
-	return &DeployDeps{ecs: ecs}, &isRegisterTaskDefinitionCalled, &isUpsertServiceCalled
 }
