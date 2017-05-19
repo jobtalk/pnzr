@@ -32,7 +32,7 @@ func (e *ECS) UpsertService(createServiceInput *ecs.CreateServiceInput) (interfa
 	if createServiceInput.Cluster == nil {
 		createServiceInput.Cluster = aws.String("default")
 	}
-	ok, err := e.isExistService(*createServiceInput.Cluster, *createServiceInput.ServiceName)
+	ok, err := e.serviceExists(*createServiceInput.Cluster, *createServiceInput.ServiceName)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (e *ECS) ListServices(params *ecs.ListServicesInput) (*ecs.ListServicesOutp
 	return ret, nil
 }
 
-func (e *ECS) isExistService(clusetrName string, serviceName string) (bool, error) {
+func (e *ECS) serviceExists(clusetrName string, serviceName string) (bool, error) {
 	listInput := &ecs.ListServicesInput{
 		Cluster: aws.String(clusetrName),
 	}
