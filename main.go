@@ -7,7 +7,6 @@ import (
 	"runtime"
 
 	"github.com/jobtalk/pnzr/subcmd/deploy"
-	"github.com/jobtalk/pnzr/subcmd/mkelb"
 	"github.com/jobtalk/pnzr/subcmd/update"
 	"github.com/jobtalk/pnzr/subcmd/vault"
 	"github.com/jobtalk/pnzr/subcmd/vault_edit"
@@ -49,9 +48,6 @@ func main() {
 	c.Commands = map[string]cli.CommandFactory{
 		"deploy": func() (cli.Command, error) {
 			return &deploy.Deploy{}, nil
-		},
-		"mkelb": func() (cli.Command, error) {
-			return &mkelb.MkELB{}, nil
 		},
 		"vault": func() (cli.Command, error) {
 			return &vault.Vault{}, nil
