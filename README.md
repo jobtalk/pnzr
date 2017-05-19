@@ -35,41 +35,8 @@ Please read the [wiki](https://github.com/jobtalk/pnzr/wiki).
 $ pnzr deploy -f config.json
 ```
 
-## Option
+## Show options
+
 ```
-$ go run main.go -h
-
-Usage: pnzr [--version] [--help] <command> [<args>]
-
-Available commands are:
-    deploy    usage: pnzr deploy [options ...]
-options:
-    -f pnzr_setting.json
-
-    -profile=${aws profile name}
-        -profile option is arbitrary parameter.
-    -region
-        aws region
-    -vars_path
-        setting external values path file
-    -V
-        setting outer values
-===================================================
-
-    vault     usage: pnzr vault [options ...]
-options:
-    -key_id
-        set kms key id
-    -encrypt
-        use encrypt mode
-    -decrypt
-        use decrypt mode
-    -file
-        setting target file
-    -f        setting target file
-    -profile
-        aws credential name
-    -region
-        aws region name
-===================================================
+$ pnzr -h
 ```
