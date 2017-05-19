@@ -28,6 +28,27 @@ func (e *ECS) RegisterTaskDefinition(registerTaskDefinitionInput *ecs.RegisterTa
 	return e.svc.RegisterTaskDefinition(registerTaskDefinitionInput)
 }
 
+func (e *ECS) UpsertService(createServiceInput *ecs.CreateServiceInput) (interface{}, error) {
+	if createServiceInput.Cluster == nil {
+		createServiceInput.Cluster = aws.String("default")
+	}
+	ok, err := e.serviceExists(*createServiceInput.Cluster, *createServiceInput.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return e.svc.CreateService(createServiceInput)
+	}
+
+	updateServiceInput := &ecs.UpdateServiceInput{}
+	updateServiceInput.Cluster = createServiceInput.Cluster
+	updateServiceInput.DeploymentConfiguration = createServiceInput.DeploymentConfiguration
+	updateServiceInput.DesiredCount = createServiceInput.DesiredCount
+	updateServiceInput.Service = createServiceInput.ServiceName
+	updateServiceInput.TaskDefinition = createServiceInput.TaskDefinition
+	return e.svc.UpdateService(updateServiceInput)
+}
+
 func (e *ECS) ListServices(params *ecs.ListServicesInput) (*ecs.ListServicesOutput, error) {
 	var (
 		ret     = &ecs.ListServicesOutput{}
@@ -45,50 +66,16 @@ func (e *ECS) ListServices(params *ecs.ListServicesInput) (*ecs.ListServicesOutp
 	return ret, nil
 }
 
-func (e *ECS) CreateService(createServiceInput *ecs.CreateServiceInput) (*ecs.CreateServiceOutput, error) {
-	return e.svc.CreateService(createServiceInput)
-}
-
-func (e *ECS) UpdateService(updateServiceInput *ecs.UpdateServiceInput) (*ecs.UpdateServiceOutput, error) {
-	return e.svc.UpdateService(updateServiceInput)
-}
-
-func UpsertService(awsConfig *aws.Config, createServiceInput *ecs.CreateServiceInput) (interface{}, error) {
-	ecsClient := NewECS(awsConfig)
-	if len(createServiceInput.LoadBalancers) != 0 && targetGroupARN != nil {
-		createServiceInput.LoadBalancers[0].TargetGroupArn = targetGroupARN
-	}
-	if createServiceInput.Cluster == nil {
-		createServiceInput.Cluster = aws.String("default")
-	}
-	ok, err := IsExistService(awsConfig, *createServiceInput.Cluster, *createServiceInput.ServiceName)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return ecsClient.CreateService(createServiceInput)
-	}
-
-	updateServiceInput := &ecs.UpdateServiceInput{}
-	updateServiceInput.Cluster = createServiceInput.Cluster
-	updateServiceInput.DeploymentConfiguration = createServiceInput.DeploymentConfiguration
-	updateServiceInput.DesiredCount = createServiceInput.DesiredCount
-	updateServiceInput.Service = createServiceInput.ServiceName
-	updateServiceInput.TaskDefinition = createServiceInput.TaskDefinition
-	return ecsClient.UpdateService(updateServiceInput)
-}
-
-func IsExistService(awsConfig *aws.Config, clusetrName string, serviceName string) (bool, error) {
-	ecsClient := NewECS(awsConfig)
+func (e *ECS) serviceExists(clusetrName string, serviceName string) (bool, error) {
 	listInput := &ecs.ListServicesInput{
 		Cluster: aws.String(clusetrName),
 	}
-	result, err := ecsClient.ListServices(listInput)
+	result, err := e.ListServices(listInput)
 	if err != nil {
 		return false, err
 	}
 	for _, v := range result.ServiceArns {
-		s, err := ParseArn(v)
+		s, err := parseArn(v)
 		if err != nil {
 			return false, err
 		}
@@ -99,7 +86,7 @@ func IsExistService(awsConfig *aws.Config, clusetrName string, serviceName strin
 	return false, nil
 }
 
-func ParseArn(arn *string) (*Service, error) {
+func parseArn(arn *string) (*Service, error) {
 	splitStr := strings.Split(*arn, "service/")
 	if len(splitStr) != 2 {
 		return nil, errors.New("illegal arn string")

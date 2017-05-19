@@ -2,47 +2,37 @@ package api
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/jobtalk/pnzr/lib"
+	"github.com/jobtalk/pnzr/lib/iface"
 	"github.com/jobtalk/pnzr/lib/setting"
 )
 
+type DeployDeps struct {
+	ecs iface.ECSAPI
+}
+
 // serviceが存在しない時はサービスを作る
 // 存在するときはアップデートする
-func Deploy(awsConfig *aws.Config, s *setting.Setting) (interface{}, error) {
-	ecsClient := lib.NewECS(awsConfig)
+func (d *DeployDeps) Deploy(s *setting.Setting) (interface{}, error) {
 	var result = []interface{}{}
-	if s.ELB != nil {
-		resultMkELB, err := MkELB(awsConfig, s.ELB)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, resultMkELB)
-		for _, v := range result {
-			if es, ok := v.([]interface{}); ok {
-				for _, e := range es {
-					if tgOutput, ok := e.(*elbv2.CreateTargetGroupOutput); ok {
-						for _, tg := range tgOutput.TargetGroups {
-							lb := s.ECS.Service.LoadBalancers[0]
-							lb.TargetGroupArn = tg.TargetGroupArn
-							s.ECS.Service.LoadBalancers[0] = lb
-						}
-					}
-				}
-			}
-		}
-	}
 	if s.ECS != nil && s.ECS.TaskDefinition != nil {
-		resultTaskDefinition, err := ecsClient.RegisterTaskDefinition(s.ECS.TaskDefinition)
+		resultTaskDefinition, err := d.ecs.RegisterTaskDefinition(s.ECS.TaskDefinition)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, resultTaskDefinition)
 	}
-	resultUpsert, err := lib.UpsertService(awsConfig, s.ECS.Service)
-	if err != nil {
-		return nil, err
+	if s.ECS != nil && s.ECS.Service != nil {
+		resultUpsert, err := d.ecs.UpsertService(s.ECS.Service)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, resultUpsert)
 	}
 
-	return append(result, resultUpsert), nil
+	return result, nil
+}
+
+func Deploy(awsConfig *aws.Config, s *setting.Setting) (interface{}, error) {
+	return (&DeployDeps{ecs: lib.NewECS(awsConfig)}).Deploy(s)
 }
