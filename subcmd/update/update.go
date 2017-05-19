@@ -119,7 +119,7 @@ func (c *Update) Run(args []string) int {
 }
 
 func (c *Update) Synopsis() string {
-	msg := "Upgrade apex to the latest stable release\n"
+	msg := "Upgrade pnzr to the latest stable release\n"
 	msg += "options:\n"
 	msg += "    <node>\n"
 	msg += "===================================================\n"
