@@ -56,14 +56,6 @@ options:
         setting outer values
 ===================================================
 
-    mkelb     usage: pnzr mkelb [options ...]
-options:
-    -f pnzr_setting.json
-
-    --profile=${aws profile name}
-        --profile option is arbitrary parameter.
-===================================================
-
     vault     usage: pnzr vault [options ...]
 options:
     -key_id
