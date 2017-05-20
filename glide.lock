@@ -1,10 +1,10 @@
-hash: ac79261c026cd667f91620ff8640f2529967a400ee140d89cdf3c82228010def
-updated: 2017-04-14T18:51:11.020712914+09:00
+hash: 9c3c778062892b0ba473f5d1c1bc09e73c5913565eac661b4348b5837bc83be8
+updated: 2017-05-20T14:59:12.278254789+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: 7be45195c3af1b54a609812f90c05a7e492e2491
+  version: 0b6039ef3d10c1eda49843ebf9773dcc5bba0169
   subpackages:
   - aws
   - aws/awserr
@@ -30,6 +30,7 @@ imports:
   - private/protocol/rest
   - private/protocol/xml/xmlutil
   - service/ecs
+  - service/ecs/ecsiface
   - service/elbv2
   - service/kms
   - service/sts
@@ -39,6 +40,8 @@ imports:
   version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
+- name: github.com/joho/godotenv
+  version: 726cc8b906e3d31c70a9671c90a13716a8d3f50d
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mitchellh/cli
