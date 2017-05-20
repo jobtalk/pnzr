@@ -103,6 +103,12 @@ func (c *Vault) Run(args []string) int {
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
+
+	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
+		targetName := flagSet.Args()[0]
+		file = &targetName
+	}
+
 	var cred *credentials.Credentials
 	if *awsAccessKeyID != "" && *awsSecretKeyID != "" {
 		cred = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
