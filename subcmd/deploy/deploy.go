@@ -163,6 +163,12 @@ func (c *Deploy) Run(args []string) int {
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
+
+	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
+		targetName := flagSet.Args()[0]
+		file = &targetName
+	}
+
 	if *file == "" {
 		file = f
 	}
