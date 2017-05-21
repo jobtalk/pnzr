@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/jobtalk/pnzr/api"
 	"github.com/jobtalk/pnzr/lib"
+	"github.com/jobtalk/pnzr/lib/getenv"
 	"github.com/jobtalk/pnzr/lib/setting"
 )
 
@@ -37,17 +38,19 @@ var (
 )
 
 func init() {
-	kmsKeyID = flagSet.String("key_id", "", "Amazon KMS key ID")
+	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
-	profile = flagSet.String("profile", "default", "aws credentials profile name")
-	region = flagSet.String("region", "ap-northeast-1", "aws region")
-	externalPath = flagSet.String("vars_path", "", "external conf path")
-	outerVals = flagSet.String("V", "", "outer values")
-	tagOverride = flagSet.String("t", "latest", "tag override param")
 
-	awsAccessKeyID = flagSet.String("aws-access-key-id", "", "aws access key id")
-	awsSecretKeyID = flagSet.String("aws-secret-key-id", "", "aws secret key id")
+	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
+	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
+
+	externalPath = flagSet.String("vars_path", getenv.String("PNZR_VARS_PATH"), "external conf path")
+	outerVals = flagSet.String("V", "", "outer values")
+	tagOverride = flagSet.String("t", getenv.String("DOCKER_DEFAULT_DEPLOY_TAG", "latest"), "tag override param")
+
+	awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
+	awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 }
 
 func parseDockerImage(image string) (url, tag string) {
