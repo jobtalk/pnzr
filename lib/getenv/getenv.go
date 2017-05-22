@@ -2,6 +2,7 @@ package getenv
 
 import (
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -15,6 +16,7 @@ func init() {
 }
 
 func convertStringToBoolean(s string) bool {
+	s = strings.ToLower(s)
 	switch s {
 	case "true", "t", "1":
 		return true
