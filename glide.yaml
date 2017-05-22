@@ -10,3 +10,5 @@ import:
   - service/elbv2
   - service/kms
 - package: github.com/mitchellh/cli
+- package: github.com/joho/godotenv
+  version: ^1.1

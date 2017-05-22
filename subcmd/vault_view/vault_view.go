@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/jobtalk/pnzr/lib"
+	"github.com/jobtalk/pnzr/lib/getenv"
 )
 
 var flagSet = &flag.FlagSet{}
@@ -28,12 +29,12 @@ var (
 )
 
 func init() {
-	kmsKeyID = flagSet.String("key_id", "", "Amazon KMS key ID")
-	profile = flagSet.String("profile", "default", "aws credentials profile name")
-	region = flagSet.String("region", "ap-northeast-1", "aws region")
+	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
+	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
+	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
 
-	awsAccessKeyID = flagSet.String("aws-access-key-id", "", "aws access key id")
-	awsSecretKeyID = flagSet.String("aws-secret-key-id", "", "aws secret key id")
+	awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
+	awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
@@ -87,6 +88,12 @@ func (c *VaultView) Run(args []string) int {
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
+
+	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
+		targetName := flagSet.Args()[0]
+		file = &targetName
+	}
+
 	var cred *credentials.Credentials
 	if *awsAccessKeyID != "" && *awsSecretKeyID != "" {
 		cred = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
