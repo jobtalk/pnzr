@@ -29,7 +29,7 @@ install() {
 	fi
 	TAGS=$(curl -s https://api.github.com/repos/jobtalk/pnzr/tags)
 	LATEST=$(echo "${TAGS}" | grep -Eo '"name":.*[^\\]",'  | head -n 1 | sed 's/[," ]//g' | cut -d ':' -f 2)
-	VERSION=${VERSION:=$LATEST}
+	VERSION=${VERSION:-$LATEST}
 
 	if [ ! -z $(which pnzr) ]; then
 		NOW_VERSION=$(pnzr -v 2>&1 >/dev/null | grep 'Build version' | cut -d " " -f 3) 
