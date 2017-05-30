@@ -31,13 +31,17 @@ install() {
 	LATEST=$(echo "${TAGS}" | grep -Eo '"name":.*[^\\]",'  | head -n 1 | sed 's/[," ]//g' | cut -d ':' -f 2)
 	VERSION=${VERSION:=$LATEST}
 
-	NOW_VERSION=$(pnzr -v 2>&1 >/dev/null | grep 'Build version' | cut -d " " -f 3) 
+	if [ ! -z $(which pnzr) ]; then
+		NOW_VERSION=$(pnzr -v 2>&1 >/dev/null | grep 'Build version' | cut -d " " -f 3) 
 
-	if [ ${VERSION} = ${NOW_VERSION} ]; then
-		echo "${VERSION} is already installed."
+		if [ ${VERSION} = ${NOW_VERSION} ]; then
+			echo "${VERSION} is already installed."
 
-		exit 0
+			exit 0
+		fi
 	fi
+
+	
 
 	URL="https://github.com/jobtalk/pnzr/releases/download/$VERSION/pnzr-$PLATFORM"
 	DEST=${DEST:-/usr/local/bin/pnzr}
