@@ -56,6 +56,7 @@ install() {
 			echo "pnzr installation was successful"
 		else
 			echo "Installation failed. You may need elevated permissions."
+			exit 1
 		fi
 	fi
 }
