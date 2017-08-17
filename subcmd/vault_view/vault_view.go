@@ -10,10 +10,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/jobtalk/pnzr/lib"
-	"github.com/jobtalk/pnzr/lib/getenv"
+	"github.com/ieee0824/getenv"
 )
 
 var flagSet = &flag.FlagSet{}
@@ -22,25 +20,17 @@ var (
 	kmsKeyID       *string
 	file           *string
 	f              *string
-	profile        *string
-	region         *string
-	awsAccessKeyID *string
-	awsSecretKeyID *string
 )
 
 func init() {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
-	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
-	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
 
-	awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
-	awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
 }
 
-func decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, error) {
+func decrypt(keyID string, fileName string) ([]byte, error) {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, err
@@ -49,7 +39,7 @@ func decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, erro
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}
-	plainText, err := kms.SetKeyID(keyID).SetAWSConfig(awsConfig).Decrypt()
+	plainText, err := kms.SetKeyID(keyID).Decrypt()
 	if err != nil {
 		return nil, err
 	}
@@ -94,23 +84,11 @@ func (c *VaultView) Run(args []string) int {
 		file = &targetName
 	}
 
-	var cred *credentials.Credentials
-	if *awsAccessKeyID != "" && *awsSecretKeyID != "" {
-		cred = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
-	} else {
-		cred = credentials.NewSharedCredentials("", *profile)
-	}
-
-	awsConfig := &aws.Config{
-		Credentials: cred,
-		Region:      region,
-	}
-
 	if *file == "" {
 		file = f
 	}
 
-	plain, err := decrypt(*kmsKeyID, *file, awsConfig)
+	plain, err := decrypt(*kmsKeyID, *file)
 	if err != nil {
 		log.Fatalln(err)
 	}

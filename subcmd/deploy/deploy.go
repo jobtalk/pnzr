@@ -12,24 +12,19 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/jobtalk/pnzr/api"
 	"github.com/jobtalk/pnzr/lib"
-	"github.com/jobtalk/pnzr/lib/getenv"
 	"github.com/jobtalk/pnzr/lib/setting"
+	"github.com/ieee0824/getenv"
 )
 
 var re = regexp.MustCompile(`.*\.json$`)
 
 var flagSet = &flag.FlagSet{}
-var cred *credentials.Credentials
 var (
 	file           *string
 	f              *string
-	profile        *string
 	kmsKeyID       *string
-	region         *string
 	externalPath   *string
 	outerVals      *string
 	awsAccessKeyID *string
@@ -41,9 +36,6 @@ func init() {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
-
-	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
-	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
 
 	externalPath = flagSet.String("vars_path", getenv.String("PNZR_VARS_PATH"), "external conf path")
 	outerVals = flagSet.String("V", "", "outer values")
@@ -112,15 +104,11 @@ func isEncrypted(data []byte) bool {
 }
 
 func decrypt(bin []byte) ([]byte, error) {
-	awsConfig := &aws.Config{
-		Credentials: cred,
-		Region:      region,
-	}
 	kms := lib.NewKMSFromBinary(bin)
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
 	}
-	plainText, err := kms.SetKeyID(*kmsKeyID).SetAWSConfig(awsConfig).Decrypt()
+	plainText, err := kms.SetKeyID(*kmsKeyID).Decrypt()
 	if err != nil {
 		return nil, err
 	}
@@ -172,15 +160,6 @@ func (c *Deploy) Run(args []string) int {
 	if *file == "" {
 		file = f
 	}
-	if *awsAccessKeyID != "" && *awsSecretKeyID != "" {
-		cred = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
-	} else {
-		cred = credentials.NewSharedCredentials("", *profile)
-	}
-	awsConfig := &aws.Config{
-		Credentials: cred,
-		Region:      region,
-	}
 
 	externalList, err := fileList(*externalPath)
 	if err != nil {
@@ -225,7 +204,7 @@ func (c *Deploy) Run(args []string) int {
 		}
 	}
 
-	result, err := api.Deploy(awsConfig, config.Setting)
+	result, err := api.Deploy(config.Setting)
 	if err != nil {
 		log.Fatalln(err)
 	}

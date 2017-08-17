@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/lib/iface"
 	"github.com/jobtalk/pnzr/lib/setting"
@@ -33,6 +32,6 @@ func (d *DeployDeps) Deploy(s *setting.Setting) (interface{}, error) {
 	return result, nil
 }
 
-func Deploy(awsConfig *aws.Config, s *setting.Setting) (interface{}, error) {
-	return (&DeployDeps{ecs: lib.NewECS(awsConfig)}).Deploy(s)
+func Deploy(s *setting.Setting) (interface{}, error) {
+	return (&DeployDeps{ecs: lib.NewECS()}).Deploy(s)
 }

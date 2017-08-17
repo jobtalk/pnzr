@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/ecs/ecsiface"
+	"github.com/jobtalk/pnzr/lib/setting"
 )
 
 type Service struct {
@@ -18,9 +18,9 @@ type ECS struct {
 	svc ecsiface.ECSAPI
 }
 
-func NewECS(awsConfig *aws.Config) *ECS {
+func NewECS() *ECS {
 	return &ECS{
-		svc: ecs.New(session.New(), awsConfig),
+		svc: ecs.New(setting.GetSession()),
 	}
 }
 

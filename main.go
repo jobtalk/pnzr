@@ -13,6 +13,7 @@ import (
 	"github.com/jobtalk/pnzr/subcmd/vault_view"
 	"github.com/jobtalk/pnzr/vars"
 	"github.com/mitchellh/cli"
+	"github.com/jobtalk/pnzr/lib/setting"
 )
 
 var (
@@ -42,9 +43,13 @@ func init() {
 
 }
 
-func main() {
+func exec() {
+	var err error
 	c := cli.NewCLI("pnzr", VERSION)
-	c.Args = os.Args[1:]
+	c.Args, err = setting.Initial(os.Args[1:])
+	if err != nil {
+		panic(err)
+	}
 	c.Commands = map[string]cli.CommandFactory{
 		"deploy": func() (cli.Command, error) {
 			return &deploy.Deploy{}, nil
@@ -67,4 +72,8 @@ func main() {
 		log.Fatalln(err)
 	}
 	os.Exit(exitCode)
+}
+
+func main() {
+	exec()
 }

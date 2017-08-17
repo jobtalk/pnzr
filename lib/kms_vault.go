@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/jobtalk/pnzr/lib/setting"
 )
 
 type KMS struct {
@@ -33,7 +33,7 @@ func NewKMSFromBinary(bin []byte) *KMS {
 }
 
 func (k *KMS) Encrypt(plainText []byte) ([]byte, error) {
-	svc := kms.New(session.New(), k.awsConfig)
+	svc := kms.New(setting.GetSession())
 	params := &kms.EncryptInput{
 		KeyId:     k.keyID,
 		Plaintext: plainText,
@@ -48,7 +48,7 @@ func (k *KMS) Encrypt(plainText []byte) ([]byte, error) {
 }
 
 func (k *KMS) Decrypt() ([]byte, error) {
-	svc := kms.New(session.New(), k.awsConfig)
+	svc := kms.New(setting.GetSession())
 	params := &kms.DecryptInput{
 		CiphertextBlob: k.Cipher,
 	}
@@ -61,16 +61,6 @@ func (k *KMS) Decrypt() ([]byte, error) {
 
 func (k *KMS) SetKeyID(keyID string) *KMS {
 	k.keyID = &keyID
-	return k
-}
-
-func (k *KMS) SetRegion(region string) *KMS {
-	k.awsConfig.Region = &region
-	return k
-}
-
-func (k *KMS) SetAWSConfig(awsConfig *aws.Config) *KMS {
-	k.awsConfig = awsConfig
 	return k
 }
 
