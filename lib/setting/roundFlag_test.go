@@ -22,8 +22,8 @@ func TestRoundFlags(t *testing.T) {
 				profile string
 			}{
 				[]string{"-foo", "-bar", "-baz"},
-				"",
-				"",
+				"ap-northeast-1",
+				"default",
 			},
 		},
 		{
@@ -34,8 +34,8 @@ func TestRoundFlags(t *testing.T) {
 				profile string
 			}{
 				[]string{"foo", "bar", "baz"},
-				"",
-				"",
+				"ap-northeast-1",
+				"default",
 			},
 		},
 		{
@@ -47,7 +47,7 @@ func TestRoundFlags(t *testing.T) {
 			}{
 				[]string{"baz"},
 				"bar",
-				"",
+				"default",
 			},
 		},
 		{
@@ -59,7 +59,7 @@ func TestRoundFlags(t *testing.T) {
 			}{
 				[]string{"baz"},
 				"bar",
-				"",
+				"default",
 			},
 		},
 		{
@@ -70,7 +70,7 @@ func TestRoundFlags(t *testing.T) {
 				profile string
 			}{
 				[]string{"baz"},
-				"",
+				"ap-northeast-1",
 				"hoge",
 			},
 		},
@@ -82,7 +82,7 @@ func TestRoundFlags(t *testing.T) {
 				profile string
 			}{
 				[]string{"baz"},
-				"",
+				"ap-northeast-1",
 				"hoge",
 			},
 		},
