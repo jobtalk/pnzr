@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/ieee0824/getenv"
 )
 
 type ELB struct {
@@ -35,6 +36,8 @@ var (
 )
 
 func roundFlags(s []string) (o []string, region string, profile string) {
+	profile = "default"
+	region = "ap-northeast-1"
 	for i := 0; i < len(s); i++ {
 		if s[i] == "-region" {
 			region = s[i+1]
@@ -46,11 +49,13 @@ func roundFlags(s []string) (o []string, region string, profile string) {
 			region = strings.TrimPrefix(s[i], "-region=")
 		} else if strings.HasPrefix(s[i], "-profile=") {
 			profile = strings.TrimPrefix(s[i], "-profile=")
-
 		} else {
 			o = append(o, s[i])
 		}
 	}
+
+	profile = getenv.String("AWS_PROFILE_NAME", profile)
+	region = getenv.String("AWS_REGION", region)
 	return
 }
 
