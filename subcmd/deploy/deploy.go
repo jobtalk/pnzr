@@ -12,10 +12,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
 	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/lib/setting"
-	"github.com/ieee0824/getenv"
 )
 
 var re = regexp.MustCompile(`.*\.json$`)
@@ -148,6 +148,7 @@ type Deploy struct{}
 
 func (c *Deploy) Run(args []string) int {
 	var config = &deployConfigure{}
+	session, args := lib.GetSession(args)
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
@@ -204,7 +205,7 @@ func (c *Deploy) Run(args []string) int {
 		}
 	}
 
-	result, err := api.Deploy(config.Setting)
+	result, err := api.Deploy(session, config.Setting)
 	if err != nil {
 		log.Fatalln(err)
 	}
