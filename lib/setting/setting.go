@@ -28,42 +28,42 @@ type Setting struct {
 
 
 var (
-	s *session.Session
+	globalSession *session.Session
 	option = struct {
 		region *string
 		profile *string
 	}{}
 )
 
-func roundFlags(s []string) (o []string, region string, profile string) {
+func roundArgs(args []string) (roundedArgs []string, region string, profile string) {
 	profile = getenv.String("AWS_PROFILE_NAME", "default")
 	region = getenv.String("AWS_DEFAULT_REGION")
 
-	for i := 0; i < len(s); i++ {
-		if s[i] == "-region" {
-			region = s[i+1]
+	for i := 0; i < len(args); i++ {
+		if args[i] == "-region" {
+			region = args[i+1]
 			i++
-		} else if s[i] == "-profile" {
-			profile = s[i+1]
+		} else if args[i] == "-profile" {
+			profile = args[i+1]
 			i++
-		} else if strings.HasPrefix(s[i], "-region=") {
-			region = strings.TrimPrefix(s[i], "-region=")
-		} else if strings.HasPrefix(s[i], "-profile=") {
-			profile = strings.TrimPrefix(s[i], "-profile=")
+		} else if strings.HasPrefix(args[i], "-region=") {
+			region = strings.TrimPrefix(args[i], "-region=")
+		} else if strings.HasPrefix(args[i], "-profile=") {
+			profile = strings.TrimPrefix(args[i], "-profile=")
 		} else {
-			o = append(o, s[i])
+			roundedArgs = append(roundedArgs, args[i])
 		}
 	}
 
 	return
 }
 
-func Initial(o []string) ([]string, error) {
-	o, region, profile := roundFlags(o)
+func Initial(args []string) ([]string, error) {
+	args, region, profile := roundArgs(args)
 	option.region = &region
 	option.profile = &profile
 
-	s = session.Must(session.NewSessionWithOptions(session.Options{
+	globalSession = session.Must(session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
 		Profile:                 *option.profile,
@@ -72,7 +72,7 @@ func Initial(o []string) ([]string, error) {
 		},
 	}))
 
-	return o, nil
+	return args, nil
 }
 
 func Region()*string{
@@ -84,5 +84,5 @@ func Profile()*string{
 }
 
 func GetSession() *session.Session {
-	return s
+	return globalSession
 }
