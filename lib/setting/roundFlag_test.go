@@ -1,26 +1,44 @@
 package setting
 
 import (
+	"os"
 	"reflect"
 	"testing"
 )
 
-func TestRoundFlags(t *testing.T) {
-	tests := []struct {
-		in   []string
-		want struct {
-			o       []string
-			region  string
-			profile string
+func setenv(m map[string]string) {
+	for k, v := range m {
+		err := os.Setenv(k, v)
+		if err != nil {
+			panic(err)
 		}
+	}
+}
+
+func unsetenv(m map[string]string) {
+	for k, _ := range m {
+		err := os.Unsetenv(k)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func TestRoundFlags(t *testing.T) {
+	type want struct {
+		o       []string
+		region  string
+		profile string
+	}
+	tests := []struct {
+		in  []string
+		env map[string]string
+		w   want
 	}{
 		{
 			[]string{"-foo", "-bar", "-baz"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"-foo", "-bar", "-baz"},
 				"ap-northeast-1",
 				"default",
@@ -28,11 +46,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"foo", "bar", "baz"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"foo", "bar", "baz"},
 				"ap-northeast-1",
 				"default",
@@ -40,11 +55,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-region", "bar", "baz"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"bar",
 				"default",
@@ -52,11 +64,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-region=bar", "baz"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"bar",
 				"default",
@@ -64,11 +73,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-profile", "hoge", "baz"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"ap-northeast-1",
 				"hoge",
@@ -76,11 +82,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-profile=hoge", "baz"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"ap-northeast-1",
 				"hoge",
@@ -88,11 +91,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-profile", "hoge", "baz", "-region", "ap-northeast-1"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"ap-northeast-1",
 				"hoge",
@@ -100,11 +100,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-profile", "hoge", "baz", "-region=ap-northeast-1"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"ap-northeast-1",
 				"hoge",
@@ -112,11 +109,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-profile=hoge", "baz", "-region", "ap-northeast-1"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"ap-northeast-1",
 				"hoge",
@@ -124,11 +118,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-profile=hoge", "baz", "-region=ap-northeast-1"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"ap-northeast-1",
 				"hoge",
@@ -136,11 +127,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-profile=", "baz", "-region=ap-northeast-1"},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"ap-northeast-1",
 				"",
@@ -148,11 +136,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-profile=hoge", "baz", "-region="},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"",
 				"hoge",
@@ -160,11 +145,8 @@ func TestRoundFlags(t *testing.T) {
 		},
 		{
 			[]string{"-profile=", "baz", "-region="},
-			struct {
-				o       []string
-				region  string
-				profile string
-			}{
+			nil,
+			want{
 				[]string{"baz"},
 				"",
 				"",
@@ -173,19 +155,17 @@ func TestRoundFlags(t *testing.T) {
 	}
 
 	for i, test := range tests {
+		setenv(test.env)
 		o, r, p := roundFlags(test.in)
-		if !reflect.DeepEqual(o, test.want.o) ||
-			!reflect.DeepEqual(r, test.want.region) ||
-			!reflect.DeepEqual(p, test.want.profile) {
-			t.Fatalf("%d: want: %v, but: %v", i, test.want, struct {
-				o       []string
-				region  string
-				profile string
-			}{
+		if !reflect.DeepEqual(o, test.w.o) ||
+			!reflect.DeepEqual(r, test.w.region) ||
+			!reflect.DeepEqual(p, test.w.profile) {
+			t.Fatalf("%d: want: %v, but: %v", i, test.w, want{
 				o,
 				r,
 				p,
 			})
 		}
+		unsetenv(test.env)
 	}
 }
