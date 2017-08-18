@@ -25,6 +25,8 @@ import (
 // 1. コマンドライン引数 (region)
 // 2. 環境変数 (AWS_REGION)
 //
-func GetSession(args []string) (*session.Session, []string) {
-	return nil, nil
+func GetSession(args []string) (session *session.Session, restArgs []string) {
+	session = nil
+	restArgs = nil
+	return
 }
