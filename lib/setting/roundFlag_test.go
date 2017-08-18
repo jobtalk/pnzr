@@ -152,12 +152,21 @@ func TestRoundFlags(t *testing.T) {
 				"",
 			},
 		},
+		{
+			[]string{},
+			nil,
+			want{
+				[]string{},
+				"ap-northeast-1",
+				"default",
+			},
+		},
 	}
 
 	for i, test := range tests {
 		setenv(test.env)
 		o, r, p := roundFlags(test.in)
-		if !reflect.DeepEqual(o, test.w.o) ||
+		if (!reflect.DeepEqual(o, test.w.o) && (len(o) != 0 || len(test.w.o) != 0)) ||
 			!reflect.DeepEqual(r, test.w.region) ||
 			!reflect.DeepEqual(p, test.w.profile) {
 			t.Fatalf("%d: want: %v, but: %v", i, test.w, want{
