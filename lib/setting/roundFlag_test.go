@@ -470,7 +470,7 @@ func TestRoundFlags(t *testing.T) {
 
 	for i, test := range tests {
 		setenv(test.env)
-		o, r, p := roundFlags(test.in)
+		o, r, p := roundArgs(test.in)
 		if (!reflect.DeepEqual(o, test.w.o) && (len(o) != 0 || len(test.w.o) != 0)) ||
 			!reflect.DeepEqual(r, test.w.region) ||
 			!reflect.DeepEqual(p, test.w.profile) {
