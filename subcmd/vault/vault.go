@@ -7,18 +7,18 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/jobtalk/pnzr/lib"
 	"github.com/ieee0824/getenv"
+	"github.com/jobtalk/pnzr/lib"
 )
 
 var flagSet = &flag.FlagSet{}
 
 var (
-	kmsKeyID       *string
-	encryptFlag    *bool
-	decryptFlag    *bool
-	file           *string
-	f              *string
+	kmsKeyID    *string
+	encryptFlag *bool
+	decryptFlag *bool
+	file        *string
+	f           *string
 )
 
 func init() {
@@ -89,6 +89,7 @@ func (c *Vault) Help() string {
 }
 
 func (c *Vault) Run(args []string) int {
+	session, args := lib.GetSession(args)
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
@@ -98,7 +99,6 @@ func (c *Vault) Run(args []string) int {
 		file = &targetName
 	}
 
-
 	if *file == "" {
 		file = f
 	}
@@ -106,12 +106,12 @@ func (c *Vault) Run(args []string) int {
 		log.Fatalln("Choose whether to execute encrypt or decrypt.")
 	}
 	if *decryptFlag {
-		err := decrypt(*kmsKeyID, *file)
+		err := decrypt(session, *kmsKeyID, *file)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	} else if *encryptFlag {
-		err := encrypt(*kmsKeyID, *file)
+		err := encrypt(session, *kmsKeyID, *file)
 		if err != nil {
 			log.Fatalln(err)
 		}

@@ -10,21 +10,20 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/jobtalk/pnzr/lib"
 	"github.com/ieee0824/getenv"
+	"github.com/jobtalk/pnzr/lib"
 )
 
 var flagSet = &flag.FlagSet{}
 
 var (
-	kmsKeyID       *string
-	file           *string
-	f              *string
+	kmsKeyID *string
+	file     *string
+	f        *string
 )
 
 func init() {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
-
 
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
@@ -75,6 +74,7 @@ func (c *VaultView) Synopsis() string {
 }
 
 func (c *VaultView) Run(args []string) int {
+	session, args := lib.GetSession(args)
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
@@ -88,7 +88,7 @@ func (c *VaultView) Run(args []string) int {
 		file = f
 	}
 
-	plain, err := decrypt(*kmsKeyID, *file)
+	plain, err := decrypt(session, *kmsKeyID, *file)
 	if err != nil {
 		log.Fatalln(err)
 	}

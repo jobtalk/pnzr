@@ -6,22 +6,9 @@ import (
 	"testing"
 )
 
-func TestIsJson(t *testing.T) {
-	notJSONstr := "this is not json"
-	jsonStr := `
-	{
-		"foo":"bar",
-		"bool": true
-	}
-	`
-
-	if isJSON(notJSONstr) != false {
-		t.Fatalf("\"%v\"であるべきだが\"%v\"だった", false, !false)
-	}
-
-	if isJSON(jsonStr) != true {
-		t.Fatalf("\"%v\"であるべきだが\"%v\"だった", true, !true)
-	}
+func isJSON(s string) bool {
+	var v interface{}
+	return nil == json.Unmarshal([]byte(s), &v)
 }
 
 func TestEmbedde(t *testing.T) {

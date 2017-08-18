@@ -9,16 +9,16 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/jobtalk/pnzr/lib"
 	"github.com/ieee0824/getenv"
+	"github.com/jobtalk/pnzr/lib"
 )
 
 var flagSet = &flag.FlagSet{}
 
 var (
-	kmsKeyID       *string
-	file           *string
-	f              *string
+	kmsKeyID *string
+	file     *string
+	f        *string
 )
 
 func init() {
@@ -99,6 +99,7 @@ func getEditor() string {
 }
 
 func (c *VaultEdit) Run(args []string) int {
+	session, args := lib.GetSession(args)
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
@@ -112,7 +113,7 @@ func (c *VaultEdit) Run(args []string) int {
 		file = f
 	}
 
-	if err := decrypt(*kmsKeyID, *file); err != nil {
+	if err := decrypt(session, *kmsKeyID, *file); err != nil {
 		log.Fatalln(err)
 	}
 
@@ -124,7 +125,7 @@ func (c *VaultEdit) Run(args []string) int {
 
 	cmd.Run()
 
-	if err := encrypt(*kmsKeyID, *file); err != nil {
+	if err := encrypt(session, *kmsKeyID, *file); err != nil {
 		log.Fatalln(err)
 	}
 
