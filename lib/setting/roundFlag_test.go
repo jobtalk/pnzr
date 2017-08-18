@@ -25,6 +25,7 @@ func unsetenv(m map[string]string) {
 }
 
 func TestRoundFlags(t *testing.T) {
+	os.Unsetenv("AWS_DEFAULT_REGION")
 	type want struct {
 		o       []string
 		region  string
@@ -40,7 +41,7 @@ func TestRoundFlags(t *testing.T) {
 			nil,
 			want{
 				[]string{"-foo", "-bar", "-baz"},
-				"ap-northeast-1",
+				"",
 				"default",
 			},
 		},
@@ -49,7 +50,7 @@ func TestRoundFlags(t *testing.T) {
 			nil,
 			want{
 				[]string{"foo", "bar", "baz"},
-				"ap-northeast-1",
+				"",
 				"default",
 			},
 		},
@@ -76,7 +77,7 @@ func TestRoundFlags(t *testing.T) {
 			nil,
 			want{
 				[]string{"baz"},
-				"ap-northeast-1",
+				"",
 				"hoge",
 			},
 		},
@@ -85,7 +86,7 @@ func TestRoundFlags(t *testing.T) {
 			nil,
 			want{
 				[]string{"baz"},
-				"ap-northeast-1",
+				"",
 				"hoge",
 			},
 		},
@@ -157,7 +158,7 @@ func TestRoundFlags(t *testing.T) {
 			nil,
 			want{
 				[]string{},
-				"ap-northeast-1",
+				"",
 				"default",
 			},
 		},
@@ -166,7 +167,7 @@ func TestRoundFlags(t *testing.T) {
 			map[string]string{},
 			want{
 				[]string{},
-				"ap-northeast-1",
+				"",
 				"default",
 			},
 		},
@@ -175,7 +176,7 @@ func TestRoundFlags(t *testing.T) {
 			map[string]string{},
 			want{
 				[]string{},
-				"ap-northeast-1",
+				"",
 				"default",
 			},
 		},
@@ -184,7 +185,7 @@ func TestRoundFlags(t *testing.T) {
 			map[string]string{},
 			want{
 				nil,
-				"ap-northeast-1",
+				"",
 				"default",
 			},
 		},
@@ -192,11 +193,11 @@ func TestRoundFlags(t *testing.T) {
 			[]string{},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "",
+				"AWS_DEFAULT_REGION":       "",
 			},
 			want{
 				[]string{},
-				"ap-northeast-1",
+				"",
 				"default",
 			},
 		},
@@ -204,11 +205,11 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "",
+				"AWS_DEFAULT_REGION":       "",
 			},
 			want{
 				[]string{"bar"},
-				"ap-northeast-1",
+				"",
 				"default",
 			},
 		},
@@ -216,7 +217,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -228,11 +229,11 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "hoge",
-				"AWS_REGION":       "",
+				"AWS_DEFAULT_REGION":       "",
 			},
 			want{
 				[]string{"bar"},
-				"ap-northeast-1",
+				"",
 				"hoge",
 			},
 		},
@@ -240,7 +241,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "hoge",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -252,7 +253,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-profile=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -264,7 +265,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-profile=-profile=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -276,7 +277,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-profile", "hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -288,7 +289,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-profile", "-profile=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -300,7 +301,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -312,7 +313,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region=-profile=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -324,7 +325,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region", "hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -336,7 +337,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region", "-profile=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -348,7 +349,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-profile=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -360,7 +361,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-profile=-region=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -372,7 +373,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-profile", "hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -384,7 +385,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-profile", "-region=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -396,7 +397,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region=hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -408,7 +409,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region", "hoge"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -420,7 +421,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region=hoge", "-profile=huga"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -432,7 +433,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region=-profile=hoge", "-profile=huga"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -444,7 +445,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region", "hoge", "-profile", "huga"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},
@@ -456,7 +457,7 @@ func TestRoundFlags(t *testing.T) {
 			[]string{"bar", "-region", "-profile=hoge", "-profile", "huga"},
 			map[string]string{
 				"AWS_PROFILE_NAME": "",
-				"AWS_REGION":       "us-east-1",
+				"AWS_DEFAULT_REGION":       "us-east-1",
 			},
 			want{
 				[]string{"bar"},

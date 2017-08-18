@@ -37,7 +37,7 @@ var (
 
 func roundFlags(s []string) (o []string, region string, profile string) {
 	profile = getenv.String("AWS_PROFILE_NAME", "default")
-	region = getenv.String("AWS_REGION", "ap-northeast-1")
+	region = getenv.String("AWS_DEFAULT_REGION")
 
 	for i := 0; i < len(s); i++ {
 		if s[i] == "-region" {
