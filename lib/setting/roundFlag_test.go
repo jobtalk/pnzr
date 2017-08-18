@@ -161,7 +161,311 @@ func TestRoundFlags(t *testing.T) {
 				"default",
 			},
 		},
+		{
+			[]string{},
+			map[string]string{},
+			want{
+				[]string{},
+				"ap-northeast-1",
+				"default",
+			},
+		},
+		{
+			nil,
+			map[string]string{},
+			want{
+				[]string{},
+				"ap-northeast-1",
+				"default",
+			},
+		},
+		{
+			nil,
+			map[string]string{},
+			want{
+				nil,
+				"ap-northeast-1",
+				"default",
+			},
+		},
+		{
+			[]string{},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "",
+			},
+			want{
+				[]string{},
+				"ap-northeast-1",
+				"default",
+			},
+		},
+		{
+			[]string{"bar"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "",
+			},
+			want{
+				[]string{"bar"},
+				"ap-northeast-1",
+				"default",
+			},
+		},
+		{
+			[]string{"bar"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"default",
+			},
+		},
+		{
+			[]string{"bar"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "hoge",
+				"AWS_REGION":       "",
+			},
+			want{
+				[]string{"bar"},
+				"ap-northeast-1",
+				"hoge",
+			},
+		},
+		{
+			[]string{"bar"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "hoge",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"hoge",
+			},
+		},
+		{
+			[]string{"bar", "-profile=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"hoge",
+			},
+		},
+		{
+			[]string{"bar", "-profile=-profile=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"-profile=hoge",
+			},
+		},
+		{
+			[]string{"bar", "-profile", "hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"hoge",
+			},
+		},
+		{
+			[]string{"bar", "-profile", "-profile=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"-profile=hoge",
+			},
+		},
+		{
+			[]string{"bar", "-region=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"hoge",
+				"default",
+			},
+		},
+		{
+			[]string{"bar", "-region=-profile=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"-profile=hoge",
+				"default",
+			},
+		},
+		{
+			[]string{"bar", "-region", "hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"hoge",
+				"default",
+			},
+		},
+		{
+			[]string{"bar", "-region", "-profile=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"-profile=hoge",
+				"default",
+			},
+		},
+		{
+			[]string{"bar", "-profile=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"hoge",
+			},
+		},
+		{
+			[]string{"bar", "-profile=-region=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"-region=hoge",
+			},
+		},
+		{
+			[]string{"bar", "-profile", "hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"hoge",
+			},
+		},
+		{
+			[]string{"bar", "-profile", "-region=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"us-east-1",
+				"-region=hoge",
+			},
+		},
+		{
+			[]string{"bar", "-region=hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"hoge",
+				"default",
+			},
+		},
+		{
+			[]string{"bar", "-region", "hoge"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"hoge",
+				"default",
+			},
+		},
+		{
+			[]string{"bar", "-region=hoge", "-profile=huga"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"hoge",
+				"huga",
+			},
+		},
+		{
+			[]string{"bar", "-region=-profile=hoge", "-profile=huga"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"-profile=hoge",
+				"huga",
+			},
+		},
+		{
+			[]string{"bar", "-region", "hoge", "-profile", "huga"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"hoge",
+				"huga",
+			},
+		},
+		{
+			[]string{"bar", "-region", "-profile=hoge", "-profile", "huga"},
+			map[string]string{
+				"AWS_PROFILE_NAME": "",
+				"AWS_REGION":       "us-east-1",
+			},
+			want{
+				[]string{"bar"},
+				"-profile=hoge",
+				"huga",
+			},
+		},
 	}
+
 
 	for i, test := range tests {
 		setenv(test.env)
