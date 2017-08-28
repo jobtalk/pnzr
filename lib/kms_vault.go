@@ -6,11 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
 )
 
 type KMS struct {
 	keyID     *string
-	svc *kms.KMS
+	svc 		kmsiface.KMSAPI
 	Type      *string `json:"type"`
 	Cipher    []byte  `json:"cipher"`
 }
