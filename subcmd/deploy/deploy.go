@@ -12,38 +12,33 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/jobtalk/pnzr/api"
 	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/lib/setting"
 	"github.com/ieee0824/getenv"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 var re = regexp.MustCompile(`.*\.json$`)
 
 var flagSet = &flag.FlagSet{}
+
 var (
 	file           *string
 	f              *string
+	profile        *string
 	kmsKeyID       *string
+	region         *string
 	externalPath   *string
 	outerVals      *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
 	tagOverride    *string
+	sess *session.Session
 )
-
-func init() {
-	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
-	file = flagSet.String("file", "", "target file")
-	f = flagSet.String("f", "", "target file")
-
-	externalPath = flagSet.String("vars_path", getenv.String("PNZR_VARS_PATH"), "external conf path")
-	outerVals = flagSet.String("V", "", "outer values")
-	tagOverride = flagSet.String("t", getenv.String("DOCKER_DEFAULT_DEPLOY_TAG", "latest"), "tag override param")
-
-	awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
-	awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
-}
 
 func parseDockerImage(image string) (url, tag string) {
 	r := strings.Split(image, ":")
@@ -103,8 +98,8 @@ func isEncrypted(data []byte) bool {
 	return len(str) != 0
 }
 
-func decrypt(bin []byte) ([]byte, error) {
-	kms := lib.NewKMSFromBinary(bin)
+func decrypt(bin []byte, sess *session.Session) ([]byte, error) {
+	kms := lib.NewKMSFromBinary(bin, sess)
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
 	}
@@ -127,7 +122,7 @@ func readConf(base []byte, externalPathList []string) (*deployConfigure, error) 
 			return nil, err
 		}
 		if isEncrypted(external) {
-			plain, err := decrypt(external)
+			plain, err := decrypt(external, sess)
 			if err != nil {
 				return nil, err
 			}
@@ -146,11 +141,44 @@ func readConf(base []byte, externalPathList []string) (*deployConfigure, error) 
 
 type Deploy struct{}
 
-func (c *Deploy) Run(args []string) int {
-	var config = &deployConfigure{}
+func parseArgs(args []string) {
+	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
+	file = flagSet.String("file", "", "target file")
+	f = flagSet.String("f", "", "target file")
+
+	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
+	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
+
+	externalPath = flagSet.String("vars_path", getenv.String("PNZR_VARS_PATH"), "external conf path")
+	outerVals = flagSet.String("V", "", "outer values")
+	tagOverride = flagSet.String("t", getenv.String("DOCKER_DEFAULT_DEPLOY_TAG", "latest"), "tag override param")
+
+	awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
+	awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
+
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
+
+	var awsConfig = aws.Config{}
+
+	if *awsAccessKeyID != "" && *awsSecretKeyID != "" && *profile == "" {
+		awsConfig.Credentials = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
+		awsConfig.Region = region
+	}
+
+	sess = session.Must(session.NewSessionWithOptions(session.Options{
+		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		SharedConfigState:       session.SharedConfigEnable,
+		Profile: *profile,
+		Config: awsConfig,
+	}))
+}
+
+func (*Deploy) Run(args []string) int {
+	parseArgs(args)
+	var config = &deployConfigure{}
+
 
 	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
 		targetName := flagSet.Args()[0]
@@ -204,7 +232,7 @@ func (c *Deploy) Run(args []string) int {
 		}
 	}
 
-	result, err := api.Deploy(config.Setting)
+	result, err := api.Deploy(sess, config.Setting)
 	if err != nil {
 		log.Fatalln(err)
 	}

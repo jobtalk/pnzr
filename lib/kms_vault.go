@@ -4,41 +4,40 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/jobtalk/pnzr/lib/setting"
 )
 
 type KMS struct {
 	keyID     *string
-	awsConfig *aws.Config
+	svc *kms.KMS
 	Type      *string `json:"type"`
 	Cipher    []byte  `json:"cipher"`
 }
 
-func NewKMS() *KMS {
+func NewKMS(sess *session.Session) *KMS {
 	return &KMS{
-		awsConfig: &aws.Config{},
+		svc: kms.New(sess),
 		Type:      aws.String("kms"),
 	}
 }
 
-func NewKMSFromBinary(bin []byte) *KMS {
+func NewKMSFromBinary(bin []byte, sess *session.Session) *KMS {
 	var ret = KMS{}
 	err := json.Unmarshal(bin, &ret)
 	if err != nil {
 		return nil
 	}
-	ret.awsConfig = &aws.Config{}
+	ret.svc = kms.New(sess)
 	return &ret
 }
 
 func (k *KMS) Encrypt(plainText []byte) ([]byte, error) {
-	svc := kms.New(setting.GetSession())
 	params := &kms.EncryptInput{
 		KeyId:     k.keyID,
 		Plaintext: plainText,
 	}
-	resp, err := svc.Encrypt(params)
+	resp, err := k.svc.Encrypt(params)
 	if err != nil {
 		return nil, err
 	}
@@ -48,11 +47,10 @@ func (k *KMS) Encrypt(plainText []byte) ([]byte, error) {
 }
 
 func (k *KMS) Decrypt() ([]byte, error) {
-	svc := kms.New(setting.GetSession())
 	params := &kms.DecryptInput{
 		CiphertextBlob: k.Cipher,
 	}
-	resp, err := svc.Decrypt(params)
+	resp, err := k.svc.Decrypt(params)
 	if err != nil {
 		return nil, err
 	}

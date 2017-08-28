@@ -7,8 +7,12 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/jobtalk/pnzr/lib"
 	"github.com/ieee0824/getenv"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 )
 
 var flagSet = &flag.FlagSet{}
@@ -19,15 +23,43 @@ var (
 	decryptFlag    *bool
 	file           *string
 	f              *string
+	profile        *string
+	region         *string
+	awsAccessKeyID *string
+	awsSecretKeyID *string
+	sess *session.Session
 )
 
-func init() {
+func parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	encryptFlag = flagSet.Bool("encrypt", getenv.Bool("ENCRYPT", false), "encrypt mode")
 	decryptFlag = flagSet.Bool("decrypt", getenv.Bool("DECRYPT", false), "decrypt mode")
+	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
+	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
+
+	awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
+	awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
+
+	if err := flagSet.Parse(args); err != nil {
+		log.Fatalln(err)
+	}
+
+	var awsConfig = aws.Config{}
+
+	if *awsAccessKeyID != "" && *awsSecretKeyID != "" && *profile == "" {
+		awsConfig.Credentials = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
+		awsConfig.Region = region
+	}
+
+	sess = session.Must(session.NewSessionWithOptions(session.Options{
+		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		SharedConfigState:       session.SharedConfigEnable,
+		Profile: *profile,
+		Config: awsConfig,
+	}))
 }
 
 func encrypt(keyID string, fileName string) error {
@@ -35,7 +67,7 @@ func encrypt(keyID string, fileName string) error {
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMS()
+	kms := lib.NewKMS(sess)
 	_, err = kms.SetKeyID(keyID).Encrypt(bin)
 	if err != nil {
 		return err
@@ -49,7 +81,7 @@ func decrypt(keyID string, fileName string) error {
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMSFromBinary(bin)
+	kms := lib.NewKMSFromBinary(bin, sess)
 	if kms == nil {
 		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}
@@ -89,15 +121,12 @@ func (c *Vault) Help() string {
 }
 
 func (c *Vault) Run(args []string) int {
-	if err := flagSet.Parse(args); err != nil {
-		log.Fatalln(err)
-	}
+	parseArgs(args)
 
 	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
 		targetName := flagSet.Args()[0]
 		file = &targetName
 	}
-
 
 	if *file == "" {
 		file = f

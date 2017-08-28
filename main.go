@@ -6,15 +6,13 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/jobtalk/pnzr/lib/setting"
 	"github.com/jobtalk/pnzr/subcmd/deploy"
-	"github.com/jobtalk/pnzr/subcmd/update"
+	"github.com/jobtalk/pnzr/vars"
+	"github.com/mitchellh/cli"
 	"github.com/jobtalk/pnzr/subcmd/vault"
+	"github.com/jobtalk/pnzr/subcmd/update"
 	"github.com/jobtalk/pnzr/subcmd/vault_edit"
 	"github.com/jobtalk/pnzr/subcmd/vault_view"
-	"github.com/jobtalk/pnzr/vars"
-	"github.com/joho/godotenv"
-	"github.com/mitchellh/cli"
 )
 
 var (
@@ -32,9 +30,6 @@ func generateBuildInfo() string {
 }
 
 func init() {
-	godotenv.Load("~/.pnzr")
-	godotenv.Load(".pnzr")
-
 	if VERSION == "" {
 		VERSION = "unknown"
 	}
@@ -47,13 +42,9 @@ func init() {
 
 }
 
-func exec() {
-	var err error
+func main() {
 	c := cli.NewCLI("pnzr", VERSION)
-	c.Args, err = setting.Initial(os.Args[1:])
-	if err != nil {
-		panic(err)
-	}
+	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"deploy": func() (cli.Command, error) {
 			return &deploy.Deploy{}, nil
@@ -76,8 +67,4 @@ func exec() {
 		log.Fatalln(err)
 	}
 	os.Exit(exitCode)
-}
-
-func main() {
-	exec()
 }

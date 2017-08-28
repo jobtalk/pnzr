@@ -4,6 +4,7 @@ import (
 	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/lib/iface"
 	"github.com/jobtalk/pnzr/lib/setting"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 type DeployDeps struct {
@@ -32,6 +33,6 @@ func (d *DeployDeps) Deploy(s *setting.Setting) (interface{}, error) {
 	return result, nil
 }
 
-func Deploy(s *setting.Setting) (interface{}, error) {
-	return (&DeployDeps{ecs: lib.NewECS()}).Deploy(s)
+func Deploy(sess *session.Session, s *setting.Setting) (interface{}, error) {
+	return (&DeployDeps{ecs: lib.NewECS(sess)}).Deploy(s)
 }
