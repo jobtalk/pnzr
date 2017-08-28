@@ -27,10 +27,9 @@ var (
 	region         *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
-	sess *session.Session
 )
 
-func parseArgs(args []string) {
+func (v *VaultEdit)parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
@@ -52,7 +51,7 @@ func parseArgs(args []string) {
 		awsConfig.Region = region
 	}
 
-	sess = session.Must(session.NewSessionWithOptions(session.Options{
+	v.sess = session.Must(session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
 		Profile: *profile,
@@ -60,12 +59,12 @@ func parseArgs(args []string) {
 	}))
 }
 
-func encrypt(keyID string, fileName string) error {
+func (v *VaultEdit)encrypt(keyID string, fileName string) error {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMS(sess)
+	kms := lib.NewKMS(v.sess)
 	_, err = kms.SetKeyID(keyID).Encrypt(bin)
 	if err != nil {
 		return err
@@ -74,12 +73,12 @@ func encrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, []byte(kms.String()), 0644)
 }
 
-func decrypt(keyID string, fileName string) error {
+func (v *VaultEdit)decrypt(keyID string, fileName string) error {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMSFromBinary(bin, sess)
+	kms := lib.NewKMSFromBinary(bin, v.sess)
 	if kms == nil {
 		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}
@@ -90,7 +89,9 @@ func decrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, plainText, 0644)
 }
 
-type VaultEdit struct{}
+type VaultEdit struct{
+	sess *session.Session
+}
 
 func (c *VaultEdit) Help() string {
 	var msg string
@@ -130,8 +131,8 @@ func getEditor() string {
 	return "nano"
 }
 
-func (c *VaultEdit) Run(args []string) int {
-	parseArgs(args)
+func (v *VaultEdit) Run(args []string) int {
+	v.parseArgs(args)
 	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
 		targetName := flagSet.Args()[0]
 		file = &targetName
@@ -141,7 +142,7 @@ func (c *VaultEdit) Run(args []string) int {
 		file = f
 	}
 
-	if err := decrypt(*kmsKeyID, *file); err != nil {
+	if err := v.decrypt(*kmsKeyID, *file); err != nil {
 		log.Fatalln(err)
 	}
 
@@ -153,7 +154,7 @@ func (c *VaultEdit) Run(args []string) int {
 
 	cmd.Run()
 
-	if err := encrypt(*kmsKeyID, *file); err != nil {
+	if err := v.encrypt(*kmsKeyID, *file); err != nil {
 		log.Fatalln(err)
 	}
 

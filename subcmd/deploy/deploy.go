@@ -37,7 +37,6 @@ var (
 	awsAccessKeyID *string
 	awsSecretKeyID *string
 	tagOverride    *string
-	sess *session.Session
 )
 
 func parseDockerImage(image string) (url, tag string) {
@@ -98,8 +97,8 @@ func isEncrypted(data []byte) bool {
 	return len(str) != 0
 }
 
-func decrypt(bin []byte, sess *session.Session) ([]byte, error) {
-	kms := lib.NewKMSFromBinary(bin, sess)
+func (d *Deploy)decrypt(bin []byte) ([]byte, error) {
+	kms := lib.NewKMSFromBinary(bin, d.sess)
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
 	}
@@ -110,7 +109,7 @@ func decrypt(bin []byte, sess *session.Session) ([]byte, error) {
 	return plainText, nil
 }
 
-func readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
+func (d *Deploy)readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
 	var root = *externalPath
 	var ret = &deployConfigure{}
 	baseStr := string(base)
@@ -122,7 +121,7 @@ func readConf(base []byte, externalPathList []string) (*deployConfigure, error) 
 			return nil, err
 		}
 		if isEncrypted(external) {
-			plain, err := decrypt(external, sess)
+			plain, err := d.decrypt(external)
 			if err != nil {
 				return nil, err
 			}
@@ -139,9 +138,11 @@ func readConf(base []byte, externalPathList []string) (*deployConfigure, error) 
 	return ret, nil
 }
 
-type Deploy struct{}
+type Deploy struct{
+	sess *session.Session
+}
 
-func parseArgs(args []string) {
+func (d *Deploy)parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
@@ -167,7 +168,7 @@ func parseArgs(args []string) {
 		awsConfig.Region = region
 	}
 
-	sess = session.Must(session.NewSessionWithOptions(session.Options{
+	d.sess = session.Must(session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
 		Profile: *profile,
@@ -175,8 +176,8 @@ func parseArgs(args []string) {
 	}))
 }
 
-func (*Deploy) Run(args []string) int {
-	parseArgs(args)
+func (d *Deploy) Run(args []string) int {
+	d.parseArgs(args)
 	var config = &deployConfigure{}
 
 
@@ -206,7 +207,7 @@ func (*Deploy) Run(args []string) int {
 	}
 
 	if externalList != nil {
-		c, err := readConf(baseConfBinary, externalList)
+		c, err := d.readConf(baseConfBinary, externalList)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -232,7 +233,7 @@ func (*Deploy) Run(args []string) int {
 		}
 	}
 
-	result, err := api.Deploy(sess, config.Setting)
+	result, err := api.Deploy(d.sess, config.Setting)
 	if err != nil {
 		log.Fatalln(err)
 	}

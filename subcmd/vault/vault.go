@@ -27,10 +27,9 @@ var (
 	region         *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
-	sess *session.Session
 )
 
-func parseArgs(args []string) {
+func (v *Vault) parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	encryptFlag = flagSet.Bool("encrypt", getenv.Bool("ENCRYPT", false), "encrypt mode")
 	decryptFlag = flagSet.Bool("decrypt", getenv.Bool("DECRYPT", false), "decrypt mode")
@@ -54,7 +53,7 @@ func parseArgs(args []string) {
 		awsConfig.Region = region
 	}
 
-	sess = session.Must(session.NewSessionWithOptions(session.Options{
+	v.sess = session.Must(session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
 		Profile: *profile,
@@ -62,12 +61,12 @@ func parseArgs(args []string) {
 	}))
 }
 
-func encrypt(keyID string, fileName string) error {
+func (v *Vault) encrypt(keyID string, fileName string) error {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMS(sess)
+	kms := lib.NewKMS(v.sess)
 	_, err = kms.SetKeyID(keyID).Encrypt(bin)
 	if err != nil {
 		return err
@@ -76,12 +75,12 @@ func encrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, []byte(kms.String()), 0644)
 }
 
-func decrypt(keyID string, fileName string) error {
+func (v *Vault) decrypt(keyID string, fileName string) error {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMSFromBinary(bin, sess)
+	kms := lib.NewKMSFromBinary(bin, v.sess)
 	if kms == nil {
 		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}
@@ -92,7 +91,9 @@ func decrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, plainText, 0644)
 }
 
-type Vault struct{}
+type Vault struct{
+	sess *session.Session
+}
 
 func (c *Vault) Help() string {
 	var msg string
@@ -120,8 +121,8 @@ func (c *Vault) Help() string {
 	return msg
 }
 
-func (c *Vault) Run(args []string) int {
-	parseArgs(args)
+func (v *Vault) Run(args []string) int {
+	v.parseArgs(args)
 
 	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
 		targetName := flagSet.Args()[0]
@@ -135,12 +136,12 @@ func (c *Vault) Run(args []string) int {
 		log.Fatalln("Choose whether to execute encrypt or decrypt.")
 	}
 	if *decryptFlag {
-		err := decrypt(*kmsKeyID, *file)
+		err := v.decrypt(*kmsKeyID, *file)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	} else if *encryptFlag {
-		err := encrypt(*kmsKeyID, *file)
+		err := v.encrypt(*kmsKeyID, *file)
 		if err != nil {
 			log.Fatalln(err)
 		}

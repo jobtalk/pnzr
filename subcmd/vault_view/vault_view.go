@@ -28,10 +28,9 @@ var (
 	region         *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
-	sess *session.Session
 )
 
-func parseArgs(args []string) {
+func (v *VaultView)parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
@@ -53,7 +52,7 @@ func parseArgs(args []string) {
 		awsConfig.Region = region
 	}
 
-	sess = session.Must(session.NewSessionWithOptions(session.Options{
+	v.sess = session.Must(session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
 		Profile: *profile,
@@ -61,12 +60,12 @@ func parseArgs(args []string) {
 	}))
 }
 
-func decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, error) {
+func (v *VaultView)decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, error) {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, err
 	}
-	kms := lib.NewKMSFromBinary(bin, sess)
+	kms := lib.NewKMSFromBinary(bin, v.sess)
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}
@@ -77,7 +76,9 @@ func decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, erro
 	return plainText, nil
 }
 
-type VaultView struct{}
+type VaultView struct{
+	sess *session.Session
+}
 
 func (c *VaultView) Help() string {
 	var msg string
@@ -105,8 +106,8 @@ func (c *VaultView) Synopsis() string {
 	return c.Help()
 }
 
-func (c *VaultView) Run(args []string) int {
-	parseArgs(args)
+func (v *VaultView) Run(args []string) int {
+	v.parseArgs(args)
 
 	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
 		targetName := flagSet.Args()[0]
@@ -129,7 +130,7 @@ func (c *VaultView) Run(args []string) int {
 		file = f
 	}
 
-	plain, err := decrypt(*kmsKeyID, *file, awsConfig)
+	plain, err := v.decrypt(*kmsKeyID, *file, awsConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
