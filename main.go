@@ -13,6 +13,7 @@ import (
 	"github.com/jobtalk/pnzr/subcmd/update"
 	"github.com/jobtalk/pnzr/subcmd/vault_edit"
 	"github.com/jobtalk/pnzr/subcmd/vault_view"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -39,7 +40,8 @@ func init() {
 
 	VERSION = generateBuildInfo()
 	log.SetFlags(log.Llongfile)
-
+	godotenv.Load("~/.pnzr")
+	godotenv.Load(".pnzr")
 }
 
 func main() {
