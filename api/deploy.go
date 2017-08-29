@@ -1,10 +1,10 @@
 package api
 
 import (
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/lib/iface"
 	"github.com/jobtalk/pnzr/lib/setting"
-	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 type DeployDeps struct {

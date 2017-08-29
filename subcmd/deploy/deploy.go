@@ -13,13 +13,13 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
 	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/lib/setting"
-	"github.com/ieee0824/getenv"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 var re = regexp.MustCompile(`.*\.json$`)
@@ -97,7 +97,7 @@ func isEncrypted(data []byte) bool {
 	return len(str) != 0
 }
 
-func (d *Deploy)decrypt(bin []byte) ([]byte, error) {
+func (d *Deploy) decrypt(bin []byte) ([]byte, error) {
 	kms := lib.NewKMSFromBinary(bin, d.sess)
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
@@ -109,7 +109,7 @@ func (d *Deploy)decrypt(bin []byte) ([]byte, error) {
 	return plainText, nil
 }
 
-func (d *Deploy)readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
+func (d *Deploy) readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
 	var root = *externalPath
 	var ret = &deployConfigure{}
 	baseStr := string(base)
@@ -138,11 +138,11 @@ func (d *Deploy)readConf(base []byte, externalPathList []string) (*deployConfigu
 	return ret, nil
 }
 
-type Deploy struct{
+type Deploy struct {
 	sess *session.Session
 }
 
-func (d *Deploy)parseArgs(args []string) {
+func (d *Deploy) parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
@@ -171,15 +171,14 @@ func (d *Deploy)parseArgs(args []string) {
 	d.sess = session.Must(session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
-		Profile: *profile,
-		Config: awsConfig,
+		Profile:                 *profile,
+		Config:                  awsConfig,
 	}))
 }
 
 func (d *Deploy) Run(args []string) int {
 	d.parseArgs(args)
 	var config = &deployConfigure{}
-
 
 	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
 		targetName := flagSet.Args()[0]

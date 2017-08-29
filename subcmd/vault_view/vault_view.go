@@ -12,10 +12,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/jobtalk/pnzr/lib"
-	"github.com/ieee0824/getenv"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/ieee0824/getenv"
+	"github.com/jobtalk/pnzr/lib"
 )
 
 var flagSet = &flag.FlagSet{}
@@ -30,7 +30,7 @@ var (
 	awsSecretKeyID *string
 )
 
-func (v *VaultView)parseArgs(args []string) {
+func (v *VaultView) parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
@@ -55,12 +55,12 @@ func (v *VaultView)parseArgs(args []string) {
 	v.sess = session.Must(session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
-		Profile: *profile,
-		Config: awsConfig,
+		Profile:                 *profile,
+		Config:                  awsConfig,
 	}))
 }
 
-func (v *VaultView)decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, error) {
+func (v *VaultView) decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, error) {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (v *VaultView)decrypt(keyID string, fileName string, awsConfig *aws.Config)
 	return plainText, nil
 }
 
-type VaultView struct{
+type VaultView struct {
 	sess *session.Session
 }
 

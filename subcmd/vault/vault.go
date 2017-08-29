@@ -9,10 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/jobtalk/pnzr/lib"
-	"github.com/ieee0824/getenv"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/ieee0824/getenv"
+	"github.com/jobtalk/pnzr/lib"
 )
 
 var flagSet = &flag.FlagSet{}
@@ -56,8 +56,8 @@ func (v *Vault) parseArgs(args []string) {
 	v.sess = session.Must(session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
-		Profile: *profile,
-		Config: awsConfig,
+		Profile:                 *profile,
+		Config:                  awsConfig,
 	}))
 }
 
@@ -91,7 +91,7 @@ func (v *Vault) decrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, plainText, 0644)
 }
 
-type Vault struct{
+type Vault struct {
 	sess *session.Session
 }
 

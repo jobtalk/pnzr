@@ -7,13 +7,13 @@ import (
 	"runtime"
 
 	"github.com/jobtalk/pnzr/subcmd/deploy"
-	"github.com/jobtalk/pnzr/vars"
-	"github.com/mitchellh/cli"
-	"github.com/jobtalk/pnzr/subcmd/vault"
 	"github.com/jobtalk/pnzr/subcmd/update"
+	"github.com/jobtalk/pnzr/subcmd/vault"
 	"github.com/jobtalk/pnzr/subcmd/vault_edit"
 	"github.com/jobtalk/pnzr/subcmd/vault_view"
+	"github.com/jobtalk/pnzr/vars"
 	"github.com/joho/godotenv"
+	"github.com/mitchellh/cli"
 )
 
 var (

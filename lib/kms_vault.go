@@ -10,16 +10,16 @@ import (
 )
 
 type KMS struct {
-	keyID     *string
-	svc 		kmsiface.KMSAPI
-	Type      *string `json:"type"`
-	Cipher    []byte  `json:"cipher"`
+	keyID  *string
+	svc    kmsiface.KMSAPI
+	Type   *string `json:"type"`
+	Cipher []byte  `json:"cipher"`
 }
 
 func NewKMS(sess *session.Session) *KMS {
 	return &KMS{
-		svc: kms.New(sess),
-		Type:      aws.String("kms"),
+		svc:  kms.New(sess),
+		Type: aws.String("kms"),
 	}
 }
 
