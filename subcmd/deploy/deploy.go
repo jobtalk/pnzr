@@ -24,7 +24,6 @@ import (
 
 var re = regexp.MustCompile(`.*\.json$`)
 
-
 func parseDockerImage(image string) (url, tag string) {
 	r := strings.Split(image, ":")
 	if len(r) == 2 {
@@ -125,7 +124,7 @@ func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deplo
 }
 
 type DeployCommand struct {
-	sess *session.Session
+	sess           *session.Session
 	file           *string
 	f              *string
 	profile        *string
@@ -136,7 +135,7 @@ type DeployCommand struct {
 	awsAccessKeyID *string
 	awsSecretKeyID *string
 	tagOverride    *string
-	flagSet *flag.FlagSet
+	flagSet        *flag.FlagSet
 }
 
 func (d *DeployCommand) parseArgs(args []string) {

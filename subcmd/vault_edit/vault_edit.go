@@ -17,44 +17,30 @@ import (
 	"github.com/jobtalk/pnzr/lib"
 )
 
-var flagSet = &flag.FlagSet{}
-
-var (
-	kmsKeyID       *string
-	file           *string
-	f              *string
-	profile        *string
-	region         *string
-	awsAccessKeyID *string
-	awsSecretKeyID *string
-)
-
 func (v *VaultEditCommand) parseArgs(args []string) {
-	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
-	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
-	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
+	v.kmsKeyID = v.flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
+	v.profile = v.flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
+	v.region = v.flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
+	v.awsAccessKeyID = v.flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
+	v.awsSecretKeyID = v.flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
+	v.file = v.flagSet.String("file", "", "target file")
+	v.f = v.flagSet.String("f", "", "target file")
 
-	awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
-	awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
-
-	file = flagSet.String("file", "", "target file")
-	f = flagSet.String("f", "", "target file")
-
-	if err := flagSet.Parse(args); err != nil {
+	if err := v.flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
 
 	var awsConfig = aws.Config{}
 
-	if *awsAccessKeyID != "" && *awsSecretKeyID != "" && *profile == "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(*awsAccessKeyID, *awsSecretKeyID, "")
-		awsConfig.Region = region
+	if *v.awsAccessKeyID != "" && *v.awsSecretKeyID != "" && *v.profile == "" {
+		awsConfig.Credentials = credentials.NewStaticCredentials(*v.awsAccessKeyID, *v.awsSecretKeyID, "")
+		awsConfig.Region = v.region
 	}
 
 	v.sess = session.Must(session.NewSessionWithOptions(session.Options{
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 *profile,
+		Profile:                 *v.profile,
 		Config:                  awsConfig,
 	}))
 }
@@ -90,7 +76,15 @@ func (v *VaultEditCommand) decrypt(keyID string, fileName string) error {
 }
 
 type VaultEditCommand struct {
-	sess *session.Session
+	sess           *session.Session
+	kmsKeyID       *string
+	file           *string
+	f              *string
+	profile        *string
+	region         *string
+	awsAccessKeyID *string
+	awsSecretKeyID *string
+	flagSet        *flag.FlagSet
 }
 
 func (c *VaultEditCommand) Help() string {
@@ -132,21 +126,22 @@ func getEditor() string {
 }
 
 func (v *VaultEditCommand) Run(args []string) int {
+	v.flagSet = new(flag.FlagSet)
 	v.parseArgs(args)
-	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
-		targetName := flagSet.Args()[0]
-		file = &targetName
+	if *v.f == "" && *v.file == "" && len(v.flagSet.Args()) != 0 {
+		targetName := v.flagSet.Args()[0]
+		v.file = &targetName
 	}
 
-	if *file == "" {
-		file = f
+	if *v.file == "" {
+		v.file = v.f
 	}
 
-	if err := v.decrypt(*kmsKeyID, *file); err != nil {
+	if err := v.decrypt(*v.kmsKeyID, *v.file); err != nil {
 		log.Fatalln(err)
 	}
 
-	cmd := exec.Command(getEditor(), *file)
+	cmd := exec.Command(getEditor(), *v.file)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -154,7 +149,7 @@ func (v *VaultEditCommand) Run(args []string) int {
 
 	cmd.Run()
 
-	if err := v.encrypt(*kmsKeyID, *file); err != nil {
+	if err := v.encrypt(*v.kmsKeyID, *v.file); err != nil {
 		log.Fatalln(err)
 	}
 
