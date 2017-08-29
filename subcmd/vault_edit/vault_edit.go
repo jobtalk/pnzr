@@ -115,7 +115,7 @@ func (c *VaultEditCommand) Help() string {
 	return msg
 }
 
-func (c *VaultEdit) Synopsis() string {
+func (c *VaultEditCommand) Synopsis() string {
 	return c.Help()
 }
 
