@@ -15,6 +15,20 @@ import (
 	"github.com/jobtalk/pnzr/lib"
 )
 
+type VaultCommand struct {
+	sess           *session.Session
+	kmsKeyID       *string
+	encryptFlag    *bool
+	decryptFlag    *bool
+	file           *string
+	f              *string
+	profile        *string
+	region         *string
+	awsAccessKeyID *string
+	awsSecretKeyID *string
+	flagSet        *flag.FlagSet
+}
+
 func (v *VaultCommand) parseArgs(args []string) {
 	v.kmsKeyID = v.flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	v.encryptFlag = v.flagSet.Bool("encrypt", getenv.Bool("ENCRYPT", false), "encrypt mode")
@@ -73,20 +87,6 @@ func (v *VaultCommand) decrypt(keyID string, fileName string) error {
 		return err
 	}
 	return ioutil.WriteFile(fileName, plainText, 0644)
-}
-
-type VaultCommand struct {
-	sess           *session.Session
-	kmsKeyID       *string
-	encryptFlag    *bool
-	decryptFlag    *bool
-	file           *string
-	f              *string
-	profile        *string
-	region         *string
-	awsAccessKeyID *string
-	awsSecretKeyID *string
-	flagSet        *flag.FlagSet
 }
 
 func (c *VaultCommand) Help() string {

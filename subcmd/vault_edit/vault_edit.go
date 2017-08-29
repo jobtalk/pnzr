@@ -17,6 +17,18 @@ import (
 	"github.com/jobtalk/pnzr/lib"
 )
 
+type VaultEditCommand struct {
+	sess           *session.Session
+	kmsKeyID       *string
+	file           *string
+	f              *string
+	profile        *string
+	region         *string
+	awsAccessKeyID *string
+	awsSecretKeyID *string
+	flagSet        *flag.FlagSet
+}
+
 func (v *VaultEditCommand) parseArgs(args []string) {
 	v.kmsKeyID = v.flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	v.profile = v.flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
@@ -73,18 +85,6 @@ func (v *VaultEditCommand) decrypt(keyID string, fileName string) error {
 		return err
 	}
 	return ioutil.WriteFile(fileName, plainText, 0644)
-}
-
-type VaultEditCommand struct {
-	sess           *session.Session
-	kmsKeyID       *string
-	file           *string
-	f              *string
-	profile        *string
-	region         *string
-	awsAccessKeyID *string
-	awsSecretKeyID *string
-	flagSet        *flag.FlagSet
 }
 
 func (c *VaultEditCommand) Help() string {

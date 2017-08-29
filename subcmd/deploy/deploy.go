@@ -22,6 +22,19 @@ import (
 	"github.com/jobtalk/pnzr/lib/setting"
 )
 
+type DeployCommand struct {
+	sess           *session.Session
+	file           *string
+	profile        *string
+	kmsKeyID       *string
+	region         *string
+	externalPath   *string
+	outerVals      *string
+	awsAccessKeyID *string
+	awsSecretKeyID *string
+	tagOverride    *string
+}
+
 var re = regexp.MustCompile(`.*\.json$`)
 
 func parseDockerImage(image string) (url, tag string) {
@@ -123,19 +136,6 @@ func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deplo
 	return ret, nil
 }
 
-type DeployCommand struct {
-	sess           *session.Session
-	file           *string
-	profile        *string
-	kmsKeyID       *string
-	region         *string
-	externalPath   *string
-	outerVals      *string
-	awsAccessKeyID *string
-	awsSecretKeyID *string
-	tagOverride    *string
-}
-
 func (d *DeployCommand) parseArgs(args []string) {
 	flagSet := new(flag.FlagSet)
 	var f *string
@@ -154,7 +154,6 @@ func (d *DeployCommand) parseArgs(args []string) {
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}
-
 
 	if *f == "" && *d.file == "" && len(flagSet.Args()) != 0 {
 		targetName := flagSet.Args()[0]
@@ -183,8 +182,6 @@ func (d *DeployCommand) parseArgs(args []string) {
 func (d *DeployCommand) Run(args []string) int {
 	d.parseArgs(args)
 	var config = &deployConfigure{}
-
-
 
 	externalList, err := fileList(*d.externalPath)
 	if err != nil {

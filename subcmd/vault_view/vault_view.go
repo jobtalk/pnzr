@@ -18,6 +18,18 @@ import (
 	"github.com/jobtalk/pnzr/lib"
 )
 
+type VaultViewCommand struct {
+	sess           *session.Session
+	kmsKeyID       *string
+	file           *string
+	f              *string
+	profile        *string
+	region         *string
+	awsAccessKeyID *string
+	awsSecretKeyID *string
+	flagSet        *flag.FlagSet
+}
+
 func (v *VaultViewCommand) parseArgs(args []string) {
 	v.kmsKeyID = v.flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	v.profile = v.flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
@@ -60,18 +72,6 @@ func (v *VaultViewCommand) decrypt(keyID string, fileName string, awsConfig *aws
 		return nil, err
 	}
 	return plainText, nil
-}
-
-type VaultViewCommand struct {
-	sess           *session.Session
-	kmsKeyID       *string
-	file           *string
-	f              *string
-	profile        *string
-	region         *string
-	awsAccessKeyID *string
-	awsSecretKeyID *string
-	flagSet        *flag.FlagSet
 }
 
 func (c *VaultViewCommand) Help() string {
