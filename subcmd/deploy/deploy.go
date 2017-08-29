@@ -170,7 +170,7 @@ func (d *DeployCommand) parseArgs(args []string) {
 }
 
 func (d *DeployCommand) Run(args []string) int {
-	d.flagSet = &flag.FlagSet{}
+	d.flagSet = new(flag.FlagSet)
 	d.parseArgs(args)
 	var config = &deployConfigure{}
 
