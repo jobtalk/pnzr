@@ -5,21 +5,69 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 
+	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
+	"os"
+	"os/exec"
 )
+
+func getEditor() string {
+	if e := os.Getenv("PNZR_EDITOR"); e != "" {
+		return e
+	}
+
+	if e := os.Getenv("EDITOR"); e != "" {
+		return e
+	}
+
+	return "nano"
+}
+
+type mode struct {
+	encrypt *bool
+	decrypt *bool
+	edit    *bool
+	view    *bool
+}
+
+func (m *mode) getMode() (string, error) {
+	var flag int
+	if *m.encrypt {
+		flag |= 0x01
+	}
+	if *m.decrypt {
+		flag |= 0x02
+	}
+	if *m.edit {
+		flag |= 0x04
+	}
+	if *m.view {
+		flag |= 0x08
+	}
+
+	switch flag {
+	case 1:
+		return "encrypt", nil
+	case 2:
+		return "decrypt", nil
+	case 4:
+		return "edit", nil
+	case 8:
+		return "view", nil
+	}
+	return "", errors.New("could not get the mode. mode is not selected or multiple selected.")
+}
 
 type VaultCommand struct {
 	sess           *session.Session
 	kmsKeyID       *string
-	encryptFlag    *bool
-	decryptFlag    *bool
+	vaultMode      *mode
 	file           *string
 	profile        *string
 	region         *string
@@ -32,10 +80,13 @@ func (v *VaultCommand) parseArgs(args []string) {
 		flagSet = new(flag.FlagSet)
 		f       *string
 	)
+	v.vaultMode = new(mode)
 
 	v.kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
-	v.encryptFlag = flagSet.Bool("encrypt", getenv.Bool("ENCRYPT", false), "encrypt mode")
-	v.decryptFlag = flagSet.Bool("decrypt", getenv.Bool("DECRYPT", false), "decrypt mode")
+	v.vaultMode.encrypt = flagSet.Bool("encrypt", getenv.Bool("ENCRYPT", false), "encrypt mode")
+	v.vaultMode.decrypt = flagSet.Bool("decrypt", getenv.Bool("DECRYPT", false), "decrypt mode")
+	v.vaultMode.view = flagSet.Bool("view", false, "view mode")
+	v.vaultMode.edit = flagSet.Bool("edit", false, "edit mode")
 	v.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	v.region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
 	v.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
@@ -44,7 +95,7 @@ func (v *VaultCommand) parseArgs(args []string) {
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	if *f == "" && *v.file == "" && len(flagSet.Args()) != 0 {
@@ -101,6 +152,22 @@ func (v *VaultCommand) decrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, plainText, 0644)
 }
 
+func (v *VaultCommand) decryptTemporary(keyID string, fileName string) ([]byte, error) {
+	bin, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	kms := lib.NewKMSFromBinary(bin, v.sess)
+	if kms == nil {
+		return nil, errors.New(fmt.Sprintf("%v form is illegal", fileName))
+	}
+	plainText, err := kms.SetKeyID(keyID).Decrypt()
+	if err != nil {
+		return nil, err
+	}
+	return plainText, nil
+}
+
 func (c *VaultCommand) Help() string {
 	var msg string
 	msg += "usage: pnzr vault [options ...]\n"
@@ -130,20 +197,57 @@ func (c *VaultCommand) Help() string {
 func (v *VaultCommand) Run(args []string) int {
 	v.parseArgs(args)
 
-	if *v.encryptFlag == *v.decryptFlag {
-		log.Fatalln("Choose whether to execute encrypt or decrypt.")
+	mode, err := v.vaultMode.getMode()
+	if err != nil {
+		panic(err)
 	}
-	if *v.decryptFlag {
-		err := v.decrypt(*v.kmsKeyID, *v.file)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	} else if *v.encryptFlag {
+
+	switch mode {
+	case "encrypt":
 		err := v.encrypt(*v.kmsKeyID, *v.file)
 		if err != nil {
-			log.Fatalln(err)
+			panic(err)
+		}
+	case "decrypt":
+		err := v.decrypt(*v.kmsKeyID, *v.file)
+		if err != nil {
+			panic(err)
+		}
+	case "edit":
+		if err := v.decrypt(*v.kmsKeyID, *v.file); err != nil {
+			panic(err)
+		}
+		defer func() {
+			if err := v.encrypt(*v.kmsKeyID, *v.file); err != nil {
+				panic(err)
+			}
+		}()
+		cmd := exec.Command(getEditor(), *v.file)
+
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+
+	case "view":
+		plain, err := v.decryptTemporary(*v.kmsKeyID, *v.file)
+		if err != nil {
+			panic(err)
+		}
+
+		cmd := exec.Command("less")
+		cmd.Stdin = bytes.NewReader(plain)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Run(); err != nil {
+			panic(err)
 		}
 	}
+
 	return 0
 }
 
