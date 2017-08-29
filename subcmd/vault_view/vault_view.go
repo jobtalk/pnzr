@@ -30,7 +30,7 @@ var (
 	awsSecretKeyID *string
 )
 
-func (v *VaultView) parseArgs(args []string) {
+func (v *VaultViewCommand) parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
@@ -60,7 +60,7 @@ func (v *VaultView) parseArgs(args []string) {
 	}))
 }
 
-func (v *VaultView) decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, error) {
+func (v *VaultViewCommand) decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, error) {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, err
@@ -76,11 +76,11 @@ func (v *VaultView) decrypt(keyID string, fileName string, awsConfig *aws.Config
 	return plainText, nil
 }
 
-type VaultView struct {
+type VaultViewCommand struct {
 	sess *session.Session
 }
 
-func (c *VaultView) Help() string {
+func (c *VaultViewCommand) Help() string {
 	var msg string
 	msg += "usage: pnzr vault-view [options ...]\n"
 	msg += "options:\n"
@@ -102,11 +102,11 @@ func (c *VaultView) Help() string {
 	return msg
 }
 
-func (c *VaultView) Synopsis() string {
+func (c *VaultViewCommand) Synopsis() string {
 	return c.Help()
 }
 
-func (v *VaultView) Run(args []string) int {
+func (v *VaultViewCommand) Run(args []string) int {
 	v.parseArgs(args)
 
 	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {

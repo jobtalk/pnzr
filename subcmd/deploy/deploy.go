@@ -97,7 +97,7 @@ func isEncrypted(data []byte) bool {
 	return len(str) != 0
 }
 
-func (d *Deploy) decrypt(bin []byte) ([]byte, error) {
+func (d *DeployCommand) decrypt(bin []byte) ([]byte, error) {
 	kms := lib.NewKMSFromBinary(bin, d.sess)
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
@@ -109,7 +109,7 @@ func (d *Deploy) decrypt(bin []byte) ([]byte, error) {
 	return plainText, nil
 }
 
-func (d *Deploy) readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
+func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
 	var root = *externalPath
 	var ret = &deployConfigure{}
 	baseStr := string(base)
@@ -138,11 +138,11 @@ func (d *Deploy) readConf(base []byte, externalPathList []string) (*deployConfig
 	return ret, nil
 }
 
-type Deploy struct {
+type DeployCommand struct {
 	sess *session.Session
 }
 
-func (d *Deploy) parseArgs(args []string) {
+func (d *DeployCommand) parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
@@ -176,7 +176,7 @@ func (d *Deploy) parseArgs(args []string) {
 	}))
 }
 
-func (d *Deploy) Run(args []string) int {
+func (d *DeployCommand) Run(args []string) int {
 	d.parseArgs(args)
 	var config = &deployConfigure{}
 
@@ -244,7 +244,7 @@ func (d *Deploy) Run(args []string) int {
 	return 0
 }
 
-func (c *Deploy) Synopsis() string {
+func (c *DeployCommand) Synopsis() string {
 	synopsis := ""
 	synopsis += "usage: pnzr deploy [options ...]\n"
 	synopsis += "options:\n"
@@ -273,6 +273,6 @@ func (c *Deploy) Synopsis() string {
 	return synopsis
 }
 
-func (c *Deploy) Help() string {
+func (c *DeployCommand) Help() string {
 	return c.Synopsis()
 }

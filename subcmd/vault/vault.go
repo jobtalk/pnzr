@@ -29,7 +29,7 @@ var (
 	awsSecretKeyID *string
 )
 
-func (v *Vault) parseArgs(args []string) {
+func (v *VaultCommand) parseArgs(args []string) {
 	kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	encryptFlag = flagSet.Bool("encrypt", getenv.Bool("ENCRYPT", false), "encrypt mode")
 	decryptFlag = flagSet.Bool("decrypt", getenv.Bool("DECRYPT", false), "decrypt mode")
@@ -61,7 +61,7 @@ func (v *Vault) parseArgs(args []string) {
 	}))
 }
 
-func (v *Vault) encrypt(keyID string, fileName string) error {
+func (v *VaultCommand) encrypt(keyID string, fileName string) error {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func (v *Vault) encrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, []byte(kms.String()), 0644)
 }
 
-func (v *Vault) decrypt(keyID string, fileName string) error {
+func (v *VaultCommand) decrypt(keyID string, fileName string) error {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -91,11 +91,11 @@ func (v *Vault) decrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, plainText, 0644)
 }
 
-type Vault struct {
+type VaultCommand struct {
 	sess *session.Session
 }
 
-func (c *Vault) Help() string {
+func (c *VaultCommand) Help() string {
 	var msg string
 	msg += "usage: pnzr vault [options ...]\n"
 	msg += "options:\n"
@@ -121,7 +121,7 @@ func (c *Vault) Help() string {
 	return msg
 }
 
-func (v *Vault) Run(args []string) int {
+func (v *VaultCommand) Run(args []string) int {
 	v.parseArgs(args)
 
 	if *f == "" && *file == "" && len(flagSet.Args()) != 0 {
@@ -149,6 +149,6 @@ func (v *Vault) Run(args []string) int {
 	return 0
 }
 
-func (c *Vault) Synopsis() string {
+func (c *VaultCommand) Synopsis() string {
 	return c.Help()
 }
