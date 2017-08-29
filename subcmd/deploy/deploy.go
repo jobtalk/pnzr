@@ -126,7 +126,6 @@ func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deplo
 type DeployCommand struct {
 	sess           *session.Session
 	file           *string
-	f              *string
 	profile        *string
 	kmsKeyID       *string
 	region         *string
@@ -135,23 +134,35 @@ type DeployCommand struct {
 	awsAccessKeyID *string
 	awsSecretKeyID *string
 	tagOverride    *string
-	flagSet        *flag.FlagSet
 }
 
 func (d *DeployCommand) parseArgs(args []string) {
-	d.kmsKeyID = d.flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
-	d.file = d.flagSet.String("file", "", "target file")
-	d.f = d.flagSet.String("f", "", "target file")
-	d.profile = d.flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
-	d.region = d.flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
-	d.externalPath = d.flagSet.String("vars_path", getenv.String("PNZR_VARS_PATH"), "external conf path")
-	d.outerVals = d.flagSet.String("V", "", "outer values")
-	d.tagOverride = d.flagSet.String("t", getenv.String("DOCKER_DEFAULT_DEPLOY_TAG", "latest"), "tag override param")
-	d.awsAccessKeyID = d.flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
-	d.awsSecretKeyID = d.flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
+	flagSet := new(flag.FlagSet)
+	var f *string
 
-	if err := d.flagSet.Parse(args); err != nil {
+	d.kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
+	d.file = flagSet.String("file", "", "target file")
+	f = flagSet.String("f", "", "target file")
+	d.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
+	d.region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
+	d.externalPath = flagSet.String("vars_path", getenv.String("PNZR_VARS_PATH"), "external conf path")
+	d.outerVals = flagSet.String("V", "", "outer values")
+	d.tagOverride = flagSet.String("t", getenv.String("DOCKER_DEFAULT_DEPLOY_TAG", "latest"), "tag override param")
+	d.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
+	d.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
+
+	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
+	}
+
+
+	if *f == "" && *d.file == "" && len(flagSet.Args()) != 0 {
+		targetName := flagSet.Args()[0]
+		d.file = &targetName
+	}
+
+	if *d.file == "" {
+		d.file = f
 	}
 
 	var awsConfig = aws.Config{}
@@ -170,18 +181,10 @@ func (d *DeployCommand) parseArgs(args []string) {
 }
 
 func (d *DeployCommand) Run(args []string) int {
-	d.flagSet = new(flag.FlagSet)
 	d.parseArgs(args)
 	var config = &deployConfigure{}
 
-	if *d.f == "" && *d.file == "" && len(d.flagSet.Args()) != 0 {
-		targetName := d.flagSet.Args()[0]
-		d.file = &targetName
-	}
 
-	if *d.file == "" {
-		d.file = d.f
-	}
 
 	externalList, err := fileList(*d.externalPath)
 	if err != nil {
