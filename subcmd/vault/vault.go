@@ -156,8 +156,6 @@ func (v *VaultCommand) decryptTemporary(keyID string, fileName string) ([]byte, 
 	return plainText, nil
 }
 
-
-
 func (v *VaultCommand) Run(args []string) int {
 	v.parseArgs(args)
 

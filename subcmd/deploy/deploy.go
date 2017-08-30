@@ -6,12 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -20,7 +20,6 @@ import (
 	"github.com/jobtalk/pnzr/api"
 	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/lib/setting"
-	"bytes"
 )
 
 type DeployCommand struct {
@@ -193,11 +192,11 @@ func (d *DeployCommand) Run(args []string) int {
 
 	externalList, err := fileList(*d.externalPath)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	baseConfBinary, err := ioutil.ReadFile(*d.file)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	if *d.outerVals != "" {
@@ -210,16 +209,16 @@ func (d *DeployCommand) Run(args []string) int {
 	if externalList != nil {
 		c, err := d.readConf(baseConfBinary, externalList)
 		if err != nil {
-			log.Fatalln(err)
+			panic(err)
 		}
 		config = c
 	} else {
 		bin, err := ioutil.ReadFile(*d.file)
 		if err != nil {
-			log.Fatalln(err)
+			panic(err)
 		}
 		if err := json.Unmarshal(bin, config); err != nil {
-			log.Fatalln(err)
+			panic(err)
 		}
 	}
 
@@ -236,11 +235,11 @@ func (d *DeployCommand) Run(args []string) int {
 
 	result, err := api.Deploy(d.sess, config.Setting)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	resultJSON, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	fmt.Println(string(resultJSON))
 	return 0
