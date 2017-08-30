@@ -36,7 +36,7 @@ type mode struct {
 	view    *bool
 }
 
-func (m *mode)checkMultiFlagSet() bool {
+func (m *mode) checkMultiFlagSet() bool {
 	return (*m.encrypt && *m.decrypt) ||
 		(*m.encrypt && *m.edit) ||
 		(*m.encrypt && *m.view) ||
