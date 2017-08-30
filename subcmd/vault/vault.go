@@ -36,34 +36,6 @@ type mode struct {
 	view    *bool
 }
 
-func (m *mode) getMode() (string, error) {
-	var flag int
-	if *m.encrypt {
-		flag |= 0x01
-	}
-	if *m.decrypt {
-		flag |= 0x02
-	}
-	if *m.edit {
-		flag |= 0x04
-	}
-	if *m.view {
-		flag |= 0x08
-	}
-
-	switch flag {
-	case 1:
-		return "encrypt", nil
-	case 2:
-		return "decrypt", nil
-	case 4:
-		return "edit", nil
-	case 8:
-		return "view", nil
-	}
-	return "", errors.New("could not get the mode. mode is not selected or multiple selected.")
-}
-
 type VaultCommand struct {
 	sess           *session.Session
 	kmsKeyID       *string
@@ -197,23 +169,22 @@ func (c *VaultCommand) Help() string {
 func (v *VaultCommand) Run(args []string) int {
 	v.parseArgs(args)
 
-	mode, err := v.vaultMode.getMode()
-	if err != nil {
-		panic(err)
-	}
-
-	switch mode {
-	case "encrypt":
-		err := v.encrypt(*v.kmsKeyID, *v.file)
-		if err != nil {
+	if (*v.vaultMode.encrypt && *v.vaultMode.decrypt) ||
+		(*v.vaultMode.encrypt && *v.vaultMode.edit) ||
+		(*v.vaultMode.encrypt && *v.vaultMode.view) ||
+		(*v.vaultMode.decrypt && *v.vaultMode.edit) ||
+		(*v.vaultMode.decrypt && *v.vaultMode.view) ||
+		(*v.vaultMode.edit && *v.vaultMode.view) {
+		panic("Multiple vault options are selected.")
+	} else if *v.vaultMode.encrypt {
+		if err := v.encrypt(*v.kmsKeyID, *v.file); err != nil {
 			panic(err)
 		}
-	case "decrypt":
-		err := v.decrypt(*v.kmsKeyID, *v.file)
-		if err != nil {
+	} else if *v.vaultMode.decrypt {
+		if err := v.decrypt(*v.kmsKeyID, *v.file); err != nil {
 			panic(err)
 		}
-	case "edit":
+	} else if *v.vaultMode.edit {
 		if err := v.decrypt(*v.kmsKeyID, *v.file); err != nil {
 			panic(err)
 		}
@@ -231,8 +202,7 @@ func (v *VaultCommand) Run(args []string) int {
 		if err := cmd.Run(); err != nil {
 			panic(err)
 		}
-
-	case "view":
+	} else if *v.vaultMode.view {
 		plain, err := v.decryptTemporary(*v.kmsKeyID, *v.file)
 		if err != nil {
 			panic(err)
@@ -246,6 +216,8 @@ func (v *VaultCommand) Run(args []string) int {
 		if err := cmd.Run(); err != nil {
 			panic(err)
 		}
+	} else {
+		panic("Vault mode is not selected.")
 	}
 
 	return 0
