@@ -15,6 +15,8 @@ import (
 	"github.com/jobtalk/pnzr/lib"
 	"os"
 	"os/exec"
+	"reflect"
+	"unsafe"
 )
 
 func getEditor() string {
@@ -37,12 +39,18 @@ type mode struct {
 }
 
 func (m *mode) checkMultiFlagSet() bool {
-	return (*m.encrypt && *m.decrypt) ||
-		(*m.encrypt && *m.edit) ||
-		(*m.encrypt && *m.view) ||
-		(*m.decrypt && *m.edit) ||
-		(*m.decrypt && *m.view) ||
-		(*m.edit && *m.view)
+	var cnt int
+	t := reflect.TypeOf(*m)
+	v := reflect.ValueOf(*m)
+
+	for i := 0; i < t.NumField(); i ++ {
+		fieldName := t.Field(i).Name
+		b := (*bool)(unsafe.Pointer(reflect.Indirect(v).FieldByName(fieldName).Pointer()))
+		if *b {
+			cnt ++
+		}
+	}
+	return 1 < cnt
 }
 
 type VaultCommand struct {
