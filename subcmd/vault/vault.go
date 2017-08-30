@@ -56,11 +56,13 @@ type VaultCommand struct {
 	awsSecretKeyID *string
 }
 
-func (v *VaultCommand) parseArgs(args []string) {
+func (v *VaultCommand) parseArgs(args []string) (output string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string
 	)
+	outputWriter := bytes.NewBufferString("")
+	flagSet.SetOutput(outputWriter)
 	v.vaultMode = new(mode)
 
 	v.kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
@@ -76,6 +78,9 @@ func (v *VaultCommand) parseArgs(args []string) {
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
+		if err.Error() == "flag: help requested" {
+			return outputWriter.String()
+		}
 		panic(err)
 	}
 
@@ -101,6 +106,8 @@ func (v *VaultCommand) parseArgs(args []string) {
 		Profile:                 *v.profile,
 		Config:                  awsConfig,
 	}))
+
+	return
 }
 
 func (v *VaultCommand) encrypt(keyID string, fileName string) error {
@@ -149,31 +156,7 @@ func (v *VaultCommand) decryptTemporary(keyID string, fileName string) ([]byte, 
 	return plainText, nil
 }
 
-func (c *VaultCommand) Help() string {
-	var msg string
-	msg += "usage: pnzr vault [options ...]\n"
-	msg += "options:\n"
-	msg += "    -key_id\n"
-	msg += "        set kms key id\n"
-	msg += "    -encrypt\n"
-	msg += "        use encrypt mode\n"
-	msg += "    -decrypt\n"
-	msg += "        use decrypt mode\n"
-	msg += "    -file\n"
-	msg += "        setting target file\n"
-	msg += "    -f"
-	msg += "        setting target file\n"
-	msg += "    -profile\n"
-	msg += "        aws credential name\n"
-	msg += "    -region\n"
-	msg += "        aws region name\n"
-	msg += "    -aws-access-key-id\n"
-	msg += "        setting aws access key id\n"
-	msg += "    -aws-secret-key-id\n"
-	msg += "        setting aws secret key id\n"
-	msg += "===================================================\n"
-	return msg
-}
+
 
 func (v *VaultCommand) Run(args []string) int {
 	v.parseArgs(args)
@@ -229,4 +212,11 @@ func (v *VaultCommand) Run(args []string) int {
 
 func (c *VaultCommand) Synopsis() string {
 	return c.Help()
+}
+
+func (c *VaultCommand) Help() string {
+	msg := "\n\n"
+	msg += c.parseArgs([]string{"-h"})
+	msg += "==========================================================================\n"
+	return msg
 }
