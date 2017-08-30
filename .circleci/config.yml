@@ -35,15 +35,6 @@ jobs:
                         VERSION=${CIRCLE_BRANCH#release-} make
                     fi
             - deploy:
-                name: "release head version"
-                command: |
-                    if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                        HASH=$(git rev-parse --short HEAD)
-                        github-release release -u jobtalk -r pnzr -t "${HASH}" -n "${HASH}" -d "${HASH}" -p
-                        github-release upload -u jobtalk -r pnzr -t "${HASH}" --name "pnzr-darwin-amd64" --file bin/darwin/pnzr
-                        github-release upload -u jobtalk -r pnzr -t "${HASH}" --name "pnzr-linux-amd64" --file bin/linux/pnzr
-                    fi
-            - deploy:
                 name: "release release branch"
                 command: |
                     if [[ "$CIRCLE_BRANCH" =~ ^release-.* ]]; then
