@@ -12,6 +12,7 @@ import (
 	"github.com/jobtalk/pnzr/subcmd/vault_edit"
 	"github.com/jobtalk/pnzr/subcmd/vault_view"
 	"github.com/jobtalk/pnzr/vars"
+	"github.com/joho/godotenv"
 	"github.com/mitchellh/cli"
 )
 
@@ -39,7 +40,8 @@ func init() {
 
 	VERSION = generateBuildInfo()
 	log.SetFlags(log.Llongfile)
-
+	godotenv.Load("~/.pnzr")
+	godotenv.Load(".pnzr")
 }
 
 func main() {
@@ -47,19 +49,19 @@ func main() {
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"deploy": func() (cli.Command, error) {
-			return &deploy.Deploy{}, nil
+			return &deploy.DeployCommand{}, nil
 		},
 		"vault": func() (cli.Command, error) {
-			return &vault.Vault{}, nil
+			return &vault.VaultCommand{}, nil
 		},
 		"update": func() (cli.Command, error) {
-			return &update.Update{}, nil
+			return &update.UpdateCommand{}, nil
 		},
 		"vault-edit": func() (cli.Command, error) {
-			return &vedit.VaultEdit{}, nil
+			return &vedit.VaultEditCommand{}, nil
 		},
 		"vault-view": func() (cli.Command, error) {
-			return &vview.VaultView{}, nil
+			return &vview.VaultViewCommand{}, nil
 		},
 	}
 	exitCode, err := c.Run()

@@ -62,3 +62,5 @@ tags
 vendor/
 dev/
 
+.idea/
+.pnzr

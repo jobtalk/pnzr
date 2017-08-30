@@ -18,9 +18,9 @@ type ECS struct {
 	svc ecsiface.ECSAPI
 }
 
-func NewECS(awsConfig *aws.Config) *ECS {
+func NewECS(sess *session.Session) *ECS {
 	return &ECS{
-		svc: ecs.New(session.New(), awsConfig),
+		svc: ecs.New(sess),
 	}
 }
 

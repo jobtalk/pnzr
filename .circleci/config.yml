@@ -3,7 +3,7 @@ jobs:
     build:
         working_directory: /go/src/github.com/jobtalk/pnzr
         docker:
-            - image: golang:1.8.3
+            - image: golang:1.9
               environment:
                   GO15VENDOREXPERIMENT: 1
         steps:

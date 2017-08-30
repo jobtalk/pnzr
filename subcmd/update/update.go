@@ -48,9 +48,9 @@ func checkENV() bool {
 	return true
 }
 
-type Update struct{}
+type UpdateCommand struct{}
 
-func (c *Update) Run(args []string) int {
+func (c *UpdateCommand) Run(args []string) int {
 	var platform string
 	tags := []tag{}
 	resp, err := client.Get(GITHUB_API)
@@ -118,7 +118,7 @@ func (c *Update) Run(args []string) int {
 	return 0
 }
 
-func (c *Update) Synopsis() string {
+func (c *UpdateCommand) Synopsis() string {
 	msg := "Upgrade pnzr to the latest stable release\n"
 	msg += "options:\n"
 	msg += "    <node>\n"
@@ -126,6 +126,6 @@ func (c *Update) Synopsis() string {
 	return msg
 }
 
-func (c *Update) Help() string {
+func (c *UpdateCommand) Help() string {
 	return c.Synopsis()
 }

@@ -1,10 +1,10 @@
-hash: 9c3c778062892b0ba473f5d1c1bc09e73c5913565eac661b4348b5837bc83be8
-updated: 2017-05-20T14:59:12.278254789+09:00
+hash: 2e521d9a91d63cc72ca59228e7406a3a1a582d49e237f65793f38098dcc46b46
+updated: 2017-08-18T15:18:46.432339413+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: 0b6039ef3d10c1eda49843ebf9773dcc5bba0169
+  version: 1850f427c33c2558a2118dc55c1cf95a633d7432
   subpackages:
   - aws
   - aws/awserr
@@ -22,6 +22,7 @@ imports:
   - aws/request
   - aws/session
   - aws/signer/v4
+  - internal/shareddefaults
   - private/protocol
   - private/protocol/json/jsonutil
   - private/protocol/jsonrpc
@@ -38,6 +39,8 @@ imports:
   version: 675b82c74c0ed12283ee81ba8a534c8982c07b85
 - name: github.com/go-ini/ini
   version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
+- name: github.com/ieee0824/getenv
+  version: c67c7aafcf785db4bfb9f7ab7161f13a16d3a204
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/joho/godotenv
