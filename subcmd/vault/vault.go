@@ -36,6 +36,15 @@ type mode struct {
 	view    *bool
 }
 
+func (m *mode)checkMultiFlagSet() bool {
+	return (*m.encrypt && *m.decrypt) ||
+		(*m.encrypt && *m.edit) ||
+		(*m.encrypt && *m.view) ||
+		(*m.decrypt && *m.edit) ||
+		(*m.decrypt && *m.view) ||
+		(*m.edit && *m.view)
+}
+
 type VaultCommand struct {
 	sess           *session.Session
 	kmsKeyID       *string
@@ -169,12 +178,7 @@ func (c *VaultCommand) Help() string {
 func (v *VaultCommand) Run(args []string) int {
 	v.parseArgs(args)
 
-	if (*v.vaultMode.encrypt && *v.vaultMode.decrypt) ||
-		(*v.vaultMode.encrypt && *v.vaultMode.edit) ||
-		(*v.vaultMode.encrypt && *v.vaultMode.view) ||
-		(*v.vaultMode.decrypt && *v.vaultMode.edit) ||
-		(*v.vaultMode.decrypt && *v.vaultMode.view) ||
-		(*v.vaultMode.edit && *v.vaultMode.view) {
+	if v.vaultMode.checkMultiFlagSet() {
 		panic("Multiple vault options are selected.")
 	} else if *v.vaultMode.encrypt {
 		if err := v.encrypt(*v.kmsKeyID, *v.file); err != nil {
