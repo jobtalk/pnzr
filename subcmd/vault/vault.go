@@ -5,21 +5,58 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 
+	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
+	"os"
+	"os/exec"
+	"reflect"
+	"unsafe"
 )
+
+func getEditor() string {
+	if e := os.Getenv("PNZR_EDITOR"); e != "" {
+		return e
+	}
+
+	if e := os.Getenv("EDITOR"); e != "" {
+		return e
+	}
+
+	return "nano"
+}
+
+type mode struct {
+	encrypt *bool
+	decrypt *bool
+	edit    *bool
+	view    *bool
+}
+
+func (m *mode) checkMultiFlagSet() bool {
+	var cnt int
+	t := reflect.TypeOf(*m)
+	v := reflect.ValueOf(*m)
+
+	for i := 0; i < t.NumField(); i ++ {
+		fieldName := t.Field(i).Name
+		b := (*bool)(unsafe.Pointer(reflect.Indirect(v).FieldByName(fieldName).Pointer()))
+		if *b {
+			cnt ++
+		}
+	}
+	return 1 < cnt
+}
 
 type VaultCommand struct {
 	sess           *session.Session
 	kmsKeyID       *string
-	encryptFlag    *bool
-	decryptFlag    *bool
+	vaultMode      *mode
 	file           *string
 	profile        *string
 	region         *string
@@ -27,15 +64,20 @@ type VaultCommand struct {
 	awsSecretKeyID *string
 }
 
-func (v *VaultCommand) parseArgs(args []string) {
+func (v *VaultCommand) parseArgs(args []string) (output string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string
 	)
+	outputWriter := bytes.NewBufferString("")
+	flagSet.SetOutput(outputWriter)
+	v.vaultMode = new(mode)
 
 	v.kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
-	v.encryptFlag = flagSet.Bool("encrypt", getenv.Bool("ENCRYPT", false), "encrypt mode")
-	v.decryptFlag = flagSet.Bool("decrypt", getenv.Bool("DECRYPT", false), "decrypt mode")
+	v.vaultMode.encrypt = flagSet.Bool("encrypt", getenv.Bool("ENCRYPT", false), "encrypt mode")
+	v.vaultMode.decrypt = flagSet.Bool("decrypt", getenv.Bool("DECRYPT", false), "decrypt mode")
+	v.vaultMode.view = flagSet.Bool("view", false, "view mode")
+	v.vaultMode.edit = flagSet.Bool("edit", false, "edit mode")
 	v.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	v.region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
 	v.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
@@ -44,7 +86,10 @@ func (v *VaultCommand) parseArgs(args []string) {
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
-		log.Fatalln(err)
+		if err.Error() == "flag: help requested" {
+			return outputWriter.String()
+		}
+		panic(err)
 	}
 
 	if *f == "" && *v.file == "" && len(flagSet.Args()) != 0 {
@@ -69,6 +114,8 @@ func (v *VaultCommand) parseArgs(args []string) {
 		Profile:                 *v.profile,
 		Config:                  awsConfig,
 	}))
+
+	return
 }
 
 func (v *VaultCommand) encrypt(keyID string, fileName string) error {
@@ -101,52 +148,81 @@ func (v *VaultCommand) decrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, plainText, 0644)
 }
 
-func (c *VaultCommand) Help() string {
-	var msg string
-	msg += "usage: pnzr vault [options ...]\n"
-	msg += "options:\n"
-	msg += "    -key_id\n"
-	msg += "        set kms key id\n"
-	msg += "    -encrypt\n"
-	msg += "        use encrypt mode\n"
-	msg += "    -decrypt\n"
-	msg += "        use decrypt mode\n"
-	msg += "    -file\n"
-	msg += "        setting target file\n"
-	msg += "    -f"
-	msg += "        setting target file\n"
-	msg += "    -profile\n"
-	msg += "        aws credential name\n"
-	msg += "    -region\n"
-	msg += "        aws region name\n"
-	msg += "    -aws-access-key-id\n"
-	msg += "        setting aws access key id\n"
-	msg += "    -aws-secret-key-id\n"
-	msg += "        setting aws secret key id\n"
-	msg += "===================================================\n"
-	return msg
+func (v *VaultCommand) decryptTemporary(keyID string, fileName string) ([]byte, error) {
+	bin, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	kms := lib.NewKMSFromBinary(bin, v.sess)
+	if kms == nil {
+		return nil, errors.New(fmt.Sprintf("%v form is illegal", fileName))
+	}
+	plainText, err := kms.SetKeyID(keyID).Decrypt()
+	if err != nil {
+		return nil, err
+	}
+	return plainText, nil
 }
 
 func (v *VaultCommand) Run(args []string) int {
 	v.parseArgs(args)
 
-	if *v.encryptFlag == *v.decryptFlag {
-		log.Fatalln("Choose whether to execute encrypt or decrypt.")
-	}
-	if *v.decryptFlag {
-		err := v.decrypt(*v.kmsKeyID, *v.file)
-		if err != nil {
-			log.Fatalln(err)
+	if v.vaultMode.checkMultiFlagSet() {
+		panic("Multiple vault options are selected.")
+	} else if *v.vaultMode.encrypt {
+		if err := v.encrypt(*v.kmsKeyID, *v.file); err != nil {
+			panic(err)
 		}
-	} else if *v.encryptFlag {
-		err := v.encrypt(*v.kmsKeyID, *v.file)
-		if err != nil {
-			log.Fatalln(err)
+	} else if *v.vaultMode.decrypt {
+		if err := v.decrypt(*v.kmsKeyID, *v.file); err != nil {
+			panic(err)
 		}
+	} else if *v.vaultMode.edit {
+		if err := v.decrypt(*v.kmsKeyID, *v.file); err != nil {
+			panic(err)
+		}
+		defer func() {
+			if err := v.encrypt(*v.kmsKeyID, *v.file); err != nil {
+				panic(err)
+			}
+		}()
+		cmd := exec.Command(getEditor(), *v.file)
+
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+	} else if *v.vaultMode.view {
+		plain, err := v.decryptTemporary(*v.kmsKeyID, *v.file)
+		if err != nil {
+			panic(err)
+		}
+
+		cmd := exec.Command("less")
+		cmd.Stdin = bytes.NewReader(plain)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+	} else {
+		panic("Vault mode is not selected.")
 	}
+
 	return 0
 }
 
 func (c *VaultCommand) Synopsis() string {
 	return c.Help()
+}
+
+func (c *VaultCommand) Help() string {
+	msg := "\n\n"
+	msg += c.parseArgs([]string{"-h"})
+	msg += "==========================================================================\n"
+	return msg
 }

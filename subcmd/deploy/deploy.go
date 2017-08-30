@@ -6,12 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -136,8 +136,10 @@ func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deplo
 	return ret, nil
 }
 
-func (d *DeployCommand) parseArgs(args []string) {
+func (d *DeployCommand) parseArgs(args []string) (output string) {
 	flagSet := new(flag.FlagSet)
+	outputWriter := bytes.NewBufferString("")
+	flagSet.SetOutput(outputWriter)
 	var f *string
 
 	d.kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
@@ -152,7 +154,10 @@ func (d *DeployCommand) parseArgs(args []string) {
 	d.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 
 	if err := flagSet.Parse(args); err != nil {
-		log.Fatalln(err)
+		if err.Error() == "flag: help requested" {
+			return outputWriter.String()
+		}
+		panic(err)
 	}
 
 	if *f == "" && *d.file == "" && len(flagSet.Args()) != 0 {
@@ -177,6 +182,8 @@ func (d *DeployCommand) parseArgs(args []string) {
 		Profile:                 *d.profile,
 		Config:                  awsConfig,
 	}))
+
+	return
 }
 
 func (d *DeployCommand) Run(args []string) int {
@@ -185,11 +192,11 @@ func (d *DeployCommand) Run(args []string) int {
 
 	externalList, err := fileList(*d.externalPath)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	baseConfBinary, err := ioutil.ReadFile(*d.file)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	if *d.outerVals != "" {
@@ -202,16 +209,16 @@ func (d *DeployCommand) Run(args []string) int {
 	if externalList != nil {
 		c, err := d.readConf(baseConfBinary, externalList)
 		if err != nil {
-			log.Fatalln(err)
+			panic(err)
 		}
 		config = c
 	} else {
 		bin, err := ioutil.ReadFile(*d.file)
 		if err != nil {
-			log.Fatalln(err)
+			panic(err)
 		}
 		if err := json.Unmarshal(bin, config); err != nil {
-			log.Fatalln(err)
+			panic(err)
 		}
 	}
 
@@ -228,45 +235,23 @@ func (d *DeployCommand) Run(args []string) int {
 
 	result, err := api.Deploy(d.sess, config.Setting)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	resultJSON, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	fmt.Println(string(resultJSON))
 	return 0
 }
 
 func (c *DeployCommand) Synopsis() string {
-	synopsis := ""
-	synopsis += "usage: pnzr deploy [options ...]\n"
-	synopsis += "options:\n"
-	synopsis += "    -f pnzr_setting.json\n"
-	synopsis += "\n"
-	synopsis += "    -profile=${aws profile name}\n"
-	synopsis += "        -profile option is arbitrary parameter.\n"
-	synopsis += "    -region\n"
-	synopsis += "        aws region\n"
-	synopsis += "    -vars_path\n"
-	synopsis += "        setting external values path file\n"
-	synopsis += "    -V\n"
-	synopsis += "        setting outer values\n"
-	synopsis += "    -aws-access-key-id\n"
-	synopsis += "        setting aws access key id\n"
-	synopsis += "    -aws-secret-key-id\n"
-	synopsis += "        setting aws secret key id\n"
-	synopsis += "    -t tag name\n"
-	synopsis += "        setting docker tag\n"
-	synopsis += "        defining as follows will replace $tag.\n"
-	synopsis += "        \"Image\":\"image-name:$tag\"\n"
-	synopsis += "    -key_id \n"
-	synopsis += "        set kms key id\n"
-	synopsis += "===================================================\n"
-
-	return synopsis
+	return c.Help()
 }
 
 func (c *DeployCommand) Help() string {
-	return c.Synopsis()
+	msg := "\n\n"
+	msg += c.parseArgs([]string{"-h"})
+	msg += "==========================================================================\n"
+	return msg
 }
