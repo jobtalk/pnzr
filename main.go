@@ -36,14 +36,14 @@ func init() {
 	vars.BUILD_DATE = BUILD_DATE
 	vars.BUILD_OS = BUILD_OS
 
-	VERSION = generateBuildInfo()
+
 	log.SetFlags(log.Llongfile)
 	godotenv.Load("~/.pnzr")
 	godotenv.Load(".pnzr")
 }
 
 func main() {
-	c := cli.NewCLI("pnzr", VERSION)
+	c := cli.NewCLI("pnzr", generateBuildInfo())
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"deploy": func() (cli.Command, error) {
