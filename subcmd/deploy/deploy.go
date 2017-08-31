@@ -151,9 +151,6 @@ func (d *DeployCommand) parseArgs(args []string) {
 	d.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
 	d.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 
-
-
-
 	if err := flagSet.Parse(args); err != nil {
 		log.Fatalln(err)
 	}

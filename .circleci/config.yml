@@ -19,6 +19,7 @@ jobs:
                     if [ $(go fmt $(glide nv) | wc -l) -eq 0 ]; then
                         exit 0
                     fi
+                    echo "Go fmt is not applied."
                     exit 1
             - run:
                 name: "Install github-release"
