@@ -137,7 +137,7 @@ func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deplo
 	return ret, nil
 }
 
-func (d *DeployCommand) parseArgs(args []string) (output string) {
+func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 	flagSet := new(flag.FlagSet)
 	var f *string
 
