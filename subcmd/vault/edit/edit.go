@@ -1,6 +1,7 @@
 package edit
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"bytes"
 	"strings"
 )
 

@@ -1,6 +1,7 @@
 package decrypt
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -11,7 +12,6 @@ import (
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
 	"io/ioutil"
-	"bytes"
 	"strings"
 )
 

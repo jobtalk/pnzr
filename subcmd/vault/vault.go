@@ -1,23 +1,23 @@
 package vault
 
 import (
+	"fmt"
+	"github.com/jobtalk/pnzr/subcmd/vault/decrypt"
+	"github.com/jobtalk/pnzr/subcmd/vault/edit"
+	"github.com/jobtalk/pnzr/subcmd/vault/encrypt"
+	"github.com/jobtalk/pnzr/subcmd/vault/view"
 	"github.com/jobtalk/pnzr/vars"
 	"github.com/mitchellh/cli"
-	"github.com/jobtalk/pnzr/subcmd/vault/edit"
-	"github.com/jobtalk/pnzr/subcmd/vault/view"
-	"github.com/jobtalk/pnzr/subcmd/vault/encrypt"
-	"github.com/jobtalk/pnzr/subcmd/vault/decrypt"
-	"fmt"
 )
 
 type VaultCommand struct {
-	cli *cli.CLI
+	cli  *cli.CLI
 	args []string
 }
 
 func New(args []string) *VaultCommand {
 	ret := &VaultCommand{
-		cli: cli.NewCLI("vault", vars.VERSION),
+		cli:  cli.NewCLI("vault", vars.VERSION),
 		args: args,
 	}
 

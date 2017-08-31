@@ -1,7 +1,9 @@
 package encrypt
 
 import (
+	"bytes"
 	"flag"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -9,8 +11,6 @@ import (
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
 	"io/ioutil"
-	"bytes"
-	"fmt"
 	"strings"
 )
 

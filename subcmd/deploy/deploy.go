@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -20,7 +21,6 @@ import (
 	"github.com/jobtalk/pnzr/api"
 	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/lib/setting"
-	"bytes"
 )
 
 type DeployCommand struct {
