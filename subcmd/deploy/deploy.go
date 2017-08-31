@@ -156,7 +156,7 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 	d.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 
 	if err := flagSet.Parse(args); err != nil {
-		if err.Error() == "flag: help requested" {
+		if err == flag.ErrHelp {
 			return buffer.String()
 		}
 		panic(err)

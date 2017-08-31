@@ -43,7 +43,7 @@ func (v *ViewCommand) parseArgs(args []string) (helpString string) {
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
-		if err.Error() == "flag: help requested" {
+		if err == flag.ErrHelp {
 			return buffer.String()
 		}
 		panic(err)
