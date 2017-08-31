@@ -1,14 +1,14 @@
 package vault
 
 import (
-	"os"
-	"github.com/mitchellh/cli"
-	"github.com/jobtalk/pnzr/subcmd/vault/edit"
-	"github.com/jobtalk/pnzr/subcmd/vault/view"
-	"github.com/jobtalk/pnzr/subcmd/vault/encrypt"
-	"github.com/jobtalk/pnzr/subcmd/vault/decrypt"
 	"fmt"
+	"github.com/jobtalk/pnzr/subcmd/vault/decrypt"
+	"github.com/jobtalk/pnzr/subcmd/vault/edit"
+	"github.com/jobtalk/pnzr/subcmd/vault/encrypt"
+	"github.com/jobtalk/pnzr/subcmd/vault/view"
 	"github.com/jobtalk/pnzr/vars"
+	"github.com/mitchellh/cli"
+	"os"
 )
 
 func getEditor() string {
