@@ -26,7 +26,7 @@ type ViewCommand struct {
 	awsSecretKeyID *string
 }
 
-func (v *ViewCommand) parseArgs(args []string) (output string) {
+func (v *ViewCommand) parseArgs(args []string) (helpString string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string

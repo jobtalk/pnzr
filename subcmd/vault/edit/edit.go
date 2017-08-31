@@ -39,7 +39,7 @@ type EditCommand struct {
 	awsSecretKeyID *string
 }
 
-func (e *EditCommand) parseArgs(args []string) (output string) {
+func (e *EditCommand) parseArgs(args []string) (helpString string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string

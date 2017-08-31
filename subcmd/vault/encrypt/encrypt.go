@@ -38,7 +38,7 @@ func (e *EncryptCommand) encrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, []byte(kms.String()), 0644)
 }
 
-func (e *EncryptCommand) parseArgs(args []string) (output string) {
+func (e *EncryptCommand) parseArgs(args []string) (helpString string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string

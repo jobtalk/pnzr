@@ -24,7 +24,7 @@ type DecryptCommand struct {
 	awsSecretKeyID *string
 }
 
-func (d *DecryptCommand) parseArgs(args []string) (output string) {
+func (d *DecryptCommand) parseArgs(args []string) (helpString string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string
