@@ -36,7 +36,6 @@ func init() {
 	vars.BUILD_DATE = BUILD_DATE
 	vars.BUILD_OS = BUILD_OS
 
-
 	log.SetFlags(log.Llongfile)
 	godotenv.Load("~/.pnzr")
 	godotenv.Load(".pnzr")

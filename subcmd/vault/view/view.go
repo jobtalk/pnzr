@@ -1,0 +1,109 @@
+package view
+
+import (
+	"bytes"
+	"errors"
+	"flag"
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/ieee0824/getenv"
+	"github.com/jobtalk/pnzr/lib"
+	"io/ioutil"
+	"os"
+	"os/exec"
+)
+
+type ViewCommand struct {
+	sess           *session.Session
+	file           *string
+	profile        *string
+	region         *string
+	awsAccessKeyID *string
+	awsSecretKeyID *string
+}
+
+func (v *ViewCommand) parseArgs(args []string) {
+	var (
+		flagSet = new(flag.FlagSet)
+		f       *string
+	)
+
+	v.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
+	v.region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
+	v.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
+	v.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
+	v.file = flagSet.String("file", "", "target file")
+	f = flagSet.String("f", "", "target file")
+
+	if err := flagSet.Parse(args); err != nil {
+		panic(err)
+	}
+
+	if *f == "" && *v.file == "" && len(flagSet.Args()) != 0 {
+		targetName := flagSet.Args()[0]
+		v.file = &targetName
+	}
+
+	if *v.file == "" {
+		v.file = f
+	}
+
+	var awsConfig = aws.Config{}
+
+	if *v.awsAccessKeyID != "" && *v.awsSecretKeyID != "" && *v.profile == "" {
+		awsConfig.Credentials = credentials.NewStaticCredentials(*v.awsAccessKeyID, *v.awsSecretKeyID, "")
+		awsConfig.Region = v.region
+	}
+
+	v.sess = session.Must(session.NewSessionWithOptions(session.Options{
+		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		SharedConfigState:       session.SharedConfigEnable,
+		Profile:                 *v.profile,
+		Config:                  awsConfig,
+	}))
+}
+
+func (v *ViewCommand) decryptTemporary(fileName string) ([]byte, error) {
+	bin, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	kms := lib.NewKMSFromBinary(bin, v.sess)
+	if kms == nil {
+		return nil, errors.New(fmt.Sprintf("%v form is illegal", fileName))
+	}
+	plainText, err := kms.Decrypt()
+	if err != nil {
+		return nil, err
+	}
+	return plainText, nil
+}
+
+func (v *ViewCommand) Help() string {
+	return ""
+}
+
+func (v *ViewCommand) Synopsis() string {
+	return v.Help()
+}
+
+func (v *ViewCommand) Run(args []string) int {
+	v.parseArgs(args)
+
+	plain, err := v.decryptTemporary(*v.file)
+	if err != nil {
+		panic(err)
+	}
+
+	cmd := exec.Command("less")
+	cmd.Stdin = bytes.NewReader(plain)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+}
