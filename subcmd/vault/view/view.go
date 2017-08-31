@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type ViewCommand struct {
@@ -25,11 +26,14 @@ type ViewCommand struct {
 	awsSecretKeyID *string
 }
 
-func (v *ViewCommand) parseArgs(args []string) {
+func (v *ViewCommand) parseArgs(args []string) (output string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string
 	)
+
+	buffer := new(bytes.Buffer)
+	flagSet.SetOutput(buffer)
 
 	v.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	v.region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
@@ -39,6 +43,9 @@ func (v *ViewCommand) parseArgs(args []string) {
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
+		if err.Error() == "flag: help requested" {
+			return buffer.String()
+		}
 		panic(err)
 	}
 
@@ -64,6 +71,8 @@ func (v *ViewCommand) parseArgs(args []string) {
 		Profile:                 *v.profile,
 		Config:                  awsConfig,
 	}))
+
+	return
 }
 
 func (v *ViewCommand) decryptTemporary(fileName string) ([]byte, error) {
@@ -83,14 +92,24 @@ func (v *ViewCommand) decryptTemporary(fileName string) ([]byte, error) {
 }
 
 func (v *ViewCommand) Help() string {
-	return ""
+	return v.parseArgs([]string{"-h"})
 }
 
 func (v *ViewCommand) Synopsis() string {
-	return v.Help()
+	help := v.parseArgs([]string{"-h"})
+
+	lines := strings.Split(help, "\n")
+	for i, line := range lines {
+		lines[i] = "        " + line
+	}
+	return "\n" + strings.Join(lines, "\n")
 }
 
 func (v *ViewCommand) Run(args []string) int {
+	if len(args) == 0 {
+		fmt.Println(v.Synopsis())
+		return 0
+	}
 	v.parseArgs(args)
 
 	plain, err := v.decryptTemporary(*v.file)
@@ -106,4 +125,6 @@ func (v *ViewCommand) Run(args []string) int {
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
+
+	return 0
 }

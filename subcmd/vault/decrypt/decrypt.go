@@ -11,6 +11,8 @@ import (
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
 	"io/ioutil"
+	"bytes"
+	"strings"
 )
 
 type DecryptCommand struct {
@@ -22,11 +24,15 @@ type DecryptCommand struct {
 	awsSecretKeyID *string
 }
 
-func (d *DecryptCommand) parseArgs(args []string) {
+func (d *DecryptCommand) parseArgs(args []string) (output string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string
 	)
+
+	buffer := new(bytes.Buffer)
+	flagSet.SetOutput(buffer)
+
 	d.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	d.region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
 	d.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
@@ -35,6 +41,9 @@ func (d *DecryptCommand) parseArgs(args []string) {
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
+		if err.Error() == "flag: help requested" {
+			return buffer.String()
+		}
 		panic(err)
 	}
 
@@ -60,6 +69,8 @@ func (d *DecryptCommand) parseArgs(args []string) {
 		Profile:                 *d.profile,
 		Config:                  awsConfig,
 	}))
+
+	return
 }
 
 func (d *DecryptCommand) decrypt(fileName string) error {
@@ -79,14 +90,24 @@ func (d *DecryptCommand) decrypt(fileName string) error {
 }
 
 func (d *DecryptCommand) Help() string {
-	return ""
+	return d.parseArgs([]string{"-h"})
 }
 
 func (d *DecryptCommand) Synopsis() string {
-	return d.Help()
+	help := d.parseArgs([]string{"-h"})
+
+	lines := strings.Split(help, "\n")
+	for i, line := range lines {
+		lines[i] = "        " + line
+	}
+	return "\n" + strings.Join(lines, "\n")
 }
 
 func (d *DecryptCommand) Run(args []string) int {
+	if len(args) == 0 {
+		fmt.Println(d.Synopsis())
+		return 0
+	}
 	d.parseArgs(args)
 	if err := d.decrypt(*d.file); err != nil {
 		panic(err)

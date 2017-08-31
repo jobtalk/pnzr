@@ -119,13 +119,9 @@ func (c *UpdateCommand) Run(args []string) int {
 }
 
 func (c *UpdateCommand) Synopsis() string {
-	msg := "Upgrade pnzr to the latest stable release\n"
-	msg += "options:\n"
-	msg += "    <node>\n"
-	msg += "===================================================\n"
-	return msg
+	return ""
 }
 
 func (c *UpdateCommand) Help() string {
-	return c.Synopsis()
+	return ""
 }

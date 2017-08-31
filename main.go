@@ -49,7 +49,7 @@ func main() {
 			return &deploy.DeployCommand{}, nil
 		},
 		"vault": func() (cli.Command, error) {
-			return &vault.VaultCommand{}, nil
+			return vault.New(os.Args[1:]), nil
 		},
 		"update": func() (cli.Command, error) {
 			return &update.UpdateCommand{}, nil

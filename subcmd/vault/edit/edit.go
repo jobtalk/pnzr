@@ -13,6 +13,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"bytes"
+	"strings"
 )
 
 func getEditor() string {
@@ -37,11 +39,14 @@ type EditCommand struct {
 	awsSecretKeyID *string
 }
 
-func (e *EditCommand) parseArgs(args []string) {
+func (e *EditCommand) parseArgs(args []string) (output string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string
 	)
+
+	buffer := new(bytes.Buffer)
+	flagSet.SetOutput(buffer)
 
 	e.kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	e.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
@@ -52,6 +57,9 @@ func (e *EditCommand) parseArgs(args []string) {
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
+		if err.Error() == "flag: help requested" {
+			return buffer.String()
+		}
 		panic(err)
 	}
 
@@ -77,6 +85,8 @@ func (e *EditCommand) parseArgs(args []string) {
 		Profile:                 *e.profile,
 		Config:                  awsConfig,
 	}))
+
+	return
 }
 
 func (e *EditCommand) decrypt(fileName string) error {
@@ -110,14 +120,24 @@ func (e *EditCommand) encrypt(keyID string, fileName string) error {
 }
 
 func (e *EditCommand) Help() string {
-	return ""
+	return e.parseArgs([]string{"-h"})
 }
 
 func (e *EditCommand) Synopsis() string {
-	return e.Help()
+	help := e.parseArgs([]string{"-h"})
+
+	lines := strings.Split(help, "\n")
+	for i, line := range lines {
+		lines[i] = "        " + line
+	}
+	return "\n" + strings.Join(lines, "\n")
 }
 
 func (e *EditCommand) Run(args []string) int {
+	if len(args) == 0 {
+		fmt.Println(e.Synopsis())
+		return 0
+	}
 	e.parseArgs(args)
 
 	if err := e.decrypt(*e.file); err != nil {

@@ -9,6 +9,9 @@ import (
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
 	"io/ioutil"
+	"bytes"
+	"fmt"
+	"strings"
 )
 
 type EncryptCommand struct {
@@ -35,11 +38,14 @@ func (e *EncryptCommand) encrypt(keyID string, fileName string) error {
 	return ioutil.WriteFile(fileName, []byte(kms.String()), 0644)
 }
 
-func (e *EncryptCommand) parseArgs(args []string) {
+func (e *EncryptCommand) parseArgs(args []string) (output string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string
 	)
+
+	buffer := new(bytes.Buffer)
+	flagSet.SetOutput(buffer)
 
 	e.kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
 	e.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
@@ -50,6 +56,9 @@ func (e *EncryptCommand) parseArgs(args []string) {
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
+		if err.Error() == "flag: help requested" {
+			return buffer.String()
+		}
 		panic(err)
 	}
 
@@ -75,17 +84,30 @@ func (e *EncryptCommand) parseArgs(args []string) {
 		Profile:                 *e.profile,
 		Config:                  awsConfig,
 	}))
+
+	return
 }
 
 func (e *EncryptCommand) Help() string {
-	return ""
+	return e.parseArgs([]string{"-h"})
 }
 
 func (e *EncryptCommand) Synopsis() string {
-	return e.Help()
+	help := e.parseArgs([]string{"-h"})
+
+	lines := strings.Split(help, "\n")
+	for i, line := range lines {
+		lines[i] = "        " + line
+	}
+	return "\n" + strings.Join(lines, "\n")
+
 }
 
 func (e *EncryptCommand) Run(args []string) int {
+	if len(args) == 0 {
+		fmt.Println(e.Synopsis())
+		return 0
+	}
 	e.parseArgs(args)
 
 	if err := e.encrypt(*e.kmsKeyID, *e.file); err != nil {
