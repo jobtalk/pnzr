@@ -1,14 +1,27 @@
 package vault
 
 import (
-	"fmt"
-	"github.com/jobtalk/pnzr/subcmd/vault/decrypt"
-	"github.com/jobtalk/pnzr/subcmd/vault/edit"
-	"github.com/jobtalk/pnzr/subcmd/vault/encrypt"
-	"github.com/jobtalk/pnzr/subcmd/vault/view"
-	"github.com/jobtalk/pnzr/vars"
+	"os"
 	"github.com/mitchellh/cli"
+	"github.com/jobtalk/pnzr/subcmd/vault/edit"
+	"github.com/jobtalk/pnzr/subcmd/vault/view"
+	"github.com/jobtalk/pnzr/subcmd/vault/encrypt"
+	"github.com/jobtalk/pnzr/subcmd/vault/decrypt"
+	"fmt"
+	"github.com/jobtalk/pnzr/vars"
 )
+
+func getEditor() string {
+	if e := os.Getenv("PNZR_EDITOR"); e != "" {
+		return e
+	}
+
+	if e := os.Getenv("EDITOR"); e != "" {
+		return e
+	}
+
+	return "nano"
+}
 
 type VaultCommand struct {
 	cli  *cli.CLI
