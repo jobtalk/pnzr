@@ -14,7 +14,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 type ViewCommand struct {
@@ -96,13 +95,7 @@ func (v *ViewCommand) Help() string {
 }
 
 func (v *ViewCommand) Synopsis() string {
-	help := v.parseArgs([]string{"-h"})
-
-	lines := strings.Split(help, "\n")
-	for i, line := range lines {
-		lines[i] = "        " + line
-	}
-	return "\n" + strings.Join(lines, "\n")
+	return "Viewer mode of encrypted file."
 }
 
 func (v *ViewCommand) Run(args []string) int {

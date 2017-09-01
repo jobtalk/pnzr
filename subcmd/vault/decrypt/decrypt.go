@@ -12,7 +12,6 @@ import (
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
 	"io/ioutil"
-	"strings"
 )
 
 type DecryptCommand struct {
@@ -94,13 +93,7 @@ func (d *DecryptCommand) Help() string {
 }
 
 func (d *DecryptCommand) Synopsis() string {
-	help := d.parseArgs([]string{"-h"})
-
-	lines := strings.Split(help, "\n")
-	for i, line := range lines {
-		lines[i] = "        " + line
-	}
-	return "\n" + strings.Join(lines, "\n")
+	return "Decryption mode of encrypted file."
 }
 
 func (d *DecryptCommand) Run(args []string) int {

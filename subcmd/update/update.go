@@ -119,13 +119,7 @@ func (c *UpdateCommand) Run(args []string) int {
 }
 
 func (c *UpdateCommand) Synopsis() string {
-	msg := "\n\n"
-	msg += "    Usage:\n"
-	msg += "        no option\n\n"
-	msg += "    Description:\n"
-	msg += "        update pnzr to latest version.\n"
-	msg += "\n"
-	return msg
+	return "Update pnzr to the latest version."
 }
 
 func (c *UpdateCommand) Help() string {
@@ -133,7 +127,7 @@ func (c *UpdateCommand) Help() string {
 	msg += "    Usage:\n"
 	msg += "        no option\n\n"
 	msg += "    Description:\n"
-	msg += "        update pnzr to latest version.\n"
+	msg += "        update pnzr to the latest version.\n"
 	msg += "\n"
 	return msg
 }

@@ -60,11 +60,15 @@ func (v *VaultCommand) Help() string {
 }
 
 func (v *VaultCommand) Synopsis() string {
-	var help = " (subcmd)\n"
-	help += "    subcmd list:\n"
+	var help = " Command set for encryption processing.\n"
+	help += "    vault subcommands:\n"
 
-	for v, _ := range v.cli.Commands {
-		help += fmt.Sprintf("        %s\n", v)
+	for v, factory := range v.cli.Commands {
+		cmd, err := factory()
+		if err != nil {
+			panic(err)
+		}
+		help += fmt.Sprintf("        %s\t%s\n", v, cmd.Synopsis())
 	}
 
 	return help

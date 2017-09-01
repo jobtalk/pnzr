@@ -248,9 +248,9 @@ func (d *DeployCommand) Run(args []string) int {
 }
 
 func (c *DeployCommand) Synopsis() string {
-	return c.parseArgs([]string{"-h"})
+	return "Deploy docker on ecs."
 }
 
 func (c *DeployCommand) Help() string {
-	return ""
+	return c.parseArgs([]string{"-h"})
 }

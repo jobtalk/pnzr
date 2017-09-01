@@ -11,7 +11,6 @@ import (
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
 	"io/ioutil"
-	"strings"
 )
 
 type EncryptCommand struct {
@@ -93,13 +92,7 @@ func (e *EncryptCommand) Help() string {
 }
 
 func (e *EncryptCommand) Synopsis() string {
-	help := e.parseArgs([]string{"-h"})
-
-	lines := strings.Split(help, "\n")
-	for i, line := range lines {
-		lines[i] = "        " + line
-	}
-	return "\n" + strings.Join(lines, "\n")
+	return "Encryption mode of plaintext file."
 
 }
 

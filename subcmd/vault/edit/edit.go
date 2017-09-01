@@ -14,7 +14,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 func getEditor() string {
@@ -124,13 +123,7 @@ func (e *EditCommand) Help() string {
 }
 
 func (e *EditCommand) Synopsis() string {
-	help := e.parseArgs([]string{"-h"})
-
-	lines := strings.Split(help, "\n")
-	for i, line := range lines {
-		lines[i] = "        " + line
-	}
-	return "\n" + strings.Join(lines, "\n")
+	return "Edit mode of encrypted file."
 }
 
 func (e *EditCommand) Run(args []string) int {
