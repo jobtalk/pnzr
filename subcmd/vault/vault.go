@@ -60,16 +60,5 @@ func (v *VaultCommand) Help() string {
 }
 
 func (v *VaultCommand) Synopsis() string {
-	var help = " Command set for encryption processing.\n"
-	help += "    vault subcommands:\n"
-
-	for v, factory := range v.cli.Commands {
-		cmd, err := factory()
-		if err != nil {
-			panic(err)
-		}
-		help += fmt.Sprintf("        %s\t%s\n", v, cmd.Synopsis())
-	}
-
-	return help
+	return "Option for encrypting configuration file."
 }
