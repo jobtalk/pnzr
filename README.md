@@ -82,3 +82,10 @@ $ pnzr vault view -f target.json
 ```
 $ pnzr vault edit -f target.json
 ```
+
+### Support Multi-Factor Authentication(MFA)
+
+```
+$ pnzr vault view -profile use-mfa-user -f deploy-config.json 
+Assume Role MFA token code: ******
+```
