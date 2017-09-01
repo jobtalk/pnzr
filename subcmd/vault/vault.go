@@ -1,7 +1,6 @@
 package vault
 
 import (
-	"fmt"
 	"github.com/jobtalk/pnzr/subcmd/vault/decrypt"
 	"github.com/jobtalk/pnzr/subcmd/vault/edit"
 	"github.com/jobtalk/pnzr/subcmd/vault/encrypt"
