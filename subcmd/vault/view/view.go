@@ -1,26 +1,23 @@
-package vview
+package view
 
 import (
 	"bytes"
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
-	"os/exec"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
+	"io/ioutil"
+	"os"
+	"os/exec"
 )
 
-type VaultViewCommand struct {
+type ViewCommand struct {
 	sess           *session.Session
-	kmsKeyID       *string
 	file           *string
 	profile        *string
 	region         *string
@@ -28,12 +25,15 @@ type VaultViewCommand struct {
 	awsSecretKeyID *string
 }
 
-func (v *VaultViewCommand) parseArgs(args []string) {
+func (v *ViewCommand) parseArgs(args []string) (helpString string) {
 	var (
 		flagSet = new(flag.FlagSet)
 		f       *string
 	)
-	v.kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
+
+	buffer := new(bytes.Buffer)
+	flagSet.SetOutput(buffer)
+
 	v.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	v.region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
 	v.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
@@ -42,7 +42,10 @@ func (v *VaultViewCommand) parseArgs(args []string) {
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
-		log.Fatalln(err)
+		if err == flag.ErrHelp {
+			return buffer.String()
+		}
+		panic(err)
 	}
 
 	if *f == "" && *v.file == "" && len(flagSet.Args()) != 0 {
@@ -67,9 +70,11 @@ func (v *VaultViewCommand) parseArgs(args []string) {
 		Profile:                 *v.profile,
 		Config:                  awsConfig,
 	}))
+
+	return
 }
 
-func (v *VaultViewCommand) decrypt(keyID string, fileName string, awsConfig *aws.Config) ([]byte, error) {
+func (v *ViewCommand) decryptTemporary(fileName string) ([]byte, error) {
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, err
@@ -78,57 +83,31 @@ func (v *VaultViewCommand) decrypt(keyID string, fileName string, awsConfig *aws
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}
-	plainText, err := kms.SetKeyID(keyID).Decrypt()
+	plainText, err := kms.Decrypt()
 	if err != nil {
 		return nil, err
 	}
 	return plainText, nil
 }
 
-func (c *VaultViewCommand) Help() string {
-	var msg string
-	msg += "usage: pnzr vault-view [options ...]\n"
-	msg += "options:\n"
-	msg += "    -key_id\n"
-	msg += "        set kms key id\n"
-	msg += "    -file\n"
-	msg += "        setting target file\n"
-	msg += "    -f"
-	msg += "        setting target file\n"
-	msg += "    -profile\n"
-	msg += "        aws credential name\n"
-	msg += "    -region\n"
-	msg += "        aws region name\n"
-	msg += "    -aws-access-key-id\n"
-	msg += "        setting aws access key id\n"
-	msg += "    -aws-secret-key-id\n"
-	msg += "        setting aws secret key id\n"
-	msg += "===================================================\n"
-	return msg
+func (v *ViewCommand) Help() string {
+	return v.parseArgs([]string{"-h"})
 }
 
-func (c *VaultViewCommand) Synopsis() string {
-	return c.Help()
+func (v *ViewCommand) Synopsis() string {
+	return "Viewer mode of encrypted file."
 }
 
-func (v *VaultViewCommand) Run(args []string) int {
+func (v *ViewCommand) Run(args []string) int {
+	if len(args) == 0 {
+		fmt.Println(v.Synopsis())
+		return 0
+	}
 	v.parseArgs(args)
 
-	var cred *credentials.Credentials
-	if *v.awsAccessKeyID != "" && *v.awsSecretKeyID != "" {
-		cred = credentials.NewStaticCredentials(*v.awsAccessKeyID, *v.awsSecretKeyID, "")
-	} else {
-		cred = credentials.NewSharedCredentials("", *v.profile)
-	}
-
-	awsConfig := &aws.Config{
-		Credentials: cred,
-		Region:      v.region,
-	}
-
-	plain, err := v.decrypt(*v.kmsKeyID, *v.file, awsConfig)
+	plain, err := v.decryptTemporary(*v.file)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	cmd := exec.Command("less")
@@ -136,7 +115,9 @@ func (v *VaultViewCommand) Run(args []string) int {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	cmd.Run()
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
 
 	return 0
 }
