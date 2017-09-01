@@ -17,8 +17,9 @@ ecs deploy docker container
 [![CircleCI](https://circleci.com/gh/jobtalk/pnzr.svg?style=shield)](https://circleci.com/gh/jobtalk/pnzr)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
-## Support Go version
-* Go 1.8
+The pnzr package works on Go versions:
+* 1.8.x and greater
+* 1.9.x and greater
 
 ## Installation
 Can be installed in either way.
@@ -42,14 +43,42 @@ $ go get -u github.com/jobtalk/pnzr
 ## Detailed instructions
 Please read the [wiki](https://github.com/jobtalk/pnzr/wiki).
 
-
-## Deploy
-```
-$ pnzr deploy -f config.json
-```
-
-## Show options
+## Update latest version
 
 ```
-$ pnzr -h
+$ pnzr update
+```
+
+## Examples
+
+### Deploy ecs
+
+```
+$ pnzr deploy -f setting.json
+$ pnzr deploy -profile aws/profile -f setting.json
+```
+
+### Encrypt setting
+
+```
+$ pnzr vault encrypt -f target.json
+$ pnzr vault encrypt -key_id ${KMS_KEY_ID} -f target.json
+```
+
+### Decrypt setting
+
+```
+$ pnzr vault decrypt -f target.json
+```
+
+### Viewer mode of encrypted setting file
+
+```
+$ pnzr vault view -f target.json
+```
+
+### Edit mode of encrypted file
+
+```
+$ pnzr vault edit -f target.json
 ```
