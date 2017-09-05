@@ -10,10 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/lib"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"github.com/jobtalk/pnzr/lib/config/v1"
 )
 
 type ViewCommand struct {
@@ -79,7 +79,7 @@ func (v *ViewCommand) decryptTemporary(fileName string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	kms := lib.NewKMSFromBinary(bin, v.sess)
+	kms := config.NewKMSFromBinary(bin, v.sess)
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}

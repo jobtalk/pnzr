@@ -1,12 +1,11 @@
 package api
 
 import (
-	_ "fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/jobtalk/pnzr/lib/config/v1/setting"
 	"github.com/jobtalk/pnzr/lib/iface"
-	"github.com/jobtalk/pnzr/lib/setting"
 )
 
 func TestDeploy(t *testing.T) {

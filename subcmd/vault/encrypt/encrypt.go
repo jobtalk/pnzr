@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/lib"
 	"io/ioutil"
+	"github.com/jobtalk/pnzr/lib/config/v1"
 )
 
 type EncryptCommand struct {
@@ -28,7 +28,7 @@ func (e *EncryptCommand) encrypt(keyID string, fileName string) error {
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMS(e.sess)
+	kms := config.NewKMS(e.sess)
 	_, err = kms.SetKeyID(keyID).Encrypt(bin)
 	if err != nil {
 		return err

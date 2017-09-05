@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -12,15 +13,14 @@ import (
 	"regexp"
 	"strings"
 
-	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
-	"github.com/jobtalk/pnzr/lib"
-	"github.com/jobtalk/pnzr/lib/setting"
+	cfg "github.com/jobtalk/pnzr/lib/config/v1"
+	"github.com/jobtalk/pnzr/lib/config/v1/setting"
 )
 
 type DeployCommand struct {
@@ -97,7 +97,7 @@ func isEncrypted(data []byte) bool {
 }
 
 func (d *DeployCommand) decrypt(bin []byte) ([]byte, error) {
-	kms := lib.NewKMSFromBinary(bin, d.sess)
+	kms := cfg.NewKMSFromBinary(bin, d.sess)
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
 	}
@@ -126,7 +126,7 @@ func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deplo
 			}
 			external = plain
 		}
-		baseStr, err = lib.Embedde(baseStr, string(external))
+		baseStr, err = cfg.Embedde(baseStr, string(external))
 		if err != nil {
 			return nil, err
 		}
@@ -202,7 +202,7 @@ func (d *DeployCommand) Run(args []string) int {
 	}
 
 	if *d.outerVals != "" {
-		baseStr, err := lib.Embedde(string(baseConfBinary), *d.outerVals)
+		baseStr, err := cfg.Embedde(string(baseConfBinary), *d.outerVals)
 		if err == nil {
 			baseConfBinary = []byte(baseStr)
 		}
