@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/jobtalk/pnzr/lib/iface"
 	"github.com/jobtalk/pnzr/lib/config"
+	"github.com/jobtalk/pnzr/lib/iface"
 )
 
 func TestDeploy(t *testing.T) {
@@ -15,14 +15,14 @@ func TestDeploy(t *testing.T) {
 	service := &ecs.CreateServiceInput{ServiceName: &serviceName}
 
 	// Settings
-	onlyService := config.IntermediateConfig {
+	onlyService := config.IntermediateConfig{
 		Service: service,
 	}
 	onlyTaskDefinition := config.IntermediateConfig{
 		TaskDefinition: taskDefinition,
 	}
 	both := config.IntermediateConfig{
-		Service: service,
+		Service:        service,
 		TaskDefinition: taskDefinition,
 	}
 

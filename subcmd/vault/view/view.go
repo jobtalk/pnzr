@@ -10,10 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
+	"github.com/jobtalk/pnzr/lib/config/v1/kms"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"github.com/jobtalk/pnzr/lib/config/v1/kms"
 )
 
 type ViewCommand struct {

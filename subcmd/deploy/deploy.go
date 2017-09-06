@@ -4,12 +4,25 @@ import (
 	"bytes"
 	"flag"
 
+	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
+	"github.com/jobtalk/pnzr/api"
+	"github.com/jobtalk/pnzr/lib/config/v1/setting"
+	"strings"
 )
+
+func parseDockerImage(image string) (url, tag string) {
+	r := strings.Split(image, ":")
+	if len(r) == 2 {
+		return r[0], r[1]
+	}
+	return r[0], ""
+}
 
 type DeployCommand struct {
 	sess           *session.Session
@@ -76,6 +89,35 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 }
 
 func (d *DeployCommand) Run(args []string) int {
+	loader := setting.NewLoader(d.sess, d.kmsKeyID)
+
+	conf, err := loader.Load(*d.file, *d.externalPath, *d.outerVals)
+	if err != nil {
+		panic(err)
+	}
+
+	for i, containerDefinition := range conf.TaskDefinition.ContainerDefinitions {
+		imageName, tag := parseDockerImage(*containerDefinition.Image)
+		if tag == "$tag" {
+			image := imageName + ":" + *d.tagOverride
+			conf.TaskDefinition.ContainerDefinitions[i].Image = &image
+		} else if tag == "" {
+			image := imageName + ":" + "latest"
+			conf.TaskDefinition.ContainerDefinitions[i].Image = &image
+		}
+	}
+
+	result, err := api.Deploy(d.sess, conf)
+	if err != nil {
+		panic(err)
+	}
+
+	resultJSON, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(resultJSON))
+
 	return 0
 }
 

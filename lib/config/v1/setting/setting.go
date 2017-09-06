@@ -80,7 +80,7 @@ func NewLoader(sess *session.Session, kmsKeyID *string) *SettingLoader {
 	}
 }
 
-func (s *SettingLoader) Load(basePath, varsPath string, sess *session.Session, outerVals *string) (*intermediate.IntermediateConfig, error) {
+func (s *SettingLoader) Load(basePath, varsPath, outerVals string) (*intermediate.IntermediateConfig, error) {
 	varsFileList, err := fileList(varsPath)
 	if err != nil {
 		return nil, err
@@ -91,8 +91,8 @@ func (s *SettingLoader) Load(basePath, varsPath string, sess *session.Session, o
 		return nil, err
 	}
 
-	if outerVals != nil && *outerVals != "" {
-		baseStr, err := config.Embedde(string(baseConfBinary), *outerVals)
+	if outerVals != "" {
+		baseStr, err := config.Embedde(string(baseConfBinary), outerVals)
 		if err == nil {
 			baseConfBinary = []byte(baseStr)
 		}
