@@ -170,7 +170,7 @@ func (*SettingLoader) isEncrypted(data []byte) bool {
 
 func (s *SettingLoader) decrypt(bin []byte) ([]byte, error) {
 	k := kms.NewKMSFromBinary(bin, s.sess)
-	if kms == nil {
+	if k == nil {
 		return nil, BadReqKMS
 	}
 
