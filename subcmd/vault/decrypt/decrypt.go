@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/lib/config/v1"
+	"github.com/jobtalk/pnzr/lib/config/v1/kms"
 )
 
 type DecryptCommand struct {
@@ -78,7 +78,7 @@ func (d *DecryptCommand) decrypt(fileName string) error {
 	if err != nil {
 		return err
 	}
-	kms := config.NewKMSFromBinary(bin, d.sess)
+	kms := kms.NewKMSFromBinary(bin, d.sess)
 	if kms == nil {
 		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}

@@ -13,7 +13,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"github.com/jobtalk/pnzr/lib/config/v1"
+	"github.com/jobtalk/pnzr/lib/config/v1/kms"
 )
 
 type ViewCommand struct {
@@ -79,7 +79,7 @@ func (v *ViewCommand) decryptTemporary(fileName string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	kms := config.NewKMSFromBinary(bin, v.sess)
+	kms := kms.NewKMSFromBinary(bin, v.sess)
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}

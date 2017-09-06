@@ -1,4 +1,4 @@
-package config
+package kms
 
 import (
 	"encoding/json"

@@ -1,14 +1,58 @@
 package setting
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/aws/aws-sdk-go/service/elbv2"
+	intermediate "github.com/jobtalk/pnzr/lib/config"
+	"github.com/jobtalk/pnzr/lib/config/v1/config"
+	"github.com/jobtalk/pnzr/lib/config/v1/kms"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 )
 
-type ELB struct {
-	LB          *elbv2.CreateLoadBalancerInput
-	TargetGroup *elbv2.CreateTargetGroupInput
-	Listener    *elbv2.CreateListenerInput
+const (
+	VERSION = 0
+)
+
+var (
+	BadReqKMS = errors.New("bad request: kms error")
+)
+
+var reJSON = regexp.MustCompile(`.*\.json$`)
+
+func fileList(root string) ([]string, error) {
+	if root == "" {
+		return nil, nil
+	}
+	ret := []string{}
+	err := filepath.Walk(root,
+		func(path string, info os.FileInfo, err error) error {
+			if info == nil {
+				return errors.New("file info is nil")
+			}
+			if info.IsDir() {
+				return nil
+			}
+
+			rel, err := filepath.Rel(root, path)
+			if reJSON.MatchString(rel) {
+				ret = append(ret, rel)
+			}
+
+			return nil
+		})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
 
 type ECS struct {
@@ -16,7 +60,123 @@ type ECS struct {
 	TaskDefinition *ecs.RegisterTaskDefinitionInput
 }
 
-type Setting struct {
-	ELB *ELB
+type setting struct {
 	ECS *ECS
+}
+
+func (s *setting) version() float64 {
+	return VERSION
+}
+
+type SettingLoader struct {
+	sess     *session.Session
+	kmsKeyID *string
+}
+
+func NewLoader(sess *session.Session, kmsKeyID *string) *SettingLoader {
+	return &SettingLoader{
+		sess:     sess,
+		kmsKeyID: kmsKeyID,
+	}
+}
+
+func (s *SettingLoader) Load(basePath, varsPath string, sess *session.Session, outerVals *string) (*intermediate.IntermediateConfig, error) {
+	varsFileList, err := fileList(varsPath)
+	if err != nil {
+		return nil, err
+	}
+
+	baseConfBinary, err := ioutil.ReadFile(basePath)
+	if err != nil {
+		return nil, err
+	}
+
+	if outerVals != nil && *outerVals != "" {
+		baseStr, err := config.Embedde(string(baseConfBinary), *outerVals)
+		if err == nil {
+			baseConfBinary = []byte(baseStr)
+		}
+	}
+
+	if len(varsFileList) != 0 {
+		result, err := s.loadConf(baseConfBinary, varsPath, varsFileList)
+		if err != nil {
+			return nil, err
+		}
+		var ret = intermediate.IntermediateConfig{}
+		ret.Version = result.version()
+		ret.Service = result.ECS.Service
+		ret.TaskDefinition = result.ECS.TaskDefinition
+		return &ret, nil
+	}
+
+	var result = &setting{}
+	if err := json.Unmarshal(baseConfBinary, result); err != nil {
+		return nil, err
+	}
+	var ret = intermediate.IntermediateConfig{}
+	ret.Version = result.version()
+	ret.Service = result.ECS.Service
+	ret.TaskDefinition = result.ECS.TaskDefinition
+
+	return &ret, nil
+}
+
+func (s *SettingLoader) loadConf(base []byte, varsRoot string, varsFileNameList []string) (*setting, error) {
+	var ret = &setting{}
+	baseStr := string(base)
+	varsRoot = strings.TrimSuffix(varsRoot, "/")
+
+	for _, varsFileName := range varsFileNameList {
+		varsBinary, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", varsRoot, varsFileName))
+		if err != nil {
+			return nil, err
+		}
+		if s.isEncrypted(varsBinary) {
+			plain, err := s.decrypt(varsBinary)
+			if err != nil {
+				return nil, err
+			}
+			varsBinary = plain
+		}
+		baseStr, err = config.Embedde(baseStr, string(varsBinary))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err := json.Unmarshal([]byte(baseStr), ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func (*SettingLoader) isEncrypted(data []byte) bool {
+	var buffer = map[string]interface{}{}
+	if err := json.Unmarshal(data, &buffer); err != nil {
+		return false
+	}
+	elem, ok := buffer["cipher"]
+	if !ok {
+		return false
+	}
+	str, ok := elem.(string)
+	if !ok {
+		return false
+	}
+
+	return len(str) != 0
+}
+
+func (s *SettingLoader) decrypt(bin []byte) ([]byte, error) {
+	k := kms.NewKMSFromBinary(bin, s.sess)
+	if kms == nil {
+		return nil, BadReqKMS
+	}
+
+	plainText, err := k.SetKeyID(*s.kmsKeyID).Decrypt()
+	if err != nil {
+		return nil, err
+	}
+	return plainText, nil
 }
