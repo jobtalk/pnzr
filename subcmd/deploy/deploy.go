@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
-	"github.com/jobtalk/pnzr/lib/config/v1/setting"
+	"github.com/jobtalk/pnzr/lib/config/v0/setting"
 	"strings"
 )
 

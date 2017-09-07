@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/lib/config/v1/kms"
+	"github.com/jobtalk/pnzr/lib/config/v0/kms"
 )
 
 func getEditor() string {
