@@ -7,13 +7,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	intermediate "github.com/jobtalk/pnzr/lib/config"
+	"github.com/jobtalk/pnzr/lib/config/v0/embedde"
 	"github.com/jobtalk/pnzr/lib/config/v0/kms"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"github.com/jobtalk/pnzr/lib/config/v0/embedde"
 )
 
 const (

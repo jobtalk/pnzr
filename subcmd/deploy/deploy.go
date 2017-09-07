@@ -12,8 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
-	"strings"
 	"github.com/jobtalk/pnzr/lib/config/v0"
+	"strings"
 )
 
 func parseDockerImage(image string) (url, tag string) {
