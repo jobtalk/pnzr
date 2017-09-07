@@ -12,8 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
-	"github.com/jobtalk/pnzr/lib/config/v0/setting"
 	"strings"
+	"github.com/jobtalk/pnzr/lib/config/v0"
 )
 
 func parseDockerImage(image string) (url, tag string) {
@@ -89,7 +89,7 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 }
 
 func (d *DeployCommand) Run(args []string) int {
-	loader := setting.NewLoader(d.sess, d.kmsKeyID)
+	loader := v0_config.NewLoader(d.sess, d.kmsKeyID)
 
 	conf, err := loader.Load(*d.file, *d.externalPath, *d.outerVals)
 	if err != nil {

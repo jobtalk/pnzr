@@ -1,4 +1,4 @@
-package setting
+package v0_config
 
 import (
 	"encoding/json"
@@ -7,13 +7,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	intermediate "github.com/jobtalk/pnzr/lib/config"
-	"github.com/jobtalk/pnzr/lib/config/v0/config"
 	"github.com/jobtalk/pnzr/lib/config/v0/kms"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"github.com/jobtalk/pnzr/lib/config/v0/embedde"
 )
 
 const (
@@ -92,7 +92,7 @@ func (s *SettingLoader) Load(basePath, varsPath, outerVals string) (*intermediat
 	}
 
 	if outerVals != "" {
-		baseStr, err := config.Embedde(string(baseConfBinary), outerVals)
+		baseStr, err := embedde.Embedde(string(baseConfBinary), outerVals)
 		if err == nil {
 			baseConfBinary = []byte(baseStr)
 		}
@@ -139,7 +139,7 @@ func (s *SettingLoader) loadConf(base []byte, varsRoot string, varsFileNameList 
 			}
 			varsBinary = plain
 		}
-		baseStr, err = config.Embedde(baseStr, string(varsBinary))
+		baseStr, err = embedde.Embedde(baseStr, string(varsBinary))
 		if err != nil {
 			return nil, err
 		}
