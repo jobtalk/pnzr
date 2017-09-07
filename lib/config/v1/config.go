@@ -26,8 +26,6 @@ func CheckSupportVersion(confPath *string) bool {
 	return prop.Version == VERSION
 }
 
-
-
 type ConfigLoader struct {
 }
 

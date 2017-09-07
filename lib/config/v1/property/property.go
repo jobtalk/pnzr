@@ -1,16 +1,16 @@
 package property
 
 import (
-	"github.com/aws/aws-sdk-go/service/ecs"
 	"encoding/json"
+	"github.com/aws/aws-sdk-go/service/ecs"
 )
 
 type Property struct {
-	Version        float64
-	Config interface{}
+	Version float64
+	Config  interface{}
 }
 
-func (p *Property)ConvertToConfig() (*DeployConfigration, error) {
+func (p *Property) ConvertToConfig() (*DeployConfigration, error) {
 	bin, err := json.Marshal(p.Config)
 	if err != nil {
 		return nil, err
@@ -22,6 +22,7 @@ func (p *Property)ConvertToConfig() (*DeployConfigration, error) {
 
 	return ret, nil
 }
+
 type DeployConfigration struct {
 	Service        *ecs.CreateServiceInput
 	TaskDefinition *ecs.RegisterTaskDefinitionInput
