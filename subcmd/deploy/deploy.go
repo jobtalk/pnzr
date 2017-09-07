@@ -91,6 +91,7 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 }
 
 func (d *DeployCommand) Run(args []string) int {
+	d.parseArgs(args)
 	var conf *config.IntermediateConfig
 	if v1_config.CheckSupportVersion(d.file) {
 		loader := &v1_config.ConfigLoader{}

@@ -19,12 +19,14 @@ func CheckSupportVersion(confPath *string) bool {
 	if err != nil {
 		return false
 	}
-	vm.Set("config", prop)
+	vm.Set("config", &prop)
 	if _, err := vm.Run(script); err != nil {
 		return false
 	}
 	return prop.Version == VERSION
 }
+
+
 
 type ConfigLoader struct {
 }
@@ -40,11 +42,16 @@ func (c *ConfigLoader) Load(confPath *string) (*config.IntermediateConfig, error
 
 	vm.Set("require", function.Require)
 	vm.Set("loadJSON", function.LoadJSON)
-	vm.Set("config", prop)
+	vm.Set("config", &prop)
 
 	if _, err := vm.Run(script); err != nil {
 		return nil, err
 	}
 
-	return &config.IntermediateConfig{Service: prop.Service, TaskDefinition: prop.TaskDefinition, Version: VERSION}, nil
+	deployConfig, err := prop.ConvertToConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	return &config.IntermediateConfig{Service: deployConfig.Service, TaskDefinition: deployConfig.TaskDefinition, Version: VERSION}, nil
 }
