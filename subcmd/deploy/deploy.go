@@ -12,7 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
+	"github.com/jobtalk/pnzr/lib/config"
 	"github.com/jobtalk/pnzr/lib/config/v0"
+	"github.com/jobtalk/pnzr/lib/config/v1"
 	"strings"
 )
 
@@ -89,11 +91,24 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 }
 
 func (d *DeployCommand) Run(args []string) int {
-	loader := v0_config.NewLoader(d.sess, d.kmsKeyID)
+	var conf *config.IntermediateConfig
+	if v1_config.CheckSupportVersion(d.file) {
+		loader := &v1_config.ConfigLoader{}
+		c, err := loader.Load(d.file)
+		if err != nil {
+			panic(err)
+		}
+		conf = c
 
-	conf, err := loader.Load(*d.file, *d.externalPath, *d.outerVals)
-	if err != nil {
-		panic(err)
+	} else {
+		loader := v0_config.NewLoader(d.sess, d.kmsKeyID)
+
+		c, err := loader.Load(*d.file, *d.externalPath, *d.outerVals)
+		if err != nil {
+			panic(err)
+		}
+
+		conf = c
 	}
 
 	for i, containerDefinition := range conf.TaskDefinition.ContainerDefinitions {
