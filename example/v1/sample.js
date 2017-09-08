@@ -1,9 +1,6 @@
-config.Version = 1.0;
+require("./vars/vars.js");
 
-var family = "family name";
-var targetGroupArn = "何らかのARN";
-var serviceName = "サービス名";
-var taskDefinitionName = "task definition name";
+config.Version = 1.0;
 
 service.body = {
     "Cluster": "backend",
