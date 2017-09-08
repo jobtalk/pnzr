@@ -1,4 +1,4 @@
-require("./vars/vars.js");
+var vars = require("./vars/vars.js");
 
 config.Version = 1.0;
 
@@ -13,15 +13,15 @@ service.body = {
         {
             "ContainerName": "nginx",
             "ContainerPort": 80,
-            "TargetGroupArn": targetGroupArn
+            "TargetGroupArn": vars.targetGroupArn
         }
     ],
     "Role": "ecsServiceRole",
-    "ServiceName": serviceName,
-    "TaskDefinition": taskDefinitionName
+    "ServiceName": vars.serviceName,
+    "TaskDefinition": vars.taskDefinitionName
 };
 
-taskDefinition.body = {
+vars.taskDefinition.body = {
     "ContainerDefinitions": [
         {
             "Cpu": 0,
@@ -50,7 +50,7 @@ taskDefinition.body = {
             "Name": "api"
         }
     ],
-    "Family": family,
+    "Family": vars.family,
     "NetworkMode": "bridge"
 }
 
