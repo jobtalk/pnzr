@@ -12,6 +12,9 @@ const (
 )
 
 func CheckSupportVersion(confPath *string) bool {
+	var service = map[string]interface{}{}
+	var taskDefinition = map[string]interface{}{}
+
 	vm := otto.New()
 	prop := property.Property{}
 
@@ -20,9 +23,12 @@ func CheckSupportVersion(confPath *string) bool {
 		return false
 	}
 	vm.Set("config", &prop)
+	vm.Set("service", service)
+	vm.Set("taskDefinition", taskDefinition)
 	if _, err := vm.Run(script); err != nil {
 		return false
 	}
+
 	return prop.Version == VERSION
 }
 
@@ -30,6 +36,9 @@ type ConfigLoader struct {
 }
 
 func (c *ConfigLoader) Load(confPath *string) (*config.IntermediateConfig, error) {
+	var service = map[string]interface{}{}
+	var taskDefinition = map[string]interface{}{}
+
 	prop := property.Property{}
 	vm := otto.New()
 
@@ -38,18 +47,25 @@ func (c *ConfigLoader) Load(confPath *string) (*config.IntermediateConfig, error
 		return nil, err
 	}
 
+
 	vm.Set("require", function.Require)
 	vm.Set("loadJSON", function.LoadJSON)
 	vm.Set("config", &prop)
+	vm.Set("service", service)
+	vm.Set("taskDefinition", taskDefinition)
 
 	if _, err := vm.Run(script); err != nil {
 		return nil, err
 	}
 
+	prop.Service = service
+	prop.TaskDefinition = taskDefinition
+
 	deployConfig, err := prop.ConvertToConfig()
 	if err != nil {
 		return nil, err
 	}
+
 
 	return &config.IntermediateConfig{Service: deployConfig.Service, TaskDefinition: deployConfig.TaskDefinition, Version: VERSION}, nil
 }
