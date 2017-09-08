@@ -1,9 +1,9 @@
 package property
 
 import (
+	"encoding/json"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/robertkrimen/otto"
-	"encoding/json"
 )
 
 type DeployConfigration struct {
@@ -12,8 +12,8 @@ type DeployConfigration struct {
 }
 
 type Property struct {
-	Version float64
-	Service  map[string]interface{}
+	Version        float64
+	Service        map[string]interface{}
 	TaskDefinition map[string]interface{}
 }
 
@@ -84,4 +84,3 @@ func (p *Property) ConvertToConfig() (*DeployConfigration, error) {
 
 	return &ret, nil
 }
-

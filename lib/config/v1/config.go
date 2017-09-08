@@ -47,7 +47,6 @@ func (c *ConfigLoader) Load(confPath *string) (*config.IntermediateConfig, error
 		return nil, err
 	}
 
-
 	vm.Set("require", function.Require)
 	vm.Set("loadJSON", function.LoadJSON)
 	vm.Set("config", &prop)
@@ -65,7 +64,6 @@ func (c *ConfigLoader) Load(confPath *string) (*config.IntermediateConfig, error
 	if err != nil {
 		return nil, err
 	}
-
 
 	return &config.IntermediateConfig{Service: deployConfig.Service, TaskDefinition: deployConfig.TaskDefinition, Version: VERSION}, nil
 }
