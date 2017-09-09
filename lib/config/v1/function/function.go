@@ -5,11 +5,23 @@ import (
 	"fmt"
 	"github.com/robertkrimen/otto"
 	"io/ioutil"
+	"path/filepath"
 )
 
-func Require(call otto.FunctionCall) otto.Value {
+type JSFunction struct {
+	parentSettingPath string
+}
+
+func New(p string) *JSFunction {
+	return &JSFunction{
+		parentSettingPath: p,
+	}
+}
+
+func (f *JSFunction)Require(call otto.FunctionCall) otto.Value {
+	dir := filepath.Dir(f.parentSettingPath)
 	file := call.Argument(0).String()
-	data, err := ioutil.ReadFile(file)
+	data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", dir, file))
 	if err != nil {
 		panic(err)
 	}
@@ -20,9 +32,10 @@ func Require(call otto.FunctionCall) otto.Value {
 	return call.This
 }
 
-func LoadJSON(call otto.FunctionCall) otto.Value {
+func (f *JSFunction)LoadJSON(call otto.FunctionCall) otto.Value {
+	dir := filepath.Dir(f.parentSettingPath)
 	file := call.Argument(0).String()
-	data, err := ioutil.ReadFile(file)
+	data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", dir, file))
 	if err != nil {
 		fmt.Println(err)
 		panic(err)

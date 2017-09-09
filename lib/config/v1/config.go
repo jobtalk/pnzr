@@ -22,6 +22,9 @@ func CheckSupportVersion(confPath *string) bool {
 	if err != nil {
 		return false
 	}
+	f := function.New(*confPath)
+	vm.Set("require", f.Require)
+	vm.Set("loadJSON", f.LoadJSON)
 	vm.Set("config", &prop)
 	vm.Set("service", service)
 	vm.Set("taskDefinition", taskDefinition)
@@ -47,8 +50,9 @@ func (c *ConfigLoader) Load(confPath *string) (*config.IntermediateConfig, error
 		return nil, err
 	}
 
-	vm.Set("require", function.Require)
-	vm.Set("loadJSON", function.LoadJSON)
+	f := function.New(*confPath)
+	vm.Set("require", f.Require)
+	vm.Set("loadJSON", f.LoadJSON)
 	vm.Set("config", &prop)
 	vm.Set("service", service)
 	vm.Set("taskDefinition", taskDefinition)
