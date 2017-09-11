@@ -57,19 +57,26 @@ func (v *ViewCommand) parseArgs(args []string) (helpString string) {
 		v.file = f
 	}
 
-	var awsConfig = aws.Config{}
-
 	if *v.awsAccessKeyID != "" && *v.awsSecretKeyID != "" && *v.profile == "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(*v.awsAccessKeyID, *v.awsSecretKeyID, "")
-		awsConfig.Region = v.region
-	}
+		v.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Config: aws.Config{
+				Credentials: credentials.NewStaticCredentials(*v.awsAccessKeyID, *v.awsSecretKeyID, ""),
+				Region:      v.region,
+			},
+		}))
+	} else {
+		v.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 *v.profile,
+		}))
 
-	v.sess = session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 *v.profile,
-		Config:                  awsConfig,
-	}))
+		if v.region != nil && *v.region != "" {
+			v.sess.Config.Region = v.region
+		}
+	}
 
 	return
 }

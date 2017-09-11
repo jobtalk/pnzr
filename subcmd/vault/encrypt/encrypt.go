@@ -70,19 +70,26 @@ func (e *EncryptCommand) parseArgs(args []string) (helpString string) {
 		e.file = f
 	}
 
-	var awsConfig = aws.Config{}
-
 	if *e.awsAccessKeyID != "" && *e.awsSecretKeyID != "" && *e.profile == "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(*e.awsAccessKeyID, *e.awsSecretKeyID, "")
-		awsConfig.Region = e.region
-	}
+		e.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Config: aws.Config{
+				Credentials: credentials.NewStaticCredentials(*e.awsAccessKeyID, *e.awsSecretKeyID, ""),
+				Region:      e.region,
+			},
+		}))
+	} else {
+		e.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 *e.profile,
+		}))
 
-	e.sess = session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 *e.profile,
-		Config:                  awsConfig,
-	}))
+		if e.region != nil && *e.region != "" {
+			e.sess.Config.Region = e.region
+		}
+	}
 
 	return
 }
