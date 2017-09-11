@@ -5,13 +5,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/lib"
-	"io/ioutil"
+	"github.com/jobtalk/pnzr/lib/config/v0/kms"
 )
 
 type DecryptCommand struct {
@@ -55,19 +56,26 @@ func (d *DecryptCommand) parseArgs(args []string) (helpString string) {
 		d.file = f
 	}
 
-	var awsConfig = aws.Config{}
-
 	if *d.awsAccessKeyID != "" && *d.awsSecretKeyID != "" && *d.profile == "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(*d.awsAccessKeyID, *d.awsSecretKeyID, "")
-		awsConfig.Region = d.region
-	}
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Config: aws.Config{
+				Credentials: credentials.NewStaticCredentials(*d.awsAccessKeyID, *d.awsSecretKeyID, ""),
+				Region:      d.region,
+			},
+		}))
+	} else {
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 *d.profile,
+		}))
 
-	d.sess = session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 *d.profile,
-		Config:                  awsConfig,
-	}))
+		if d.region != nil && *d.region != "" {
+			d.sess.Config.Region = d.region
+		}
+	}
 
 	return
 }
@@ -77,7 +85,7 @@ func (d *DecryptCommand) decrypt(fileName string) error {
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMSFromBinary(bin, d.sess)
+	kms := kms.NewKMSFromBinary(bin, d.sess)
 	if kms == nil {
 		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}

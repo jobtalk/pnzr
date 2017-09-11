@@ -1,10 +1,10 @@
-hash: 2e521d9a91d63cc72ca59228e7406a3a1a582d49e237f65793f38098dcc46b46
-updated: 2017-08-18T15:18:46.432339413+09:00
+hash: fc74f39b2d03bbd0e71019693ce91003b8a33b49269607aaca67be01c8dc3310
+updated: 2017-09-07T19:04:37.399238094+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: 1850f427c33c2558a2118dc55c1cf95a633d7432
+  version: 452caf156d7a643d59e81af90f09a2f9814f2833
   subpackages:
   - aws
   - aws/awserr
@@ -34,13 +34,14 @@ imports:
   - service/ecs/ecsiface
   - service/elbv2
   - service/kms
+  - service/kms/kmsiface
   - service/sts
 - name: github.com/bgentry/speakeasy
   version: 675b82c74c0ed12283ee81ba8a534c8982c07b85
 - name: github.com/go-ini/ini
   version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
 - name: github.com/ieee0824/getenv
-  version: c67c7aafcf785db4bfb9f7ab7161f13a16d3a204
+  version: c0967c2a6018ada0a7537084588ee1e5084b09ac
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/joho/godotenv
@@ -49,8 +50,21 @@ imports:
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mitchellh/cli
   version: ee8578a9c12a5bb9d55303b9665cc448772c81b8
+- name: github.com/robertkrimen/otto
+  version: a813c59b1b4471ff7ecd3b533bac2f7e7d178784
+  subpackages:
+  - ast
+  - dbg
+  - file
+  - parser
+  - registry
+  - token
 - name: golang.org/x/sys
   version: f3918c30c5c2cb527c0b071a27c35120a6c0719a
   subpackages:
   - unix
+- name: gopkg.in/sourcemap.v1
+  version: 6e83acea0053641eff084973fee085f0c193c61a
+  subpackages:
+  - base64vlq
 testImports: []

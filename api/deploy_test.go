@@ -1,12 +1,11 @@
 package api
 
 import (
-	_ "fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/jobtalk/pnzr/lib/config"
 	"github.com/jobtalk/pnzr/lib/iface"
-	"github.com/jobtalk/pnzr/lib/setting"
 )
 
 func TestDeploy(t *testing.T) {
@@ -16,17 +15,15 @@ func TestDeploy(t *testing.T) {
 	service := &ecs.CreateServiceInput{ServiceName: &serviceName}
 
 	// Settings
-	onlyService := setting.Setting{
-		ECS: &setting.ECS{Service: service},
+	onlyService := config.IntermediateConfig{
+		Service: service,
 	}
-	onlyTaskDefinition := setting.Setting{
-		ECS: &setting.ECS{TaskDefinition: taskDefinition},
+	onlyTaskDefinition := config.IntermediateConfig{
+		TaskDefinition: taskDefinition,
 	}
-	both := setting.Setting{
-		ECS: &setting.ECS{
-			Service:        service,
-			TaskDefinition: taskDefinition,
-		},
+	both := config.IntermediateConfig{
+		Service:        service,
+		TaskDefinition: taskDefinition,
 	}
 
 	// UpsertService のみが呼ばれる

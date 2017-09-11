@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/lib"
+	"github.com/jobtalk/pnzr/lib/config/v0/kms"
 	"io/ioutil"
 )
 
@@ -28,7 +28,7 @@ func (e *EncryptCommand) encrypt(keyID string, fileName string) error {
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMS(e.sess)
+	kms := kms.NewKMS(e.sess)
 	_, err = kms.SetKeyID(keyID).Encrypt(bin)
 	if err != nil {
 		return err
@@ -70,19 +70,26 @@ func (e *EncryptCommand) parseArgs(args []string) (helpString string) {
 		e.file = f
 	}
 
-	var awsConfig = aws.Config{}
-
 	if *e.awsAccessKeyID != "" && *e.awsSecretKeyID != "" && *e.profile == "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(*e.awsAccessKeyID, *e.awsSecretKeyID, "")
-		awsConfig.Region = e.region
-	}
+		e.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Config: aws.Config{
+				Credentials: credentials.NewStaticCredentials(*e.awsAccessKeyID, *e.awsSecretKeyID, ""),
+				Region:      e.region,
+			},
+		}))
+	} else {
+		e.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 *e.profile,
+		}))
 
-	e.sess = session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 *e.profile,
-		Config:                  awsConfig,
-	}))
+		if e.region != nil && *e.region != "" {
+			e.sess.Config.Region = e.region
+		}
+	}
 
 	return
 }

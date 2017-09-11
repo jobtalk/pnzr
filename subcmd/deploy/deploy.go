@@ -1,27 +1,30 @@
 package deploy
 
 import (
-	"encoding/json"
-	"errors"
-	"flag"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
-	"regexp"
-	"strings"
-
 	"bytes"
+	"flag"
+
+	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
-	"github.com/jobtalk/pnzr/lib"
-	"github.com/jobtalk/pnzr/lib/setting"
+	"github.com/jobtalk/pnzr/lib/config"
+	"github.com/jobtalk/pnzr/lib/config/v0"
+	"github.com/jobtalk/pnzr/lib/config/v1"
+	"strings"
 )
+
+func parseDockerImage(image string) (url, tag string) {
+	r := strings.Split(image, ":")
+	if len(r) == 2 {
+		return r[0], r[1]
+	}
+	return r[0], ""
+}
 
 type DeployCommand struct {
 	sess           *session.Session
@@ -34,107 +37,6 @@ type DeployCommand struct {
 	awsAccessKeyID *string
 	awsSecretKeyID *string
 	tagOverride    *string
-}
-
-var re = regexp.MustCompile(`.*\.json$`)
-
-func parseDockerImage(image string) (url, tag string) {
-	r := strings.Split(image, ":")
-	if len(r) == 2 {
-		return r[0], r[1]
-	}
-	return r[0], ""
-}
-
-func fileList(root string) ([]string, error) {
-	if root == "" {
-		return nil, nil
-	}
-	ret := []string{}
-	err := filepath.Walk(root,
-		func(path string, info os.FileInfo, err error) error {
-			if info == nil {
-				return errors.New("file info is nil")
-			}
-			if info.IsDir() {
-				return nil
-			}
-
-			rel, err := filepath.Rel(root, path)
-			if re.MatchString(rel) {
-				ret = append(ret, rel)
-			}
-
-			return nil
-		})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return ret, nil
-}
-
-type deployConfigure struct {
-	*setting.Setting
-}
-
-func isEncrypted(data []byte) bool {
-	var buffer = map[string]interface{}{}
-	if err := json.Unmarshal(data, &buffer); err != nil {
-		return false
-	}
-	elem, ok := buffer["cipher"]
-	if !ok {
-		return false
-	}
-	str, ok := elem.(string)
-	if !ok {
-		return false
-	}
-
-	return len(str) != 0
-}
-
-func (d *DeployCommand) decrypt(bin []byte) ([]byte, error) {
-	kms := lib.NewKMSFromBinary(bin, d.sess)
-	if kms == nil {
-		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
-	}
-	plainText, err := kms.SetKeyID(*d.kmsKeyID).Decrypt()
-	if err != nil {
-		return nil, err
-	}
-	return plainText, nil
-}
-
-func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
-	var root = *d.externalPath
-	var ret = &deployConfigure{}
-	baseStr := string(base)
-
-	root = strings.TrimSuffix(root, "/")
-	for _, externalPath := range externalPathList {
-		external, err := ioutil.ReadFile(root + "/" + externalPath)
-		if err != nil {
-			return nil, err
-		}
-		if isEncrypted(external) {
-			plain, err := d.decrypt(external)
-			if err != nil {
-				return nil, err
-			}
-			external = plain
-		}
-		baseStr, err = lib.Embedde(baseStr, string(external))
-		if err != nil {
-			return nil, err
-		}
-	}
-	if err := json.Unmarshal([]byte(baseStr), ret); err != nil {
-		return nil, err
-	}
-	return ret, nil
 }
 
 func (d *DeployCommand) parseArgs(args []string) (helpString string) {
@@ -171,79 +73,74 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 		d.file = f
 	}
 
-	var awsConfig = aws.Config{}
-
 	if *d.awsAccessKeyID != "" && *d.awsSecretKeyID != "" && *d.profile == "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(*d.awsAccessKeyID, *d.awsSecretKeyID, "")
-		awsConfig.Region = d.region
-	}
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Config: aws.Config{
+				Credentials: credentials.NewStaticCredentials(*d.awsAccessKeyID, *d.awsSecretKeyID, ""),
+				Region:      d.region,
+			},
+		}))
+	} else {
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 *d.profile,
+		}))
 
-	d.sess = session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 *d.profile,
-		Config:                  awsConfig,
-	}))
+		if d.region != nil && *d.region != "" {
+			d.sess.Config.Region = d.region
+		}
+	}
 
 	return
 }
 
 func (d *DeployCommand) Run(args []string) int {
 	d.parseArgs(args)
-	var config = &deployConfigure{}
-
-	externalList, err := fileList(*d.externalPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	baseConfBinary, err := ioutil.ReadFile(*d.file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if *d.outerVals != "" {
-		baseStr, err := lib.Embedde(string(baseConfBinary), *d.outerVals)
-		if err == nil {
-			baseConfBinary = []byte(baseStr)
-		}
-	}
-
-	if externalList != nil {
-		c, err := d.readConf(baseConfBinary, externalList)
+	var conf *config.IntermediateConfig
+	if v1_config.CheckSupportVersion(d.file) {
+		loader := &v1_config.ConfigLoader{}
+		c, err := loader.Load(d.file)
 		if err != nil {
-			log.Fatalln(err)
+			panic(err)
 		}
-		config = c
+		conf = c
+
 	} else {
-		bin, err := ioutil.ReadFile(*d.file)
+		loader := v0_config.NewLoader(d.sess, d.kmsKeyID)
+
+		c, err := loader.Load(*d.file, *d.externalPath, *d.outerVals)
 		if err != nil {
-			log.Fatalln(err)
+			panic(err)
 		}
-		if err := json.Unmarshal(bin, config); err != nil {
-			log.Fatalln(err)
-		}
+
+		conf = c
 	}
 
-	for i, containerDefinition := range config.ECS.TaskDefinition.ContainerDefinitions {
+	for i, containerDefinition := range conf.TaskDefinition.ContainerDefinitions {
 		imageName, tag := parseDockerImage(*containerDefinition.Image)
 		if tag == "$tag" {
 			image := imageName + ":" + *d.tagOverride
-			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
+			conf.TaskDefinition.ContainerDefinitions[i].Image = &image
 		} else if tag == "" {
 			image := imageName + ":" + "latest"
-			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
+			conf.TaskDefinition.ContainerDefinitions[i].Image = &image
 		}
 	}
 
-	result, err := api.Deploy(d.sess, config.Setting)
+	result, err := api.Deploy(d.sess, conf)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
+
 	resultJSON, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	fmt.Println(string(resultJSON))
+
 	return 0
 }
 

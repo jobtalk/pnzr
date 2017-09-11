@@ -1,4 +1,4 @@
-package lib
+package kms
 
 import (
 	"encoding/json"

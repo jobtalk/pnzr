@@ -5,15 +5,16 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/lib"
-	"io/ioutil"
-	"os"
-	"os/exec"
+	"github.com/jobtalk/pnzr/lib/config/v0/kms"
 )
 
 func getEditor() string {
@@ -71,19 +72,26 @@ func (e *EditCommand) parseArgs(args []string) (helpString string) {
 		e.file = f
 	}
 
-	var awsConfig = aws.Config{}
-
 	if *e.awsAccessKeyID != "" && *e.awsSecretKeyID != "" && *e.profile == "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(*e.awsAccessKeyID, *e.awsSecretKeyID, "")
-		awsConfig.Region = e.region
-	}
+		e.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Config: aws.Config{
+				Credentials: credentials.NewStaticCredentials(*e.awsAccessKeyID, *e.awsSecretKeyID, ""),
+				Region:      e.region,
+			},
+		}))
+	} else {
+		e.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 *e.profile,
+		}))
 
-	e.sess = session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 *e.profile,
-		Config:                  awsConfig,
-	}))
+		if e.region != nil && *e.region != "" {
+			e.sess.Config.Region = e.region
+		}
+	}
 
 	return
 }
@@ -93,7 +101,7 @@ func (e *EditCommand) decrypt(fileName string) error {
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMSFromBinary(bin, e.sess)
+	kms := kms.NewKMSFromBinary(bin, e.sess)
 	if kms == nil {
 		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
 	}
@@ -109,7 +117,7 @@ func (e *EditCommand) encrypt(keyID string, fileName string) error {
 	if err != nil {
 		return err
 	}
-	kms := lib.NewKMS(e.sess)
+	kms := kms.NewKMS(e.sess)
 	_, err = kms.SetKeyID(keyID).Encrypt(bin)
 	if err != nil {
 		return err

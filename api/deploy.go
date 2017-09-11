@@ -3,8 +3,8 @@ package api
 import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/jobtalk/pnzr/lib"
+	"github.com/jobtalk/pnzr/lib/config"
 	"github.com/jobtalk/pnzr/lib/iface"
-	"github.com/jobtalk/pnzr/lib/setting"
 )
 
 type DeployDeps struct {
@@ -13,17 +13,18 @@ type DeployDeps struct {
 
 // serviceが存在しない時はサービスを作る
 // 存在するときはアップデートする
-func (d *DeployDeps) Deploy(s *setting.Setting) (interface{}, error) {
+
+func (d *DeployDeps) Deploy(c *config.IntermediateConfig) (interface{}, error) {
 	var result = []interface{}{}
-	if s.ECS != nil && s.ECS.TaskDefinition != nil {
-		resultTaskDefinition, err := d.ecs.RegisterTaskDefinition(s.ECS.TaskDefinition)
+	if c != nil && c.TaskDefinition != nil {
+		resultTaskDefinition, err := d.ecs.RegisterTaskDefinition(c.TaskDefinition)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, resultTaskDefinition)
 	}
-	if s.ECS != nil && s.ECS.Service != nil {
-		resultUpsert, err := d.ecs.UpsertService(s.ECS.Service)
+	if c != nil && c.Service != nil {
+		resultUpsert, err := d.ecs.UpsertService(c.Service)
 		if err != nil {
 			return nil, err
 		}
@@ -33,6 +34,6 @@ func (d *DeployDeps) Deploy(s *setting.Setting) (interface{}, error) {
 	return result, nil
 }
 
-func Deploy(sess *session.Session, s *setting.Setting) (interface{}, error) {
-	return (&DeployDeps{ecs: lib.NewECS(sess)}).Deploy(s)
+func Deploy(sess *session.Session, c *config.IntermediateConfig) (interface{}, error) {
+	return (&DeployDeps{ecs: lib.NewECS(sess)}).Deploy(c)
 }
