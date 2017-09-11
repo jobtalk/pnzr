@@ -18,7 +18,7 @@ func New(p string) *JSFunction {
 	}
 }
 
-func (f *JSFunction)Require(call otto.FunctionCall) otto.Value {
+func (f *JSFunction) Require(call otto.FunctionCall) otto.Value {
 	dir := filepath.Dir(f.parentSettingPath)
 	file := call.Argument(0).String()
 	data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", dir, file))
@@ -32,7 +32,7 @@ func (f *JSFunction)Require(call otto.FunctionCall) otto.Value {
 	return call.This
 }
 
-func (f *JSFunction)LoadJSON(call otto.FunctionCall) otto.Value {
+func (f *JSFunction) LoadJSON(call otto.FunctionCall) otto.Value {
 	dir := filepath.Dir(f.parentSettingPath)
 	file := call.Argument(0).String()
 	data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", dir, file))
