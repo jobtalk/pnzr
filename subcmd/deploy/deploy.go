@@ -38,12 +38,19 @@ type DeployCommand struct {
 
 var re = regexp.MustCompile(`.*\.json$`)
 
-func parseDockerImage(image string) (url, tag string) {
+var (
+	DockerImageParseErr = errors.New("parse error")
+)
+
+func parseDockerImage(image string) (url, tag string, err error) {
 	r := strings.Split(image, ":")
-	if len(r) == 2 {
-		return r[0], r[1]
+	if 3 <= len(r) {
+			return "", "", DockerImageParseErr
 	}
-	return r[0], ""
+	if len(r) == 2 {
+		return r[0], r[1], nil
+	}
+	return r[0], "", nil
 }
 
 func fileList(root string) ([]string, error) {
@@ -225,7 +232,10 @@ func (d *DeployCommand) Run(args []string) int {
 	}
 
 	for i, containerDefinition := range config.ECS.TaskDefinition.ContainerDefinitions {
-		imageName, tag := parseDockerImage(*containerDefinition.Image)
+		imageName, tag, err := parseDockerImage(*containerDefinition.Image)
+		if err != nil {
+			panic(err)
+		}
 		if tag == "$tag" {
 			image := imageName + ":" + *d.tagOverride
 			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
