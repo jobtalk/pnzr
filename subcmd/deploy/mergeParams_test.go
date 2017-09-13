@@ -33,5 +33,227 @@ func TestStringIsEmpty(t *testing.T) {
 }
 
 func TestDeployCommand_MergeParams(t *testing.T) {
+	tests := []struct {
+		argsParams *params
+		envParams  *params
+		want       *params
+	}{
+		{
+			&params{},
+			&params{},
+			&params{},
+		},
+		{
+			&params{},
+			nil,
+			&params{},
+		},
+		{
+			nil,
+			&params{},
+			&params{},
+		},
+		{
+			nil,
+			nil,
+			nil,
+		},
+		{
+			&params{
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+			},
+			nil,
+			&params{
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+			},
+		},
+		{
+			&params{
+				aws.String("hoge"),
+				aws.String("huga"),
+				aws.String("foo"),
+				aws.String("bar"),
+				aws.String("baz"),
+				aws.String("fizz"),
+				aws.String("bazz"),
+				aws.String("fizzbazz"),
+			},
+			nil,
+			&params{
+				aws.String("hoge"),
+				aws.String("huga"),
+				aws.String("foo"),
+				aws.String("bar"),
+				aws.String("baz"),
+				aws.String("fizz"),
+				aws.String("bazz"),
+				aws.String("fizzbazz"),
+			},
+		},
+		{
+			nil,
+			&params{
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+			},
+			&params{
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+			},
+		},
+		{
+			nil,
+			&params{
+				aws.String("hoge"),
+				aws.String("huga"),
+				aws.String("foo"),
+				aws.String("bar"),
+				aws.String("baz"),
+				aws.String("fizz"),
+				aws.String("bazz"),
+				aws.String("fizzbazz"),
+			},
+			&params{
+				aws.String("hoge"),
+				aws.String("huga"),
+				aws.String("foo"),
+				aws.String("bar"),
+				aws.String("baz"),
+				aws.String("fizz"),
+				aws.String("bazz"),
+				aws.String("fizzbazz"),
+			},
+		},
+		{
+			&params{
+				aws.String("hoge"),
+				aws.String("huga"),
+				aws.String("foo"),
+				aws.String("bar"),
+				aws.String("baz"),
+				aws.String("fizz"),
+				aws.String("bazz"),
+				aws.String("fizzbazz"),
+			},
+			&params{
+				aws.String("1"),
+				aws.String("2"),
+				aws.String("3"),
+				aws.String("4"),
+				aws.String("5"),
+				aws.String("6"),
+				aws.String("7"),
+				aws.String("8"),
+			},
+			&params{
+				aws.String("hoge"),
+				aws.String("huga"),
+				aws.String("foo"),
+				aws.String("bar"),
+				aws.String("baz"),
+				aws.String("fizz"),
+				aws.String("bazz"),
+				aws.String("fizzbazz"),
+			},
+		},
+		{
+			&params{
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+			},
+			&params{
+				aws.String("1"),
+				aws.String("2"),
+				aws.String("3"),
+				aws.String("4"),
+				aws.String("5"),
+				aws.String("6"),
+				aws.String("7"),
+				aws.String("8"),
+			},
+			&params{
+				aws.String("1"),
+				aws.String("2"),
+				aws.String("3"),
+				aws.String("4"),
+				aws.String("5"),
+				aws.String("6"),
+				aws.String("7"),
+				aws.String("8"),
+			},
+		},
+		{
+			&params{
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+			},
+			&params{},
+			&params{
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+				aws.String(""),
+			},
+		},
+	}
 
+	for _, test := range tests {
+		deployCmd := &DeployCommand{
+			paramsFromArgs: test.argsParams,
+			paramsFromEnvs: test.envParams,
+		}
+
+		deployCmd.mergeParams()
+
+		got := deployCmd.mergedParams
+
+		if test.argsParams == nil && test.envParams == nil && got != nil {
+			t.Fatalf("error prams is not nil")
+		}
+		if got != nil && !compaireParam(got, test.want) {
+			t.Fatalf("error prams is not match")
+		}
+	}
 }

@@ -212,23 +212,61 @@ func (d *DeployCommand) parseEnv() {
 func (d *DeployCommand) mergeParams() {
 	result := params{}
 
-	if stringIsEmpty(d.paramsFromArgs.kmsKeyID) {
+	if d.paramsFromArgs == nil {
+		d.mergedParams = d.paramsFromEnvs
+		return
+	}
+	if d.paramsFromEnvs == nil {
+		d.mergedParams = d.paramsFromArgs
+		return
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.kmsKeyID) && !stringIsEmpty(d.paramsFromEnvs.kmsKeyID) {
 		result.kmsKeyID = d.paramsFromEnvs.kmsKeyID
+	} else {
+		result.kmsKeyID = d.paramsFromArgs.kmsKeyID
 	}
-	if stringIsEmpty(d.paramsFromArgs.profile) {
+
+	if stringIsEmpty(d.paramsFromArgs.file) && !stringIsEmpty(d.paramsFromEnvs.file) {
+		result.file = d.paramsFromEnvs.file
+	} else {
+		result.file = d.paramsFromArgs.file
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.varsPath) && !stringIsEmpty(d.paramsFromEnvs.varsPath) {
+		result.varsPath = d.paramsFromEnvs.varsPath
+	} else {
+		result.varsPath = d.paramsFromArgs.varsPath
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.profile) && !stringIsEmpty(d.paramsFromEnvs.profile) {
 		result.profile = d.paramsFromEnvs.profile
+	} else {
+		result.profile = d.paramsFromArgs.profile
 	}
-	if stringIsEmpty(d.paramsFromArgs.overrideTag) {
+
+	if stringIsEmpty(d.paramsFromArgs.overrideTag) && !stringIsEmpty(d.paramsFromEnvs.overrideTag) {
 		result.overrideTag = d.paramsFromEnvs.overrideTag
+	} else {
+		result.overrideTag = d.paramsFromArgs.overrideTag
 	}
-	if stringIsEmpty(d.paramsFromArgs.region) {
+
+	if stringIsEmpty(d.paramsFromArgs.region) && !stringIsEmpty(d.paramsFromEnvs.region) {
 		result.region = d.paramsFromEnvs.region
+	} else {
+		result.region = d.paramsFromArgs.region
 	}
-	if stringIsEmpty(d.paramsFromArgs.awsAccessKey) {
+
+	if stringIsEmpty(d.paramsFromArgs.awsAccessKey) && !stringIsEmpty(d.paramsFromEnvs.awsAccessKey) {
 		result.awsAccessKey = d.paramsFromEnvs.awsAccessKey
+	} else {
+		result.awsAccessKey = d.paramsFromArgs.awsAccessKey
 	}
-	if stringIsEmpty(d.paramsFromArgs.awsSecretKey) {
+
+	if stringIsEmpty(d.paramsFromArgs.awsSecretKey) && !stringIsEmpty(d.paramsFromEnvs.awsSecretKey) {
 		result.awsSecretKey = d.paramsFromEnvs.awsSecretKey
+	} else {
+		result.awsSecretKey = d.paramsFromArgs.awsSecretKey
 	}
 
 	d.mergedParams = &result
