@@ -1,10 +1,9 @@
 package deploy
 
 import (
-	"testing"
 	"github.com/aws/aws-sdk-go/aws"
+	"testing"
 )
-
 
 func TestDeployCommand_parseArgs(t *testing.T) {
 	tests := []struct {
@@ -30,83 +29,83 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 				"-key_id",
 				"hoge",
 			},
-			want:  &params{
+			want: &params{
 				kmsKeyID: aws.String("hoge"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-key_id",
 			},
-			help:  false,
-			err:   true,
+			help: false,
+			err:  true,
 		},
 		{
 			input: []string{
 				"-f",
 				"hoge",
 			},
-			want:  &params{
+			want: &params{
 				file: aws.String("hoge"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-f",
 			},
-			help:  false,
-			err:   true,
+			help: false,
+			err:  true,
 		},
 		{
 			input: []string{
 				"-file",
 				"huga",
 			},
-			want:  &params{
+			want: &params{
 				file: aws.String("huga"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-file",
 			},
-			help:  false,
-			err:   true,
+			help: false,
+			err:  true,
 		},
 		{
 			input: []string{
 				"foo",
 			},
-			want:  &params{
+			want: &params{
 				file: aws.String("foo"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-f", "hoge",
 				"-file", "huga",
 			},
-			want:  &params{
+			want: &params{
 				file: aws.String("huga"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-f", "hoge",
 				"-file",
 			},
-			help:  false,
-			err:   true,
+			help: false,
+			err:  true,
 		},
 		{
 			input: []string{
@@ -114,68 +113,68 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 				"-file", "huga",
 				"foo",
 			},
-			want:  &params{
+			want: &params{
 				file: aws.String("huga"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-profile", "ap-northeast-1",
 			},
-			want:  &params{
+			want: &params{
 				profile: aws.String("ap-northeast-1"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-vars_path", "hoge",
 			},
-			want:  &params{
+			want: &params{
 				varsPath: aws.String("hoge"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-t", "hoge",
 			},
-			want:  &params{
+			want: &params{
 				overrideTag: aws.String("hoge"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-aws-access-key-id", "hoge",
 			},
-			want:  &params{
+			want: &params{
 				awsAccessKey: aws.String("hoge"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-aws-secret-key-id", "hoge",
 			},
-			want:  &params{
+			want: &params{
 				awsSecretKey: aws.String("hoge"),
 			},
-			help:  false,
-			err:   false,
+			help: false,
+			err:  false,
 		},
 		{
 			input: []string{
 				"-aaaaaaaa",
 			},
 			help: false,
-			err: true,
+			err:  true,
 		},
 		{
 			input: []string{
@@ -189,17 +188,17 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 				"-aws-secret-key-id", "secret_key",
 			},
 			want: &params{
-				kmsKeyID: aws.String("some_key"),
-				file: aws.String("some_file"),
-				profile: aws.String("some_profile"),
-				region: aws.String("some_region"),
-				varsPath: aws.String("some_vars_path"),
-				overrideTag: aws.String("some_tag"),
+				kmsKeyID:     aws.String("some_key"),
+				file:         aws.String("some_file"),
+				profile:      aws.String("some_profile"),
+				region:       aws.String("some_region"),
+				varsPath:     aws.String("some_vars_path"),
+				overrideTag:  aws.String("some_tag"),
 				awsAccessKey: aws.String("access_key"),
 				awsSecretKey: aws.String("secret_key"),
 			},
 			help: false,
-			err: false,
+			err:  false,
 		},
 	}
 
@@ -237,4 +236,3 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 		}(test)
 	}
 }
-

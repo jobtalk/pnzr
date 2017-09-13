@@ -1,10 +1,10 @@
 package deploy
 
 import (
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"os"
 	"testing"
-	"github.com/aws/aws-sdk-go/aws"
-	"fmt"
 )
 
 var (
@@ -15,7 +15,7 @@ func init() {
 }
 
 func TestCompaireStringPointer(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		inS1 *string
 		inS2 *string
 		want bool
@@ -83,7 +83,7 @@ func compaireParam(p1, p2 *params) bool {
 	} else if p1 != nil && p2 == nil {
 		return false
 	}
-	if !compaireStringPointer(p1.kmsKeyID, p2.kmsKeyID){
+	if !compaireStringPointer(p1.kmsKeyID, p2.kmsKeyID) {
 		fmt.Println("kms key is not match")
 		return false
 	}
@@ -117,4 +117,3 @@ func compaireParam(p1, p2 *params) bool {
 	}
 	return true
 }
-
