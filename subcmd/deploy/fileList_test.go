@@ -28,6 +28,29 @@ func TestFileList(t *testing.T) {
 			want: []string{},
 			err:  false,
 		},
+		{
+			want: func() []string {
+				ret := []string{}
+				for i := 0; i < 10; i++ {
+					ret = append(ret, fmt.Sprintf("%d.json", i))
+				}
+				for i := 0; i <= int(byte('z')-byte('a')); i++ {
+					ret = append(ret, fmt.Sprintf("%s.json", string([]rune{rune(byte('a') + byte(i))})))
+				}
+				return ret
+			}(),
+			err: false,
+		},
+		{
+			want: func() []string {
+				ret := []string{}
+				for i := 0; i < 10; i++ {
+					ret = append(ret, fmt.Sprintf("%d.json", i))
+				}
+				return ret
+			}(),
+			err: false,
+		},
 	}
 
 	for i, test := range tests {
