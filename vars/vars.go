@@ -8,6 +8,6 @@ var (
 	BUILD_OS   string
 )
 var (
-	PROJECT_ROOT = getenv.String("GOPATH") + "/src/github.com/jobtalk/pnzr"
+	PROJECT_ROOT       = getenv.String("GOPATH") + "/src/github.com/jobtalk/pnzr"
 	TEST_DATA_DIR_ROOT = PROJECT_ROOT + "/test"
 )

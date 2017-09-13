@@ -1,23 +1,23 @@
 package deploy
 
 import (
-	"testing"
-	"github.com/jobtalk/pnzr/vars"
 	"fmt"
+	"github.com/jobtalk/pnzr/vars"
 	"reflect"
+	"testing"
 )
 
 func TestFileList(t *testing.T) {
 	testDataDir := vars.TEST_DATA_DIR_ROOT + "/subcmd/deploy/testFileList"
 
-	tests := []struct{
+	tests := []struct {
 		want []string
-		err bool
+		err  bool
 	}{
 		{
-			want: func()[]string{
+			want: func() []string {
 				ret := []string{}
-				for i := 0; i < 10; i ++ {
+				for i := 0; i < 10; i++ {
 					ret = append(ret, fmt.Sprintf("%d.json", i))
 				}
 				return ret
@@ -26,7 +26,7 @@ func TestFileList(t *testing.T) {
 		},
 		{
 			want: []string{},
-			err: false,
+			err:  false,
 		},
 	}
 
