@@ -7,10 +7,10 @@ func TestParseDockerImage(t *testing.T) {
 		url string
 		tag string
 	}
-	tests := []struct{
-		in string
+	tests := []struct {
+		in   string
 		want wantSt
-		err bool
+		err  bool
 	}{
 		{
 			"foo.bar.baz",
@@ -28,7 +28,7 @@ func TestParseDockerImage(t *testing.T) {
 			false,
 		},
 		{
-			in: "foo:bar:baz:hoge",
+			in:  "foo:bar:baz:hoge",
 			err: true,
 		},
 	}
