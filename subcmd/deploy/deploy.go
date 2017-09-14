@@ -25,6 +25,8 @@ import (
 
 type DeployCommand struct {
 	sess           *session.Session
+	config *aws.Config
+	credentialFileName string
 	paramsFromArgs *params
 	paramsFromEnvs *params
 	mergedParams   *params
@@ -45,6 +47,7 @@ var re = regexp.MustCompile(`.*\.json$`)
 
 var (
 	DockerImageParseErr = errors.New("parse error")
+	IllegalAccessKeyOptionErr = errors.New("There was an illegal input in '-aws-access-key-id' or '-aws-secret-key-id '")
 )
 
 func stringIsEmpty(s *string) bool {
@@ -272,26 +275,54 @@ func (d *DeployCommand) mergeParams() {
 	d.mergedParams = &result
 }
 
-func (d *DeployCommand) generateSession() {
-	var awsConfig = aws.Config{}
-
-	if *d.mergedParams.awsAccessKey != "" && *d.mergedParams.awsSecretKey != "" && *d.mergedParams.profile == "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(*d.mergedParams.awsAccessKey, *d.mergedParams.awsSecretKey, "")
-		awsConfig.Region = d.mergedParams.region
+func (d *DeployCommand) loadCredentials() error {
+	if stringIsEmpty(d.mergedParams.awsAccessKey) != stringIsEmpty(d.mergedParams.awsSecretKey) {
+		return IllegalAccessKeyOptionErr
 	}
 
-	d.sess = session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 *d.mergedParams.profile,
-		Config:                  awsConfig,
-	}))
+	if !stringIsEmpty(d.mergedParams.awsAccessKey) && !stringIsEmpty(d.mergedParams.awsSecretKey) {
+		d.config = new(aws.Config)
+		d.config.Credentials = credentials.NewStaticCredentials(*d.mergedParams.awsAccessKey, *d.mergedParams.awsSecretKey, "")
+		return nil
+	}
+
+	return nil
+}
+
+func (d *DeployCommand) generateSession() {
+	if d.config != nil {
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Config:                  *d.config,
+		}))
+	} else if !stringIsEmpty(d.mergedParams.profile) {
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 *d.mergedParams.profile,
+		}))
+	} else {
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 "default",
+		}))
+	}
+
+	if !stringIsEmpty(d.mergedParams.region) {
+		d.sess.Config.Region = d.mergedParams.region
+	}
 }
 
 func (d *DeployCommand) Run(args []string) int {
 	d.parseArgs(args)
 	d.parseEnv()
 	d.mergeParams()
+	if err := d.loadCredentials(); err != nil {
+		panic(err)
+	}
+	d.generateSession()
 	var config = &deployConfigure{}
 
 	externalList, err := fileList(*d.mergedParams.varsPath)
