@@ -24,12 +24,12 @@ import (
 )
 
 type DeployCommand struct {
-	sess           *session.Session
-	config *aws.Config
+	sess               *session.Session
+	config             *aws.Config
 	credentialFileName string
-	paramsFromArgs *params
-	paramsFromEnvs *params
-	mergedParams   *params
+	paramsFromArgs     *params
+	paramsFromEnvs     *params
+	mergedParams       *params
 }
 
 type params struct {
@@ -46,7 +46,7 @@ type params struct {
 var re = regexp.MustCompile(`.*\.json$`)
 
 var (
-	DockerImageParseErr = errors.New("parse error")
+	DockerImageParseErr       = errors.New("parse error")
 	IllegalAccessKeyOptionErr = errors.New("There was an illegal input in '-aws-access-key-id' or '-aws-secret-key-id '")
 )
 
