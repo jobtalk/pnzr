@@ -290,6 +290,8 @@ func (d *DeployCommand) generateSession() {
 
 func (d *DeployCommand) Run(args []string) int {
 	d.parseArgs(args)
+	d.parseEnv()
+	d.mergeParams()
 	var config = &deployConfigure{}
 
 	externalList, err := fileList(*d.mergedParams.varsPath)

@@ -56,7 +56,7 @@ func TestFileList(t *testing.T) {
 	for i, test := range tests {
 		got, err := fileList(fmt.Sprintf("%s/%d", testDataDir, i))
 		if !test.err && err != nil {
-			t.Fatalf("should not be error for %v but: %v", i, err)
+			t.Fatalf("should not be error for %v but: %v, dir: %v", i, err, fmt.Sprintf("%s/%d", testDataDir, i))
 		}
 		if test.err && err == nil {
 			t.Fatalf("should be error for %v but not:", i)
