@@ -178,7 +178,7 @@ func TestDeployCommand_ParseEnv(t *testing.T) {
 			deployCmd.parseEnv()
 			got := deployCmd.paramsFromEnvs
 
-			if !compaireParam(got, test.want) {
+			if !compareParam(got, test.want) {
 				t.Fatalf("error prams is not match")
 			}
 		}(test)

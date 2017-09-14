@@ -252,7 +252,7 @@ func TestDeployCommand_MergeParams(t *testing.T) {
 		if test.argsParams == nil && test.envParams == nil && got != nil {
 			t.Fatalf("error prams is not nil")
 		}
-		if got != nil && !compaireParam(got, test.want) {
+		if got != nil && !compareParam(got, test.want) {
 			t.Fatalf("error prams is not match")
 		}
 	}

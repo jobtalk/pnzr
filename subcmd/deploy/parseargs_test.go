@@ -229,7 +229,7 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			if help != "" {
 				return
 			}
-			if !compaireParam(deployCmd.paramsFromArgs, test.want) {
+			if !compareParam(deployCmd.paramsFromArgs, test.want) {
 				t.Fatalf("error prams is not match")
 			}
 
