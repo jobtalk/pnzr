@@ -27,6 +27,14 @@ func TestIsEncrypted(t *testing.T) {
 			`{"cipher":{}}`,
 			false,
 		},
+		{
+			`{"hoge":"huga"}`,
+			false,
+		},
+		{
+			`{"hoge":"huga", "cipher": "hoge"}`,
+			true,
+		},
 	}
 
 	for _, test := range tests {
