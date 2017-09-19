@@ -156,7 +156,7 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 	d.tagOverride = flagSet.String("t", getenv.String("DOCKER_DEFAULT_DEPLOY_TAG", "latest"), "tag override param")
 	d.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
 	d.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
-	d.dryRun = flagSet.Bool("dry-run", false, "dry run")
+	d.dryRun = flagSet.Bool("dry-run", false, "dry run mode")
 
 	if err := flagSet.Parse(args); err != nil {
 		if err == flag.ErrHelp {
@@ -243,7 +243,7 @@ func (d *DeployCommand) Run(args []string) int {
 		panic(err)
 	}
 	if *d.dryRun {
-		fmt.Fprintf(f, "******** DRY RUN ********\n%s\n", config.Setting.ECS)
+		fmt.Fprintf(f, "******** DRY RUN ********\n%s\n", *config.Setting.ECS)
 		return 0
 	}
 
