@@ -48,6 +48,25 @@ func checkENV() bool {
 	return true
 }
 
+func checkDarwinOrLinux() (string, error) {
+	if runtime.GOOS == "darwin" {
+		return "darwin-amd64", nil
+	} else if runtime.GOOS == "linux" {
+		return "linux-amd64", nil
+	}
+	return "", fmt.Errorf("This is not %s", "darwin or linux")
+}
+
+func checkVersion(latest string) (int, string) {
+	if vars.VERSION == latest {
+		return 0, "this version is latest"
+	}
+	if latest == "" {
+		return 255, "can not get latest versiont"
+	}
+	return 0, ""
+}
+
 type UpdateCommand struct{}
 
 func (c *UpdateCommand) Run(args []string) int {
@@ -64,7 +83,7 @@ func (c *UpdateCommand) Run(args []string) int {
 		return 255
 	}
 	defer resp.Body.Close()
-	if err := json.Unmarshal(bin, &tags); err != nil {
+	if err = json.Unmarshal(bin, &tags); err != nil {
 		log.Println(err)
 		return 255
 	}
@@ -75,20 +94,17 @@ func (c *UpdateCommand) Run(args []string) int {
 		return 255
 	}
 
-	if runtime.GOOS == "darwin" {
-		platform = "darwin-amd64"
-	} else if runtime.GOOS == "linux" {
-		platform = "linux-amd64"
+	platform, err = checkDarwinOrLinux()
+	if err != nil {
+		panic(err)
 	}
+
 	latest := tags[0].Name
-	if vars.VERSION == latest {
-		fmt.Println("this version is latest")
-		return 0
+	if n, message := checkVersion(latest); message != "" {
+		fmt.Println(message)
+		return n
 	}
-	if latest == "" {
-		fmt.Println("can not get latest version")
-		return 255
-	}
+
 	binaryURL := fmt.Sprintf("https://github.com/jobtalk/pnzr/releases/download/%s/pnzr-%s", latest, platform)
 
 	dir, err := os.Executable()
