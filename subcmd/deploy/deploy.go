@@ -238,12 +238,13 @@ func (d *DeployCommand) Run(args []string) int {
 		}
 	}
 
-	f, err := os.Open("/dev/stderr")
-	if err != nil {
-		panic(err)
-	}
 	if *d.dryRun {
-		fmt.Fprintf(f, "******** DRY RUN ********\n%s\n", *config.Setting.ECS)
+		f, err := os.Open("/dev/stderr")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprintf(f, "******** DRY RUN ********\n%s\n", *config.ECS)
+		f.Close()
 		return 0
 	}
 
