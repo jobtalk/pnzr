@@ -38,6 +38,19 @@ type DeployCommand struct {
 	dryRun         *bool
 }
 
+type DryRun struct {
+	Region string
+	ECS    setting.ECS
+}
+
+func (d DryRun) String() string {
+	structJSON, err := json.MarshalIndent(d, "", "   ")
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%s", string(structJSON))
+}
+
 var re = regexp.MustCompile(`.*\.json$`)
 
 func parseDockerImage(image string) (url, tag string) {
@@ -239,11 +252,15 @@ func (d *DeployCommand) Run(args []string) int {
 	}
 
 	if *d.dryRun {
+		dryRunFormat := &DryRun{
+			*d.region,
+			*config.ECS,
+		}
 		f, err := os.Open("/dev/stderr")
 		if err != nil {
 			panic(err)
 		}
-		fmt.Fprintf(f, "******** DRY RUN ********\n%s\n", *config.ECS)
+		fmt.Fprintf(f, "******** DRY RUN ********\n%s\n", *dryRunFormat)
 		f.Close()
 		return 0
 	}
