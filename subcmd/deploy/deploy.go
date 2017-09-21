@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"bytes"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -24,6 +25,7 @@ import (
 )
 
 type DeployCommand struct {
+	dryRun         *bool
 	sess               *session.Session
 	config             *aws.Config
 	credentialFileName string
@@ -41,6 +43,19 @@ type params struct {
 	overrideTag  *string
 	awsAccessKey *string
 	awsSecretKey *string
+}
+
+type DryRun struct {
+	Region string
+	ECS    setting.ECS
+}
+
+func (d DryRun) String() string {
+	structJSON, err := json.MarshalIndent(d, "", "   ")
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%s", string(structJSON))
 }
 
 var re = regexp.MustCompile(`.*\.json$`)
@@ -177,6 +192,7 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 	p.overrideTag = flagSet.String("t", "", "tag override param")
 	p.awsAccessKey = flagSet.String("aws-access-key-id", "", "aws access key id")
 	p.awsSecretKey = flagSet.String("aws-secret-key-id", "", "aws secret key id")
+	d.dryRun = flagSet.Bool("dry-run", false, "dry run mode")
 
 	if err := flagSet.Parse(args); err != nil {
 		if err == flag.ErrHelp {
@@ -362,6 +378,20 @@ func (d *DeployCommand) Run(args []string) int {
 			image := imageName + ":" + "latest"
 			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
 		}
+	}
+
+	if *d.dryRun {
+		dryRunFormat := &DryRun{
+			*d.mergedParams.region,
+			*config.ECS,
+		}
+		f, err := os.Open("/dev/stderr")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprintf(f, "******** DRY RUN ********\n%s\n", *dryRunFormat)
+		f.Close()
+		return 0
 	}
 
 	result, err := api.Deploy(d.sess, config.Setting)
