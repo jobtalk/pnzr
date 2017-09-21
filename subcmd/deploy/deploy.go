@@ -25,7 +25,7 @@ import (
 )
 
 type DeployCommand struct {
-	dryRun         *bool
+	dryRun             *bool
 	sess               *session.Session
 	config             *aws.Config
 	credentialFileName string
