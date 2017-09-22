@@ -10,9 +10,9 @@ import (
 func TestCheckVersion(t *testing.T) {
 	vars.VERSION = "v1.2.0"
 	tests := []struct {
-		in    string
-		want1 string
-		want2 int
+		version        string
+		versionMessage string
+		exitCode       int
 	}{
 		{
 			"v1.2.0",
@@ -32,11 +32,11 @@ func TestCheckVersion(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		gotInt, gotS := checkVersion(test.in)
-		if gotInt != test.want2 || gotS != test.want1 {
+		gotInt, gotS := checkVersion(test.version)
+		if gotInt != test.exitCode || gotS != test.versionMessage {
 			log.Println(vars.VERSION)
 
-			t.Fatalf("want %s, %d, but %s, %d:", test.want1, test.want2, gotS, gotInt)
+			t.Fatalf("want %s, %d, but %s, %d:", test.versionMessage, test.exitCode, gotS, gotInt)
 		}
 	}
 }
