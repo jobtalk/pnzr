@@ -5,13 +5,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
-	"io/ioutil"
 )
 
 type DecryptCommand struct {
@@ -21,6 +22,11 @@ type DecryptCommand struct {
 	region         *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
+}
+
+type Api interface {
+	Decrypt() ([]byte, error)
+	Encrypt(plainText []byte) ([]byte, error)
 }
 
 func (d *DecryptCommand) parseArgs(args []string) (helpString string) {
