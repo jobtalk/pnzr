@@ -11,9 +11,7 @@ var (
 	TEST_DIR = os.Getenv("GOPATH") + "/src/github.com/jobtalk/pnzr/test"
 )
 
-type ApiTest struct {
-	keyID *string
-}
+type ApiTest struct{}
 
 func (a *ApiTest) Encrypt(d []byte) ([]byte, error) {
 	for i, v := range d {
@@ -56,14 +54,17 @@ func TestEncrypt(t *testing.T) {
 
 	for _, test := range tests {
 		bin, err := ioutil.ReadFile(test.in)
-
 		if err != nil && !test.err {
-			t.Errorf("%s", err)
+			panic(err)
 		}
-		got, err := a.Encrypt(bin)
 
+		got, err := a.Encrypt(bin)
 		if err != nil && !test.err {
-			t.Errorf("%s", err)
+			t.Fatalf("should not be error for %v but: %v", test.in, err)
+		}
+
+		if test.err && err == nil {
+			t.Fatalf("should be error for %v but not:", test.in)
 		}
 
 		if !reflect.DeepEqual(got, test.want) {
