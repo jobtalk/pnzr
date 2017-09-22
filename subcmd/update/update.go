@@ -30,6 +30,13 @@ type tag struct {
 	Commit     commit `json:"commit"`
 }
 
+type env struct{}
+
+type OsEnv interface {
+	checkENV() bool
+	detectPlatform() (string, error)
+}
+
 func (t tag) String() string {
 	bin, err := json.MarshalIndent(t, "", "    ")
 	if err != nil {
@@ -38,7 +45,7 @@ func (t tag) String() string {
 	return string(bin)
 }
 
-func checkENV() bool {
+func (e *env) checkENV() bool {
 	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
 		return false
 	}
@@ -48,7 +55,7 @@ func checkENV() bool {
 	return true
 }
 
-func checkDarwinOrLinux() (string, error) {
+func (e *env) detectPlatform() (string, error) {
 	if runtime.GOOS == "darwin" {
 		return "darwin-amd64", nil
 	} else if runtime.GOOS == "linux" {
@@ -57,21 +64,19 @@ func checkDarwinOrLinux() (string, error) {
 	return "", fmt.Errorf("This is not %s", "darwin or linux")
 }
 
-func checkVersion(latest string) (int, string) {
-	if vars.VERSION == latest {
+func checkVersion(latestVar string) (int, string) {
+	if vars.VERSION == latestVar {
 		return 0, "this version is latest"
 	}
-	if latest == "" {
+	if latestVar == "" {
 		return 255, "can not get latest versiont"
 	}
-	return 0, ""
+	return -1, latestVar
 }
 
 type UpdateCommand struct{}
 
 func (c *UpdateCommand) Run(args []string) int {
-	var platform string
-	tags := []tag{}
 	resp, err := client.Get(GITHUB_API)
 	if err != nil {
 		log.Println(err)
@@ -83,42 +88,44 @@ func (c *UpdateCommand) Run(args []string) int {
 		return 255
 	}
 	defer resp.Body.Close()
-	if err = json.Unmarshal(bin, &tags); err != nil {
+
+	tags := []tag{}
+	if err := json.Unmarshal(bin, &tags); err != nil {
 		log.Println(err)
 		return 255
 	}
-
-	if !checkENV() {
+	e := env{}
+	if !e.checkENV() {
 		fmt.Printf("Sorry, this architecture not supported (%s %s).\n", runtime.GOOS, runtime.GOARCH)
 		fmt.Println("Please try manual update.")
 		return 255
 	}
 
-	platform, err = checkDarwinOrLinux()
+	platform, err := e.detectPlatform()
 	if err != nil {
 		panic(err)
 	}
 
-	latest := tags[0].Name
-	if n, message := checkVersion(latest); message != "" {
-		fmt.Println(message)
-		return n
+	exitStatus, binVer := checkVersion(tags[0].Name)
+	if exitStatus != -1 {
+		fmt.Println(binVer)
+		return exitStatus
 	}
 
-	binaryURL := fmt.Sprintf("https://github.com/jobtalk/pnzr/releases/download/%s/pnzr-%s", latest, platform)
+	binURL := fmt.Sprintf("https://github.com/jobtalk/pnzr/releases/download/%s/pnzr-%s", binVer, platform)
 
-	dir, err := os.Executable()
-	if err != nil {
-		log.Println(err)
-		return 255
-	}
-
-	latestResp, err := client.Get(binaryURL)
+	latestResp, err := client.Get(binURL)
 	if err != nil {
 		log.Println(err)
 		return 255
 	}
 	latestBin, err := ioutil.ReadAll(latestResp.Body)
+	if err != nil {
+		log.Println(err)
+		return 255
+	}
+
+	dir, err := os.Executable()
 	if err != nil {
 		log.Println(err)
 		return 255

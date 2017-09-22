@@ -1,11 +1,36 @@
 package update
 
 import (
+	"fmt"
 	"log"
 	"testing"
 
 	"github.com/jobtalk/pnzr/vars"
 )
+
+type envTest struct {
+	os   string
+	arch string
+}
+
+func (e *envTest) checkENV() bool {
+	if e.os != "darwin" && e.os != "linux" {
+		return false
+	}
+	if e.arch != "amd64" {
+		return false
+	}
+	return true
+}
+
+func (e *envTest) detectPlatform() (string, error) {
+	if e.os == "darwin" {
+		return "darwin-amd64", nil
+	} else if e.os == "linux" {
+		return "linux-amd64", nil
+	}
+	return "", fmt.Errorf("This is not %s", "darwin or linux")
+}
 
 func TestCheckVersion(t *testing.T) {
 	vars.VERSION = "v1.2.0"
@@ -26,8 +51,8 @@ func TestCheckVersion(t *testing.T) {
 		},
 		{
 			"hoge",
-			"",
-			0,
+			"hoge",
+			-1,
 		},
 	}
 
@@ -37,6 +62,93 @@ func TestCheckVersion(t *testing.T) {
 			log.Println(vars.VERSION)
 
 			t.Fatalf("want %s, %d, but %s, %d:", test.versionMessage, test.exitCode, gotS, gotInt)
+		}
+	}
+}
+
+func TestCheckENV(t *testing.T) {
+	tests := []struct {
+		os       string
+		arch     string
+		isUpdate bool
+	}{
+		{
+			"darwin",
+			"amd64",
+			true,
+		},
+		{
+			"linux",
+			"amd64",
+			true,
+		},
+		{
+			"hoge",
+			"amd64",
+			false,
+		},
+		{
+			"darwin",
+			"hoge",
+			false,
+		},
+		{
+			"linux",
+			"hoge",
+			false,
+		},
+		{
+			"",
+			"",
+			false,
+		},
+	}
+	for _, test := range tests {
+		e := envTest{
+			test.os,
+			test.arch,
+		}
+		if ok := e.checkENV(); ok != test.isUpdate {
+			t.Errorf("Update checking want to get %v, but %v", test.isUpdate, ok)
+		}
+	}
+}
+
+func TestDetectPlatform(t *testing.T) {
+	tests := []struct {
+		os       string
+		platform string
+		err      error
+	}{
+		{
+			"darwin",
+			"darwin-amd64",
+			nil,
+		},
+		{
+			"linux",
+			"linux-amd64",
+			nil,
+		},
+		{
+			"hoge",
+			"",
+			fmt.Errorf("This is not %s", "darwin or linux"),
+		},
+		{
+			"",
+			"",
+			fmt.Errorf("This is not %s", "darwin or linux"),
+		},
+	}
+	for _, test := range tests {
+		e := envTest{
+			test.os,
+			"",
+		}
+		platform, err := e.detectPlatform()
+		if platform != test.platform && err != test.err {
+			t.Errorf("want to get %v and %q, but %v and %q", test.platform, test.err, platform, err)
 		}
 	}
 }
