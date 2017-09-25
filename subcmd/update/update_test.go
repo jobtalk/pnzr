@@ -8,30 +8,6 @@ import (
 	"github.com/jobtalk/pnzr/vars"
 )
 
-type envTest struct {
-	os   string
-	arch string
-}
-
-func (e *envTest) checkENV() bool {
-	if e.os != "darwin" && e.os != "linux" {
-		return false
-	}
-	if e.arch != "amd64" {
-		return false
-	}
-	return true
-}
-
-func (e *envTest) detectPlatform() (string, error) {
-	if e.os == "darwin" {
-		return "darwin-amd64", nil
-	} else if e.os == "linux" {
-		return "linux-amd64", nil
-	}
-	return "", fmt.Errorf("This is not %s", "darwin or linux")
-}
-
 func TestCheckVersion(t *testing.T) {
 	vars.VERSION = "v1.2.0"
 	tests := []struct {
@@ -104,7 +80,7 @@ func TestCheckENV(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		e := envTest{
+		e := Env{
 			test.os,
 			test.arch,
 		}
@@ -142,7 +118,7 @@ func TestDetectPlatform(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		e := envTest{
+		e := Env{
 			test.os,
 			"",
 		}

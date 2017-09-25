@@ -30,7 +30,10 @@ type tag struct {
 	Commit     commit `json:"commit"`
 }
 
-type env struct{}
+type Env struct {
+	os   string
+	arch string
+}
 
 type OsEnv interface {
 	checkENV() bool
@@ -45,20 +48,20 @@ func (t tag) String() string {
 	return string(bin)
 }
 
-func (e *env) checkENV() bool {
-	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
+func (e *Env) checkENV() bool {
+	if e.os != "darwin" && e.os != "linux" {
 		return false
 	}
-	if runtime.GOARCH != "amd64" {
+	if e.arch != "amd64" {
 		return false
 	}
 	return true
 }
 
-func (e *env) detectPlatform() (string, error) {
-	if runtime.GOOS == "darwin" {
+func (e *Env) detectPlatform() (string, error) {
+	if e.os == "darwin" {
 		return "darwin-amd64", nil
-	} else if runtime.GOOS == "linux" {
+	} else if e.os == "linux" {
 		return "linux-amd64", nil
 	}
 	return "", fmt.Errorf("This is not %s", "darwin or linux")
@@ -94,7 +97,10 @@ func (c *UpdateCommand) Run(args []string) int {
 		log.Println(err)
 		return 255
 	}
-	e := env{}
+	e := Env{
+		runtime.GOOS,
+		runtime.GOARCH,
+	}
 	if !e.checkENV() {
 		fmt.Printf("Sorry, this architecture not supported (%s %s).\n", runtime.GOOS, runtime.GOARCH)
 		fmt.Println("Please try manual update.")
