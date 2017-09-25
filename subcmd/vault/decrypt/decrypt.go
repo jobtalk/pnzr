@@ -24,11 +24,6 @@ type DecryptCommand struct {
 	awsSecretKeyID *string
 }
 
-type Api interface {
-	Decrypt() ([]byte, error)
-	Encrypt(plainText []byte) ([]byte, error)
-}
-
 func (d *DecryptCommand) parseArgs(args []string) (helpString string) {
 	var (
 		flagSet = new(flag.FlagSet)
