@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
 	"github.com/jobtalk/pnzr/lib"
@@ -36,6 +37,7 @@ type DeployCommand struct {
 	awsSecretKeyID *string
 	tagOverride    *string
 	dryRun         *bool
+	progress       *bool
 }
 
 type DryRun struct {
@@ -170,6 +172,7 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 	d.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
 	d.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 	d.dryRun = flagSet.Bool("dry-run", false, "dry run mode")
+	d.progress = flagSet.Bool("progress", false, "show progress")
 
 	if err := flagSet.Parse(args); err != nil {
 		if err == flag.ErrHelp {
@@ -250,7 +253,20 @@ func (d *DeployCommand) Run(args []string) int {
 			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
 		}
 	}
-
+	if *d.progress {
+		input := &ecs.DescribeServicesInput{
+			Services: []*string{
+				aws.String("data-jobtalk"),
+			},
+			Cluster: aws.String("staging-backend"),
+		}
+		s := ecs.New(d.sess)
+		t, err := s.DescribeServices(input)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(t)
+	}
 	if *d.dryRun {
 		dryRunFormat := &DryRun{
 			*d.region,
@@ -264,7 +280,6 @@ func (d *DeployCommand) Run(args []string) int {
 		f.Close()
 		return 0
 	}
-
 	result, err := api.Deploy(d.sess, config.Setting)
 	if err != nil {
 		log.Fatalln(err)
