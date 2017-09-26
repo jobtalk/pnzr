@@ -253,20 +253,6 @@ func (d *DeployCommand) Run(args []string) int {
 			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
 		}
 	}
-	if *d.progress {
-		input := &ecs.DescribeServicesInput{
-			Services: []*string{
-				aws.String("data-jobtalk"),
-			},
-			Cluster: aws.String("staging-backend"),
-		}
-		s := ecs.New(d.sess)
-		t, err := s.DescribeServices(input)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(t)
-	}
 	if *d.dryRun {
 		dryRunFormat := &DryRun{
 			*d.region,
@@ -284,11 +270,32 @@ func (d *DeployCommand) Run(args []string) int {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	resultJSON, err := json.MarshalIndent(result, "", "    ")
-	if err != nil {
-		log.Fatalln(err)
+	t := result.([]interface{})[0]
+	fmt.Println(*t.(*ecs.RegisterTaskDefinitionOutput).TaskDefinition.Revision)
+	if *d.progress {
+		input := &ecs.DescribeServicesInput{
+			Services: []*string{
+				config.ECS.Service.ServiceName,
+			},
+			Cluster: config.ECS.Service.Cluster,
+		}
+		s := ecs.New(d.sess)
+		fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始したよ\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
+		ok := false
+		for !ok {
+			t, err := s.DescribeServices(input)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(t.Services[0].Deployments)
+			ok = true
+		}
 	}
-	fmt.Println(string(resultJSON))
+	// resultJSON, err := json.MarshalIndent(result, "", "    ")
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+	// fmt.Println(string(resultJSON))
 	return 0
 }
 
