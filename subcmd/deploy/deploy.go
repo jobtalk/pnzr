@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -272,8 +273,8 @@ func (d *DeployCommand) Run(args []string) int {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	// t := result.([]interface{})[0]
-	// id := *t.(*ecs.RegisterTaskDefinitionOutput).TaskDefinition.Revision
+	t := result.([]interface{})[0]
+	id := *t.(*ecs.RegisterTaskDefinitionOutput).TaskDefinition.Revision
 
 	if *d.progress {
 		input := &ecs.DescribeServicesInput{
@@ -292,11 +293,16 @@ func (d *DeployCommand) Run(args []string) int {
 				panic(err)
 			}
 			deployments := t.Services[0].Deployments
-			if len(deployments) > 1 && *deployments[0].DesiredCount == *deployments[0].RunningCount && !flagNext {
+			s := strings.Split(*deployments[0].TaskDefinition, ":")
+			nextID, err := strconv.Atoi(s[len(s)-1])
+			if err != nil {
+				panic(err)
+			}
+			if int(id) == nextID && len(deployments) > 1 && *deployments[0].DesiredCount == *deployments[0].RunningCount && !flagNext {
 				fmt.Printf("(2/3) 【%s】の【%s】へのデプロイは新しいコンテナを起動\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
 				flagNext = true
 			}
-			if flagNext && len(deployments) == 1 {
+			if int(id) == nextID && flagNext && len(deployments) == 1 {
 				fmt.Printf("(3/3) 【%s】の【%s】へのデプロイは古いコンテナの停止\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
 				ok = true
 			}
