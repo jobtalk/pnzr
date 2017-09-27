@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"bytes"
 
@@ -253,6 +254,7 @@ func (d *DeployCommand) Run(args []string) int {
 			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
 		}
 	}
+
 	if *d.dryRun {
 		dryRunFormat := &DryRun{
 			*d.region,
@@ -270,8 +272,9 @@ func (d *DeployCommand) Run(args []string) int {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	t := result.([]interface{})[0]
-	fmt.Println(*t.(*ecs.RegisterTaskDefinitionOutput).TaskDefinition.Revision)
+	// t := result.([]interface{})[0]
+	// id := *t.(*ecs.RegisterTaskDefinitionOutput).TaskDefinition.Revision
+
 	if *d.progress {
 		input := &ecs.DescribeServicesInput{
 			Services: []*string{
@@ -280,22 +283,32 @@ func (d *DeployCommand) Run(args []string) int {
 			Cluster: config.ECS.Service.Cluster,
 		}
 		s := ecs.New(d.sess)
-		fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始したよ\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
+		fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
 		ok := false
+		flagNext := false
 		for !ok {
 			t, err := s.DescribeServices(input)
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println(t.Services[0].Deployments)
-			ok = true
+			deployments := t.Services[0].Deployments
+			if len(deployments) > 1 && *deployments[0].DesiredCount == *deployments[0].RunningCount && !flagNext {
+				fmt.Printf("(2/3) 【%s】の【%s】へのデプロイは新しいコンテナを起動\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
+				flagNext = true
+			}
+			if flagNext && len(deployments) == 1 {
+				fmt.Printf("(3/3) 【%s】の【%s】へのデプロイは古いコンテナの停止\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
+				ok = true
+			}
+			time.Sleep(3 * time.Second)
 		}
+		fmt.Printf("【%s】の【%s】へのデプロイが終了\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
 	}
-	// resultJSON, err := json.MarshalIndent(result, "", "    ")
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// fmt.Println(string(resultJSON))
+	resultJSON, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(resultJSON))
 	return 0
 }
 
