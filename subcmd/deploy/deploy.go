@@ -287,28 +287,35 @@ func (d *DeployCommand) Run(args []string) int {
 		fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
 		ok := false
 		flagNext := false
+		roopTime := time.NewTicker(3 * time.Second)
+		timeOut := time.NewTicker(700 * time.Second)
 		for !ok {
-			t, err := s.DescribeServices(input)
-			if err != nil {
-				panic(err)
+			select {
+			case <-roopTime.C:
+				t, err := s.DescribeServices(input)
+				if err != nil {
+					panic(err)
+				}
+				deployments := t.Services[0].Deployments
+				s := strings.Split(*deployments[0].TaskDefinition, ":")
+				nextID, err := strconv.Atoi(s[len(s)-1])
+				if err != nil {
+					panic(err)
+				}
+				if int(id) == nextID && len(deployments) > 1 && *deployments[0].DesiredCount == *deployments[0].RunningCount && !flagNext {
+					fmt.Printf("(2/3) 【%s】の【%s】へのデプロイは新しいコンテナを起動\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
+					flagNext = true
+				}
+				if int(id) == nextID && flagNext && len(deployments) == 1 {
+					fmt.Printf("(3/3) 【%s】の【%s】へのデプロイは古いコンテナの停止\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
+					ok = true
+					fmt.Printf("【%s】の【%s】へのデプロイが終了\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
+				}
+			case <-timeOut.C:
+				fmt.Print("TimeOut")
+				return 0
 			}
-			deployments := t.Services[0].Deployments
-			s := strings.Split(*deployments[0].TaskDefinition, ":")
-			nextID, err := strconv.Atoi(s[len(s)-1])
-			if err != nil {
-				panic(err)
-			}
-			if int(id) == nextID && len(deployments) > 1 && *deployments[0].DesiredCount == *deployments[0].RunningCount && !flagNext {
-				fmt.Printf("(2/3) 【%s】の【%s】へのデプロイは新しいコンテナを起動\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
-				flagNext = true
-			}
-			if int(id) == nextID && flagNext && len(deployments) == 1 {
-				fmt.Printf("(3/3) 【%s】の【%s】へのデプロイは古いコンテナの停止\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
-				ok = true
-			}
-			time.Sleep(3 * time.Second)
 		}
-		fmt.Printf("【%s】の【%s】へのデプロイが終了\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
 	}
 	resultJSON, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
