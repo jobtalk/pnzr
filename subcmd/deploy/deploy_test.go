@@ -101,3 +101,51 @@ func TestProgressNewRun(t *testing.T) {
 		}
 	}
 }
+
+func TestProgressOldStop(t *testing.T) {
+	deployments := []*ecs.Deployment{
+		{DesiredCount: aws.Int64(3)},
+	}
+	tests := []struct {
+		revision  int
+		pRevision int
+		want      bool
+	}{
+		{
+			10,
+			10,
+			true,
+		},
+		{
+			11,
+			10,
+			false,
+		},
+		{
+			10,
+			11,
+			false,
+		},
+	}
+	for _, test := range tests {
+		p := &Progress{
+			revision: test.pRevision,
+		}
+		got := p.progressOldStop(test.revision, 0, deployments)
+		if got != test.want {
+			t.Fatalf("want %v, but %v:", test.want, got)
+		}
+	}
+	deployments = append(deployments, &ecs.Deployment{DesiredCount: aws.Int64(0)})
+	for _, test := range tests {
+		test.want = false
+		p := &Progress{
+			revision: test.pRevision,
+		}
+		got := p.progressOldStop(test.revision, 0, deployments)
+		if got != test.want {
+			t.Fatalf("want %v, but %v:", test.want, got)
+		}
+	}
+
+}
