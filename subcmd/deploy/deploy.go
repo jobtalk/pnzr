@@ -58,11 +58,14 @@ type Progress struct {
 
 type Deployments []*ecs.Deployment
 
+<<<<<<< HEAD
 type ProgressProcess struct {
 	runNew  bool
 	oldStop bool
 }
 
+=======
+>>>>>>> 20d60fba4c3f2093f7529e821de96b9cdc1460d6
 func (d DryRun) String() string {
 	structJSON, err := json.MarshalIndent(d, "", "   ")
 	if err != nil {
@@ -332,12 +335,33 @@ func (p *Progress) progressStep(c chan<- bool) {
 	for {
 		select {
 		case <-p.interval.C:
+<<<<<<< HEAD
 			if p.progressNewRun() && !pm.runNew {
+=======
+			deployments := p.getDeployments()
+			nextRevision, index := p.getNextRevision(deployments)
+			if p.revision == nextRevision && len(deployments) > 1 && *deployments[index].DesiredCount == *deployments[index].RunningCount {
+				fmt.Println(deployments)
+>>>>>>> 20d60fba4c3f2093f7529e821de96b9cdc1460d6
 				fmt.Println("(2/3) デプロイ対象のコンテナが全て起動しました")
 				pm.runNew = true
 				continue
 			}
+<<<<<<< HEAD
 			if pm.runNew && p.progressOldStop() && !pm.oldStop {
+=======
+		}
+	}
+}
+
+func (p *Progress) progressOldStop(c chan<- bool) {
+	for {
+		select {
+		case <-p.interval.C:
+			deployments := p.getDeployments()
+			nextRevision, _ := p.getNextRevision(deployments)
+			if p.revision == nextRevision && len(deployments) == 1 {
+>>>>>>> 20d60fba4c3f2093f7529e821de96b9cdc1460d6
 				fmt.Println("(3/3) 【古いコンテナが全て停止しました")
 				pm.oldStop = true
 				continue
@@ -351,6 +375,7 @@ func (p *Progress) progressStep(c chan<- bool) {
 	}
 }
 
+<<<<<<< HEAD
 func (p *Progress) progressNewRun() bool {
 	deployments := p.getDeployments()
 	nextRevision, index := p.getNextRevision(deployments)
@@ -369,6 +394,8 @@ func (p *Progress) progressOldStop() bool {
 	return false
 }
 
+=======
+>>>>>>> 20d60fba4c3f2093f7529e821de96b9cdc1460d6
 func (p *Progress) getNextRevision(deployments Deployments) (int, int) {
 	nextRevision := 0
 	nextRevisionIndex := 0
