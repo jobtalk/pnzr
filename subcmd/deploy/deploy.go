@@ -56,6 +56,8 @@ type Progress struct {
 	timeOut  *time.Ticker
 }
 
+type Deployments []*ecs.Deployment
+
 func (d DryRun) String() string {
 	structJSON, err := json.MarshalIndent(d, "", "   ")
 	if err != nil {
@@ -306,6 +308,7 @@ func (d *DeployCommand) Run(args []string) int {
 		go p.progressNewRun(c)
 		go p.progressTimeOut(c)
 		<-c
+		close(c)
 	}
 
 	resultJSON, err := json.MarshalIndent(result, "", "    ")
@@ -321,8 +324,9 @@ func (p *Progress) progressNewRun(c chan<- bool) {
 		select {
 		case <-p.interval.C:
 			deployments := p.getDeployments()
-			nextRevision := p.getNextRevision(deployments)
-			if p.revision == nextRevision && len(deployments) > 1 && *deployments[0].DesiredCount == *deployments[0].RunningCount {
+			nextRevision, index := p.getNextRevision(deployments)
+			if p.revision == nextRevision && len(deployments) > 1 && *deployments[index].DesiredCount == *deployments[index].RunningCount {
+				fmt.Println(deployments)
 				fmt.Println("(2/3) デプロイ対象のコンテナが全て起動しました")
 				p.progressOldStop(c)
 				return
@@ -336,7 +340,7 @@ func (p *Progress) progressOldStop(c chan<- bool) {
 		select {
 		case <-p.interval.C:
 			deployments := p.getDeployments()
-			nextRevision := p.getNextRevision(deployments)
+			nextRevision, _ := p.getNextRevision(deployments)
 			if p.revision == nextRevision && len(deployments) == 1 {
 				fmt.Println("(3/3) 【古いコンテナが全て停止しました")
 				fmt.Printf("【%s】の【%s】へのデプロイが終了\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
@@ -347,16 +351,24 @@ func (p *Progress) progressOldStop(c chan<- bool) {
 	}
 }
 
-func (p *Progress) getNextRevision(deployments []*ecs.Deployment) int {
-	split := strings.Split(*deployments[0].TaskDefinition, ":")
-	nextRevision, err := strconv.Atoi(split[len(split)-1])
-	if err != nil {
-		panic(err)
+func (p *Progress) getNextRevision(deployments Deployments) (int, int) {
+	nextRevision := 0
+	nextRevisionIndex := 0
+	for i, v := range deployments {
+		split := strings.Split(*v.TaskDefinition, ":")
+		revision, err := strconv.Atoi(split[len(split)-1])
+		if err != nil {
+			panic(err)
+		}
+		if nextRevision < revision {
+			nextRevision = revision
+			nextRevisionIndex = i
+		}
 	}
-	return nextRevision
+	return nextRevision, nextRevisionIndex
 }
 
-func (p *Progress) getDeployments() []*ecs.Deployment {
+func (p *Progress) getDeployments() Deployments {
 	t, err := p.ecs.DescribeServices(p.input)
 	if err != nil {
 		panic(err)
@@ -365,10 +377,9 @@ func (p *Progress) getDeployments() []*ecs.Deployment {
 }
 
 func (p *Progress) progressTimeOut(c chan<- bool) {
-	roopTime := time.NewTicker(700 * time.Second)
 	for {
 		select {
-		case <-roopTime.C:
+		case <-p.timeOut.C:
 			fmt.Println("Time Out Deploy")
 			c <- false
 			return
