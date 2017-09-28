@@ -47,6 +47,15 @@ type DryRun struct {
 	ECS    setting.ECS
 }
 
+type Progress struct {
+	input    *ecs.DescribeServicesInput
+	ecs      ecs.ECS
+	revision int
+	config   deployConfigure
+	interval *time.Ticker
+	timeOut  *time.Ticker
+}
+
 func (d DryRun) String() string {
 	structJSON, err := json.MarshalIndent(d, "", "   ")
 	if err != nil {
@@ -274,7 +283,7 @@ func (d *DeployCommand) Run(args []string) int {
 		log.Fatalln(err)
 	}
 	t := result.([]interface{})[0]
-	id := *t.(*ecs.RegisterTaskDefinitionOutput).TaskDefinition.Revision
+	revision := *t.(*ecs.RegisterTaskDefinitionOutput).TaskDefinition.Revision
 
 	if *d.progress {
 		input := &ecs.DescribeServicesInput{
@@ -283,46 +292,88 @@ func (d *DeployCommand) Run(args []string) int {
 			},
 			Cluster: config.ECS.Service.Cluster,
 		}
-		s := ecs.New(d.sess)
 		fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
-		ok := false
-		flagNext := false
-		roopTime := time.NewTicker(3 * time.Second)
-		timeOut := time.NewTicker(700 * time.Second)
-		for !ok {
-			select {
-			case <-roopTime.C:
-				t, err := s.DescribeServices(input)
-				if err != nil {
-					panic(err)
-				}
-				deployments := t.Services[0].Deployments
-				s := strings.Split(*deployments[0].TaskDefinition, ":")
-				nextID, err := strconv.Atoi(s[len(s)-1])
-				if err != nil {
-					panic(err)
-				}
-				if int(id) == nextID && len(deployments) > 1 && *deployments[0].DesiredCount == *deployments[0].RunningCount && !flagNext {
-					fmt.Printf("(2/3) 【%s】の【%s】へのデプロイは新しいコンテナを起動\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
-					flagNext = true
-				}
-				if int(id) == nextID && flagNext && len(deployments) == 1 {
-					fmt.Printf("(3/3) 【%s】の【%s】へのデプロイは古いコンテナの停止\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
-					ok = true
-					fmt.Printf("【%s】の【%s】へのデプロイが終了\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
-				}
-			case <-timeOut.C:
-				fmt.Print("TimeOut")
-				return 0
-			}
+
+		p := &Progress{
+			input,
+			*ecs.New(d.sess),
+			int(revision),
+			*config,
+			time.NewTicker(3 * time.Second),
+			time.NewTicker(700 * time.Second),
 		}
+		c := make(chan bool)
+		go p.progressNewRun(c)
+		go p.progressTimeOut(c)
+		<-c
 	}
+
 	resultJSON, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
 		log.Fatalln(err)
 	}
 	fmt.Println(string(resultJSON))
 	return 0
+}
+
+func (p *Progress) progressNewRun(c chan<- bool) {
+	for {
+		select {
+		case <-p.interval.C:
+			deployments := p.getDeployments()
+			nextRevision := p.getNextRevision(deployments)
+			if p.revision == nextRevision && len(deployments) > 1 && *deployments[0].DesiredCount == *deployments[0].RunningCount {
+				fmt.Printf("(2/3) 【%s】の【%s】へのデプロイは新しいコンテナを起動\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
+				p.progressOldStop(c)
+				return
+			}
+		}
+	}
+}
+
+func (p *Progress) progressOldStop(c chan<- bool) {
+	for {
+		select {
+		case <-p.interval.C:
+			deployments := p.getDeployments()
+			nextRevision := p.getNextRevision(deployments)
+			if p.revision == nextRevision && len(deployments) == 1 {
+				fmt.Printf("(3/3) 【%s】の【%s】へのデプロイは古いコンテナの停止\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
+				fmt.Printf("【%s】の【%s】へのデプロイが終了\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
+				c <- true
+				return
+			}
+		}
+	}
+}
+
+func (p *Progress) getNextRevision(deployments []*ecs.Deployment) int {
+	split := strings.Split(*deployments[0].TaskDefinition, ":")
+	nextRevision, err := strconv.Atoi(split[len(split)-1])
+	if err != nil {
+		panic(err)
+	}
+	return nextRevision
+}
+
+func (p *Progress) getDeployments() []*ecs.Deployment {
+	t, err := p.ecs.DescribeServices(p.input)
+	if err != nil {
+		panic(err)
+	}
+	return t.Services[0].Deployments
+}
+
+func (p *Progress) progressTimeOut(c chan<- bool) {
+	roopTime := time.NewTicker(700 * time.Second)
+	for {
+		select {
+		case <-roopTime.C:
+			fmt.Println("Time Out Deploy")
+			c <- false
+			return
+		}
+	}
 }
 
 func (c *DeployCommand) Synopsis() string {
