@@ -370,7 +370,11 @@ func (p *Progress) getNextState(state string, d Deployments) (string, string) {
 		state = "done"
 		message = "(3/3) 古いコンテナが全て停止しました"
 	} else if state == "initial" && len(d) > 0 {
+<<<<<<< HEAD
 		message = "初期状態"
+=======
+		message = "変更ない"
+>>>>>>> a986b8fe88b9f4483b8ecd25e0ad8b7feb7da359
 	} else {
 		state = "error"
 		message = "正常な処理が行われませんでした。"
