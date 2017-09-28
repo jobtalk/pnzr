@@ -323,7 +323,7 @@ func (p *Progress) progressNewRun(c chan<- bool) {
 			deployments := p.getDeployments()
 			nextRevision := p.getNextRevision(deployments)
 			if p.revision == nextRevision && len(deployments) > 1 && *deployments[0].DesiredCount == *deployments[0].RunningCount {
-				fmt.Printf("(2/3) 【%s】の【%s】へのデプロイは新しいコンテナを起動\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
+				fmt.Println("(2/3) デプロイ対象のコンテナが全て起動しました")
 				p.progressOldStop(c)
 				return
 			}
@@ -338,7 +338,7 @@ func (p *Progress) progressOldStop(c chan<- bool) {
 			deployments := p.getDeployments()
 			nextRevision := p.getNextRevision(deployments)
 			if p.revision == nextRevision && len(deployments) == 1 {
-				fmt.Printf("(3/3) 【%s】の【%s】へのデプロイは古いコンテナの停止\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
+				fmt.Println("(3/3) 【古いコンテナが全て停止しました")
 				fmt.Printf("【%s】の【%s】へのデプロイが終了\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
 				c <- true
 				return
