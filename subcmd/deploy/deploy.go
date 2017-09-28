@@ -299,7 +299,6 @@ func (d *DeployCommand) Run(args []string) int {
 			},
 			Cluster: config.ECS.Service.Cluster,
 		}
-		fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
 
 		p := &Progress{
 			input,
@@ -329,35 +328,54 @@ func (p *Progress) progressStep(c chan<- bool) {
 		false,
 		false,
 	}
+	fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
+	state := "initial"
 	for {
 		select {
 		case <-p.interval.C:
 			deployments := p.getDeployments()
-			nextRevision, index := p.getNextRevision(deployments)
+			nextState, message := p.getNextState(state, deployments)
 			if !pm.runNew {
-				if p.progressNewRun(nextRevision, index, deployments) {
-					fmt.Println("(2/3) デプロイ対象のコンテナが全て起動しました")
+				if nextState == "launched" {
+					fmt.Println(message)
 					pm.runNew = true
-					continue
+					state = nextState
 				}
-			}
-
-			if pm.runNew && !pm.oldStop {
-				if p.progressOldStop(nextRevision, index, deployments) {
-					fmt.Println("(3/3) 古いコンテナが全て停止しました")
+			} else if pm.runNew && !pm.oldStop {
+				if nextState == "done" {
+					fmt.Println(message)
 					pm.oldStop = true
-					continue
+					state = nextState
 				}
-			}
-
-			if pm.runNew && pm.oldStop {
-				fmt.Printf("【%s】の【%s】へのデプロイが終了\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
+			} else if nextState == "error" {
+				fmt.Println(message)
+				c <- false
+			} else if pm.runNew && pm.oldStop {
+				fmt.Println("デプロイ終了")
 				c <- true
 				return
 			}
 
 		}
 	}
+}
+
+func (p *Progress) getNextState(state string, d Deployments) (string, string) {
+	message := ""
+	nextRevision, index := p.getNextRevision(d)
+	if p.progressNewRun(nextRevision, index, d) {
+		state = "launched"
+		message = "(2/3) デプロイ対象のコンテナが全て起動しました"
+	} else if p.progressOldStop(nextRevision, index, d) {
+		state = "done"
+		message = "(3/3) 古いコンテナが全て停止しました"
+	} else if state == "initial" && len(d) > 0 {
+		message = "変更ない"
+	} else {
+		state = "error"
+		message = "正常な処理が行われませんでした。"
+	}
+	return state, message
 }
 
 func (p *Progress) progressNewRun(rev, index int, d Deployments) bool {
