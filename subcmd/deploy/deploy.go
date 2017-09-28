@@ -332,47 +332,46 @@ func (p *Progress) progressStep(c chan<- bool) {
 	for {
 		select {
 		case <-p.interval.C:
-			if p.progressNewRun() && !pm.runNew {
-				fmt.Println("(2/3) デプロイ対象のコンテナが全て起動しました")
-				pm.runNew = true
-				continue
+			deployments := p.getDeployments()
+			nextRevision, index := p.getNextRevision(deployments)
+			if !pm.runNew {
+				if p.progressNewRun(nextRevision, index, deployments) {
+					fmt.Println("(2/3) デプロイ対象のコンテナが全て起動しました")
+					pm.runNew = true
+					continue
+				}
 			}
-			if pm.runNew && p.progressOldStop() && !pm.oldStop {
-				fmt.Println("(3/3) 古いコンテナが全て停止しました")
-				pm.oldStop = true
-				continue
+
+			if pm.runNew && !pm.oldStop {
+				if p.progressOldStop(nextRevision, index, deployments) {
+					fmt.Println("(3/3) 古いコンテナが全て停止しました")
+					pm.oldStop = true
+					continue
+				}
 			}
+
 			if pm.runNew && pm.oldStop {
 				fmt.Printf("【%s】の【%s】へのデプロイが終了\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
 				c <- true
 				return
 			}
+
 		}
 	}
 }
 
-func (p *Progress) progressNewRun() bool {
-	deployments := p.getDeployments()
-	nextRevision, index := p.getNextRevision(deployments)
-	if p.revision == nextRevision && len(deployments) > 1 && *deployments[index].DesiredCount == *deployments[index].RunningCount {
-		return true
-	}
-	return false
+func (p *Progress) progressNewRun(rev, index int, d Deployments) bool {
+	return p.revision == rev && len(d) > 1 && *d[index].DesiredCount == *d[index].RunningCount
 }
 
-func (p *Progress) progressOldStop() bool {
-	deployments := p.getDeployments()
-	nextRevision, _ := p.getNextRevision(deployments)
-	if p.revision == nextRevision && len(deployments) == 1 {
-		return true
-	}
-	return false
+func (p *Progress) progressOldStop(rev, index int, d Deployments) bool {
+	return p.revision == rev && len(d) == 1
 }
 
-func (p *Progress) getNextRevision(deployments Deployments) (int, int) {
+func (p *Progress) getNextRevision(d Deployments) (int, int) {
 	nextRevision := 0
 	nextRevisionIndex := 0
-	for i, v := range deployments {
+	for i, v := range d {
 		split := strings.Split(*v.TaskDefinition, ":")
 		revision, err := strconv.Atoi(split[len(split)-1])
 		if err != nil {
