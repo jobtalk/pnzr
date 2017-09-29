@@ -10,7 +10,9 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"bytes"
 
@@ -44,6 +46,27 @@ type DryRun struct {
 	Region string
 	ECS    setting.ECS
 }
+
+type Progress struct {
+	input    *ecs.DescribeServicesInput
+	ecs      ecs.ECS
+	revision int
+	config   deployConfigure
+	interval *time.Ticker
+	timeOut  *time.Ticker
+}
+
+type Deployments []*ecs.Deployment
+
+type ProgressProcess struct {
+	runNew  bool
+	oldStop bool
+}
+
+const (
+	FetchECSStatusPeriod     time.Duration = 3
+	ProgressFollowingTimeout               = 700
+)
 
 func (d DryRun) String() string {
 	structJSON, err := json.MarshalIndent(d, "", "   ")
@@ -253,6 +276,7 @@ func (d *DeployCommand) Run(args []string) int {
 			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
 		}
 	}
+
 	if *d.dryRun {
 		dryRunFormat := &DryRun{
 			*d.region,
@@ -271,7 +295,8 @@ func (d *DeployCommand) Run(args []string) int {
 		log.Fatalln(err)
 	}
 	t := result.([]interface{})[0]
-	fmt.Println(*t.(*ecs.RegisterTaskDefinitionOutput).TaskDefinition.Revision)
+	revision := *t.(*ecs.RegisterTaskDefinitionOutput).TaskDefinition.Revision
+
 	if *d.progress {
 		input := &ecs.DescribeServicesInput{
 			Services: []*string{
@@ -279,24 +304,129 @@ func (d *DeployCommand) Run(args []string) int {
 			},
 			Cluster: config.ECS.Service.Cluster,
 		}
-		s := ecs.New(d.sess)
-		fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始したよ\n", *config.ECS.Service.Cluster, *config.ECS.Service.ServiceName)
-		ok := false
-		for !ok {
-			t, err := s.DescribeServices(input)
-			if err != nil {
-				panic(err)
+		p := &Progress{
+			input,
+			*ecs.New(d.sess),
+			int(revision),
+			*config,
+			time.NewTicker(FetchECSStatusPeriod * time.Second),
+			time.NewTicker(ProgressFollowingTimeout * time.Second),
+		}
+		c := make(chan bool)
+		go p.progressStep(c)
+		go p.progressTimeOut(c)
+		<-c
+		close(c)
+	}
+
+	resultJSON, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(resultJSON))
+	return 0
+}
+
+func (p *Progress) progressStep(c chan<- bool) {
+	fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
+	state := "initial"
+	for {
+		select {
+		case <-p.interval.C:
+			deployments := p.getDeployments()
+			nextState, message := p.getNextState(state, deployments)
+			if nextState == "launched" {
+				fmt.Println(message)
+				state = nextState
 			}
-			fmt.Println(t.Services[0].Deployments)
-			ok = true
+			if nextState == "done" {
+				fmt.Println(message)
+				fmt.Println("デプロイ終了")
+				c <- true
+			}
+			if nextState == "error" {
+				fmt.Println(message)
+				c <- false
+			}
 		}
 	}
-	// resultJSON, err := json.MarshalIndent(result, "", "    ")
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// fmt.Println(string(resultJSON))
-	return 0
+}
+
+/*
+initial: デプロイ開始直後
+launched: コンテナが全て起動した状態
+done: デプロイが完了した状態
+
+initial -> launched -> done
+   ↓          ↓
+      error
+*/
+
+func (p *Progress) getNextState(state string, d Deployments) (string, string) {
+	message := ""
+	nextState := ""
+	nextRevision, index := p.getNextRevision(d)
+	if p.progressNewRun(nextRevision, index, d) && (state == "launched" || state == "initial") {
+		nextState = "launched"
+		message = "(2/3) デプロイ対象のコンテナが全て起動しました"
+	} else if p.progressOldStop(nextRevision, index, d) && state == "launched" {
+		nextState = "done"
+		message = "(3/3) 古いコンテナが全て停止しました"
+	} else if p.revision == nextRevision && (state == "launched" || state == "initial") {
+
+	} else {
+		nextState = "error"
+		message = "正常な処理が行われませんでした。"
+	}
+	if nextState == state {
+		message = "."
+	}
+
+	return nextState, message
+}
+
+func (p *Progress) progressNewRun(rev, index int, d Deployments) bool {
+	return p.revision == rev && len(d) > 1 && *d[index].DesiredCount == *d[index].RunningCount
+}
+
+func (p *Progress) progressOldStop(rev, index int, d Deployments) bool {
+	return p.revision == rev && len(d) == 1
+}
+
+func (p *Progress) getNextRevision(d Deployments) (int, int) {
+	nextRevision := 0
+	nextRevisionIndex := 0
+	for i, v := range d {
+		split := strings.Split(*v.TaskDefinition, ":")
+		revision, err := strconv.Atoi(split[len(split)-1])
+		if err != nil {
+			panic(err)
+		}
+		if nextRevision < revision {
+			nextRevision = revision
+			nextRevisionIndex = i
+		}
+	}
+	return nextRevision, nextRevisionIndex
+}
+
+func (p *Progress) getDeployments() Deployments {
+	t, err := p.ecs.DescribeServices(p.input)
+	if err != nil {
+		panic(err)
+	}
+	return t.Services[0].Deployments
+}
+
+func (p *Progress) progressTimeOut(c chan<- bool) {
+	for {
+		select {
+		case <-p.timeOut.C:
+			fmt.Println("Time Out Deploy")
+			c <- false
+			return
+		}
+	}
 }
 
 func (c *DeployCommand) Synopsis() string {
