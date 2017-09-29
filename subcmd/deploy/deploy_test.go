@@ -151,6 +151,10 @@ func TestProgressOldStop(t *testing.T) {
 }
 
 func TestGetNextState(t *testing.T) {
+	/*
+		deployments1: デプロイ対象のタスクが全て起動した状態
+		deployments2: デプロイ対象以外の deployments が無くなりデプロイ完了した状態
+	*/
 	deployments1 := Deployments{
 		{
 			TaskDefinition: aws.String(":10"),

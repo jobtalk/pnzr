@@ -63,6 +63,11 @@ type ProgressProcess struct {
 	oldStop bool
 }
 
+const (
+	FetchECSStatusPeriod     time.Duration = 3
+	ProgressFollowingTimeout               = 700
+)
+
 func (d DryRun) String() string {
 	structJSON, err := json.MarshalIndent(d, "", "   ")
 	if err != nil {
@@ -299,14 +304,13 @@ func (d *DeployCommand) Run(args []string) int {
 			},
 			Cluster: config.ECS.Service.Cluster,
 		}
-
 		p := &Progress{
 			input,
 			*ecs.New(d.sess),
 			int(revision),
 			*config,
-			time.NewTicker(3 * time.Second),
-			time.NewTicker(700 * time.Second),
+			time.NewTicker(FetchECSStatusPeriod * time.Second),
+			time.NewTicker(ProgressFollowingTimeout * time.Second),
 		}
 		c := make(chan bool)
 		go p.progressStep(c)
@@ -324,10 +328,6 @@ func (d *DeployCommand) Run(args []string) int {
 }
 
 func (p *Progress) progressStep(c chan<- bool) {
-	pm := ProgressProcess{
-		false,
-		false,
-	}
 	fmt.Printf("(1/3) 【%s】の【%s】へのデプロイ を開始\n", *p.config.ECS.Service.Cluster, *p.config.ECS.Service.ServiceName)
 	state := "initial"
 	for {
@@ -335,30 +335,32 @@ func (p *Progress) progressStep(c chan<- bool) {
 		case <-p.interval.C:
 			deployments := p.getDeployments()
 			nextState, message := p.getNextState(state, deployments)
-			if !pm.runNew {
-				if nextState == "launched" {
-					fmt.Println(message)
-					pm.runNew = true
-					state = nextState
-				}
-			} else if pm.runNew && !pm.oldStop {
-				if nextState == "done" {
-					fmt.Println(message)
-					pm.oldStop = true
-					state = nextState
-				}
-			} else if nextState == "error" {
+			if nextState == "launched" {
 				fmt.Println(message)
-				c <- false
-			} else if pm.runNew && pm.oldStop {
+				state = nextState
+			}
+			if nextState == "done" {
+				fmt.Println(message)
 				fmt.Println("デプロイ終了")
 				c <- true
-				return
 			}
-
+			if nextState == "error" {
+				fmt.Println(message)
+				c <- false
+			}
 		}
 	}
 }
+
+/*
+initial: デプロイ開始直後
+launched: コンテナが全て起動した状態
+done: デプロイが完了した状態
+
+initial -> launched -> done
+   ↓          ↓
+      error
+*/
 
 func (p *Progress) getNextState(state string, d Deployments) (string, string) {
 	message := ""
@@ -369,6 +371,8 @@ func (p *Progress) getNextState(state string, d Deployments) (string, string) {
 	} else if p.progressOldStop(nextRevision, index, d) && state == "launched" {
 		state = "done"
 		message = "(3/3) 古いコンテナが全て停止しました"
+	} else if p.revision == nextRevision && (state == "launched" || state == "initial") {
+
 	} else {
 		state = "error"
 		message = "正常な処理が行われませんでした。"
