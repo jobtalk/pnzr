@@ -364,20 +364,25 @@ initial -> launched -> done
 
 func (p *Progress) getNextState(state string, d Deployments) (string, string) {
 	message := ""
+	nextState := ""
 	nextRevision, index := p.getNextRevision(d)
 	if p.progressNewRun(nextRevision, index, d) && (state == "launched" || state == "initial") {
-		state = "launched"
+		nextState = "launched"
 		message = "(2/3) デプロイ対象のコンテナが全て起動しました"
 	} else if p.progressOldStop(nextRevision, index, d) && state == "launched" {
-		state = "done"
+		nextState = "done"
 		message = "(3/3) 古いコンテナが全て停止しました"
 	} else if p.revision == nextRevision && (state == "launched" || state == "initial") {
 
 	} else {
-		state = "error"
+		nextState = "error"
 		message = "正常な処理が行われませんでした。"
 	}
-	return state, message
+	if nextState == state {
+		message = "."
+	}
+
+	return nextState, message
 }
 
 func (p *Progress) progressNewRun(rev, index int, d Deployments) bool {
