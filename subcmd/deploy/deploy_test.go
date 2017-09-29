@@ -149,3 +149,100 @@ func TestProgressOldStop(t *testing.T) {
 	}
 
 }
+
+func TestGetNextState(t *testing.T) {
+	deployments1 := Deployments{
+		{
+			TaskDefinition: aws.String(":10"),
+			DesiredCount:   aws.Int64(3),
+			RunningCount:   aws.Int64(3),
+		},
+		{
+			TaskDefinition: aws.String(":11"),
+			DesiredCount:   aws.Int64(3),
+			RunningCount:   aws.Int64(3),
+		},
+	}
+	deployments2 := []*ecs.Deployment{
+		{
+			TaskDefinition: aws.String(":11"),
+			DesiredCount:   aws.Int64(3),
+			RunningCount:   aws.Int64(3),
+		},
+	}
+	tests := []struct {
+		state       string
+		pRevision   int
+		deployments Deployments
+		wantState   string
+		wantMessage string
+	}{
+		{
+			"initial",
+			11,
+			deployments1,
+			"launched",
+			"(2/3) デプロイ対象のコンテナが全て起動しました",
+		},
+		{
+			"initial",
+			10,
+			deployments1,
+			"error",
+			"正常な処理が行われませんでした。",
+		},
+		{
+			"launched",
+			11,
+			deployments2,
+			"done",
+			"(3/3) 古いコンテナが全て停止しました",
+		},
+		{
+			"launched",
+			11,
+			deployments1,
+			"launched",
+			"(2/3) デプロイ対象のコンテナが全て起動しました",
+		},
+		{
+			"launched",
+			11,
+			deployments1,
+			"launched",
+			"(2/3) デプロイ対象のコンテナが全て起動しました",
+		},
+		{
+			"launched",
+			10,
+			deployments1,
+			"error",
+			"正常な処理が行われませんでした。",
+		},
+		{
+			"",
+			11,
+			deployments1,
+			"error",
+			"正常な処理が行われませんでした。",
+		},
+		{
+			"",
+			11,
+			deployments2,
+			"error",
+			"正常な処理が行われませんでした。",
+		},
+	}
+
+	for i, test := range tests {
+		p := &Progress{
+			revision: test.pRevision,
+		}
+		gotState, gotMessage := p.getNextState(test.state, test.deployments)
+		if gotState != test.wantState || gotMessage != test.wantMessage {
+			t.Fatalf("index %d :want %s, %s, but %s, %s:", i, test.wantState, test.wantMessage, gotState, gotMessage)
+		}
+	}
+
+}

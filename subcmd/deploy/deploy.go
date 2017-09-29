@@ -363,18 +363,12 @@ func (p *Progress) progressStep(c chan<- bool) {
 func (p *Progress) getNextState(state string, d Deployments) (string, string) {
 	message := ""
 	nextRevision, index := p.getNextRevision(d)
-	if p.progressNewRun(nextRevision, index, d) {
+	if p.progressNewRun(nextRevision, index, d) && (state == "launched" || state == "initial") {
 		state = "launched"
 		message = "(2/3) デプロイ対象のコンテナが全て起動しました"
-	} else if p.progressOldStop(nextRevision, index, d) {
+	} else if p.progressOldStop(nextRevision, index, d) && state == "launched" {
 		state = "done"
 		message = "(3/3) 古いコンテナが全て停止しました"
-	} else if state == "initial" && len(d) > 0 {
-<<<<<<< HEAD
-		message = "初期状態"
-=======
-		message = "変更ない"
->>>>>>> a986b8fe88b9f4483b8ecd25e0ad8b7feb7da359
 	} else {
 		state = "error"
 		message = "正常な処理が行われませんでした。"
