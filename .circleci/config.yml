@@ -33,7 +33,7 @@ jobs:
             - run:
                 name: "run test"
                 command: |
-                    go test $(glide novendor)
+                    go test -cover $(glide novendor)
             - run:
                 name: "build pnzr"
                 command: |

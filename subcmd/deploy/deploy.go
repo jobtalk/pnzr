@@ -25,17 +25,24 @@ import (
 )
 
 type DeployCommand struct {
-	sess           *session.Session
-	file           *string
-	profile        *string
-	kmsKeyID       *string
-	region         *string
-	externalPath   *string
-	outerVals      *string
-	awsAccessKeyID *string
-	awsSecretKeyID *string
-	tagOverride    *string
-	dryRun         *bool
+	dryRun             *bool
+	sess               *session.Session
+	config             *aws.Config
+	credentialFileName string
+	paramsFromArgs     *params
+	paramsFromEnvs     *params
+	mergedParams       *params
+}
+
+type params struct {
+	kmsKeyID     *string
+	file         *string
+	profile      *string
+	region       *string
+	varsPath     *string
+	overrideTag  *string
+	awsAccessKey *string
+	awsSecretKey *string
 }
 
 type DryRun struct {
@@ -53,12 +60,28 @@ func (d DryRun) String() string {
 
 var re = regexp.MustCompile(`.*\.json$`)
 
-func parseDockerImage(image string) (url, tag string) {
-	r := strings.Split(image, ":")
-	if len(r) == 2 {
-		return r[0], r[1]
+var (
+	DockerImageParseErr       = errors.New("parse error")
+	IllegalAccessKeyOptionErr = errors.New("There was an illegal input in '-aws-access-key-id' or '-aws-secret-key-id '")
+)
+
+func stringIsEmpty(s *string) bool {
+	if s == nil {
+		return true
 	}
-	return r[0], ""
+
+	return len(*s) == 0
+}
+
+func parseDockerImage(image string) (url, tag string, err error) {
+	r := strings.Split(image, ":")
+	if 3 <= len(r) {
+		return "", "", DockerImageParseErr
+	}
+	if len(r) == 2 {
+		return r[0], r[1], nil
+	}
+	return r[0], "", nil
 }
 
 func fileList(root string) ([]string, error) {
@@ -116,7 +139,7 @@ func (d *DeployCommand) decrypt(bin []byte) ([]byte, error) {
 	if kms == nil {
 		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
 	}
-	plainText, err := kms.SetKeyID(*d.kmsKeyID).Decrypt()
+	plainText, err := kms.SetKeyID(*d.mergedParams.kmsKeyID).Decrypt()
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +147,7 @@ func (d *DeployCommand) decrypt(bin []byte) ([]byte, error) {
 }
 
 func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
-	var root = *d.externalPath
+	var root = *d.mergedParams.varsPath
 	var ret = &deployConfigure{}
 	baseStr := string(base)
 
@@ -153,22 +176,22 @@ func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deplo
 }
 
 func (d *DeployCommand) parseArgs(args []string) (helpString string) {
+	p := params{}
 	flagSet := new(flag.FlagSet)
 	var f *string
 
 	buffer := new(bytes.Buffer)
 	flagSet.SetOutput(buffer)
 
-	d.kmsKeyID = flagSet.String("key_id", getenv.String("KMS_KEY_ID"), "Amazon KMS key ID")
-	d.file = flagSet.String("file", "", "target file")
+	p.kmsKeyID = flagSet.String("key_id", "", "Amazon KMS key ID")
+	p.file = flagSet.String("file", "", "target file")
 	f = flagSet.String("f", "", "target file")
-	d.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
-	d.region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
-	d.externalPath = flagSet.String("vars_path", getenv.String("PNZR_VARS_PATH"), "external conf path")
-	d.outerVals = flagSet.String("V", "", "outer values")
-	d.tagOverride = flagSet.String("t", getenv.String("DOCKER_DEFAULT_DEPLOY_TAG", "latest"), "tag override param")
-	d.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
-	d.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
+	p.profile = flagSet.String("profile", "", "aws credentials profile name")
+	p.region = flagSet.String("region", "", "aws region")
+	p.varsPath = flagSet.String("vars_path", "", "external conf path")
+	p.overrideTag = flagSet.String("t", "", "tag override param")
+	p.awsAccessKey = flagSet.String("aws-access-key-id", "", "aws access key id")
+	p.awsSecretKey = flagSet.String("aws-secret-key-id", "", "aws secret key id")
 	d.dryRun = flagSet.Bool("dry-run", false, "dry run mode")
 
 	if err := flagSet.Parse(args); err != nil {
@@ -178,50 +201,153 @@ func (d *DeployCommand) parseArgs(args []string) (helpString string) {
 		panic(err)
 	}
 
-	if *f == "" && *d.file == "" && len(flagSet.Args()) != 0 {
+	if *f == "" && *p.file == "" && len(flagSet.Args()) != 0 {
 		targetName := flagSet.Args()[0]
-		d.file = &targetName
+		p.file = &targetName
 	}
 
-	if *d.file == "" {
-		d.file = f
+	if *p.file == "" {
+		p.file = f
 	}
 
-	var awsConfig = aws.Config{}
-
-	if *d.awsAccessKeyID != "" && *d.awsSecretKeyID != "" && *d.profile == "" {
-		awsConfig.Credentials = credentials.NewStaticCredentials(*d.awsAccessKeyID, *d.awsSecretKeyID, "")
-		awsConfig.Region = d.region
-	}
-
-	d.sess = session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 *d.profile,
-		Config:                  awsConfig,
-	}))
+	d.paramsFromArgs = &p
 
 	return
 }
 
+func (d *DeployCommand) parseEnv() {
+	p := params{}
+
+	p.kmsKeyID = aws.String(getenv.String("KMS_KEY_ID"))
+	p.profile = aws.String(getenv.String("AWS_PROFILE_NAME", "default"))
+	p.overrideTag = aws.String(getenv.String("DOCKER_DEFAULT_DEPLOY_TAG", "latest"))
+	p.region = aws.String(getenv.String("AWS_REGION"))
+	p.awsAccessKey = aws.String(getenv.String("AWS_ACCESS_KEY_ID"))
+	p.awsSecretKey = aws.String(getenv.String("AWS_SECRET_ACCESS_KEY"))
+
+	d.paramsFromEnvs = &p
+}
+
+func (d *DeployCommand) mergeParams() {
+	result := params{}
+
+	if d.paramsFromArgs == nil {
+		d.mergedParams = d.paramsFromEnvs
+		return
+	}
+	if d.paramsFromEnvs == nil {
+		d.mergedParams = d.paramsFromArgs
+		return
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.kmsKeyID) && !stringIsEmpty(d.paramsFromEnvs.kmsKeyID) {
+		result.kmsKeyID = d.paramsFromEnvs.kmsKeyID
+	} else {
+		result.kmsKeyID = d.paramsFromArgs.kmsKeyID
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.file) && !stringIsEmpty(d.paramsFromEnvs.file) {
+		result.file = d.paramsFromEnvs.file
+	} else {
+		result.file = d.paramsFromArgs.file
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.varsPath) && !stringIsEmpty(d.paramsFromEnvs.varsPath) {
+		result.varsPath = d.paramsFromEnvs.varsPath
+	} else {
+		result.varsPath = d.paramsFromArgs.varsPath
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.profile) && !stringIsEmpty(d.paramsFromEnvs.profile) {
+		result.profile = d.paramsFromEnvs.profile
+	} else {
+		result.profile = d.paramsFromArgs.profile
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.overrideTag) && !stringIsEmpty(d.paramsFromEnvs.overrideTag) {
+		result.overrideTag = d.paramsFromEnvs.overrideTag
+	} else {
+		result.overrideTag = d.paramsFromArgs.overrideTag
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.region) && !stringIsEmpty(d.paramsFromEnvs.region) {
+		result.region = d.paramsFromEnvs.region
+	} else {
+		result.region = d.paramsFromArgs.region
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.awsAccessKey) && !stringIsEmpty(d.paramsFromEnvs.awsAccessKey) {
+		result.awsAccessKey = d.paramsFromEnvs.awsAccessKey
+	} else {
+		result.awsAccessKey = d.paramsFromArgs.awsAccessKey
+	}
+
+	if stringIsEmpty(d.paramsFromArgs.awsSecretKey) && !stringIsEmpty(d.paramsFromEnvs.awsSecretKey) {
+		result.awsSecretKey = d.paramsFromEnvs.awsSecretKey
+	} else {
+		result.awsSecretKey = d.paramsFromArgs.awsSecretKey
+	}
+
+	d.mergedParams = &result
+}
+
+func (d *DeployCommand) loadCredentials() error {
+	if stringIsEmpty(d.mergedParams.awsAccessKey) != stringIsEmpty(d.mergedParams.awsSecretKey) {
+		return IllegalAccessKeyOptionErr
+	}
+
+	if !stringIsEmpty(d.mergedParams.awsAccessKey) && !stringIsEmpty(d.mergedParams.awsSecretKey) {
+		d.config = new(aws.Config)
+		d.config.Credentials = credentials.NewStaticCredentials(*d.mergedParams.awsAccessKey, *d.mergedParams.awsSecretKey, "")
+		return nil
+	}
+
+	return nil
+}
+
+func (d *DeployCommand) generateSession() {
+	if d.config != nil {
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Config:                  *d.config,
+		}))
+	} else if !stringIsEmpty(d.mergedParams.profile) {
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 *d.mergedParams.profile,
+		}))
+	} else {
+		d.sess = session.Must(session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			SharedConfigState:       session.SharedConfigEnable,
+			Profile:                 "default",
+		}))
+	}
+
+	if !stringIsEmpty(d.mergedParams.region) {
+		d.sess.Config.Region = d.mergedParams.region
+	}
+}
+
 func (d *DeployCommand) Run(args []string) int {
 	d.parseArgs(args)
+	d.parseEnv()
+	d.mergeParams()
+	if err := d.loadCredentials(); err != nil {
+		panic(err)
+	}
+	d.generateSession()
 	var config = &deployConfigure{}
 
-	externalList, err := fileList(*d.externalPath)
+	externalList, err := fileList(*d.mergedParams.varsPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	baseConfBinary, err := ioutil.ReadFile(*d.file)
+	baseConfBinary, err := ioutil.ReadFile(*d.mergedParams.file)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	if *d.outerVals != "" {
-		baseStr, err := lib.Embedde(string(baseConfBinary), *d.outerVals)
-		if err == nil {
-			baseConfBinary = []byte(baseStr)
-		}
 	}
 
 	if externalList != nil {
@@ -231,7 +357,7 @@ func (d *DeployCommand) Run(args []string) int {
 		}
 		config = c
 	} else {
-		bin, err := ioutil.ReadFile(*d.file)
+		bin, err := ioutil.ReadFile(*d.mergedParams.file)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -241,9 +367,12 @@ func (d *DeployCommand) Run(args []string) int {
 	}
 
 	for i, containerDefinition := range config.ECS.TaskDefinition.ContainerDefinitions {
-		imageName, tag := parseDockerImage(*containerDefinition.Image)
+		imageName, tag, err := parseDockerImage(*containerDefinition.Image)
+		if err != nil {
+			panic(err)
+		}
 		if tag == "$tag" {
-			image := imageName + ":" + *d.tagOverride
+			image := imageName + ":" + *d.mergedParams.overrideTag
 			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
 		} else if tag == "" {
 			image := imageName + ":" + "latest"
@@ -253,7 +382,7 @@ func (d *DeployCommand) Run(args []string) int {
 
 	if *d.dryRun {
 		dryRunFormat := &DryRun{
-			*d.region,
+			*d.mergedParams.region,
 			*config.ECS,
 		}
 		f, err := os.Open("/dev/stderr")
