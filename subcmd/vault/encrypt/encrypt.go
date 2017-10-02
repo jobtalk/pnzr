@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
-	"io/ioutil"
 )
 
 type EncryptCommand struct {
@@ -21,6 +22,11 @@ type EncryptCommand struct {
 	region         *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
+}
+
+type Api interface {
+	Decrypt() ([]byte, error)
+	Encrypt(plainText []byte) ([]byte, error)
 }
 
 func (e *EncryptCommand) encrypt(keyID string, fileName string) error {
@@ -102,7 +108,6 @@ func (e *EncryptCommand) Run(args []string) int {
 		return 0
 	}
 	e.parseArgs(args)
-
 	if err := e.encrypt(*e.kmsKeyID, *e.file); err != nil {
 		panic(err)
 	}

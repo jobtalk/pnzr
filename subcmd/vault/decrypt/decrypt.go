@@ -5,13 +5,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
-	"io/ioutil"
 )
 
 type DecryptCommand struct {
