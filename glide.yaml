@@ -13,7 +13,7 @@ import:
   - service/kms/kmsiface
 - package: github.com/cbroglie/mustache
 - package: github.com/ieee0824/cryptex
-  version: ^0.1.2
+  version: ^0.2.0
   subpackages:
   - kms
 - package: github.com/ieee0824/getenv

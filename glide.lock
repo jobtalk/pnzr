@@ -1,5 +1,5 @@
-hash: cf86e6351dba4b10e558170ff52cdc4041efca05dbcc8da8ed541a4036b4e6f5
-updated: 2017-10-03T15:42:55.522631157+09:00
+hash: 2fa64f5b10b4520bacbbd046ed0938509b3bd2afdd35b77e7a353b8a5c0a4478
+updated: 2017-10-03T15:47:58.380971165+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
@@ -44,7 +44,7 @@ imports:
 - name: github.com/go-ini/ini
   version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
 - name: github.com/ieee0824/cryptex
-  version: ef67f5c1ee7d16252876b48da7f194e989a9b2ac
+  version: fe4d7fab2b43b1107fc818d4eeac19abc41f4974
   subpackages:
   - encryptor
   - kms
