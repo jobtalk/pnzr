@@ -5,11 +5,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
-	"regexp"
 	"strings"
 
 	"bytes"
@@ -20,8 +17,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/api"
-	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/lib/setting"
+	"github.com/jobtalk/pnzr/lib/setting/prototype"
 )
 
 type DeployCommand struct {
@@ -47,7 +44,7 @@ type params struct {
 
 type DryRun struct {
 	Region string
-	ECS    setting.ECS
+	Config setting.Setting
 }
 
 func (d DryRun) String() string {
@@ -58,12 +55,19 @@ func (d DryRun) String() string {
 	return fmt.Sprintf("%s", string(structJSON))
 }
 
-var re = regexp.MustCompile(`.*\.json$`)
 
 var (
 	DockerImageParseErr       = errors.New("parse error")
 	IllegalAccessKeyOptionErr = errors.New("There was an illegal input in '-aws-access-key-id' or '-aws-secret-key-id '")
 )
+
+func parseDockerImage(image string) (url, tag string) {
+	r := strings.Split(image, ":")
+	if len(r) == 2 {
+		return r[0], r[1]
+	}
+	return r[0], ""
+}
 
 func stringIsEmpty(s *string) bool {
 	if s == nil {
@@ -71,108 +75,6 @@ func stringIsEmpty(s *string) bool {
 	}
 
 	return len(*s) == 0
-}
-
-func parseDockerImage(image string) (url, tag string, err error) {
-	r := strings.Split(image, ":")
-	if 3 <= len(r) {
-		return "", "", DockerImageParseErr
-	}
-	if len(r) == 2 {
-		return r[0], r[1], nil
-	}
-	return r[0], "", nil
-}
-
-func fileList(root string) ([]string, error) {
-	if root == "" {
-		return nil, nil
-	}
-	ret := []string{}
-	err := filepath.Walk(root,
-		func(path string, info os.FileInfo, err error) error {
-			if info == nil {
-				return errors.New("file info is nil")
-			}
-			if info.IsDir() {
-				return nil
-			}
-
-			rel, err := filepath.Rel(root, path)
-			if re.MatchString(rel) {
-				ret = append(ret, rel)
-			}
-
-			return nil
-		})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return ret, nil
-}
-
-type deployConfigure struct {
-	*setting.Setting
-}
-
-func isEncrypted(data []byte) bool {
-	var buffer = map[string]interface{}{}
-	if err := json.Unmarshal(data, &buffer); err != nil {
-		return false
-	}
-	elem, ok := buffer["cipher"]
-	if !ok {
-		return false
-	}
-	str, ok := elem.(string)
-	if !ok {
-		return false
-	}
-
-	return len(str) != 0
-}
-
-func (d *DeployCommand) decrypt(bin []byte) ([]byte, error) {
-	kms := lib.NewKMSFromBinary(bin, d.sess)
-	if kms == nil {
-		return nil, errors.New(fmt.Sprintf("%v format is illegal", string(bin)))
-	}
-	plainText, err := kms.SetKeyID(*d.mergedParams.kmsKeyID).Decrypt()
-	if err != nil {
-		return nil, err
-	}
-	return plainText, nil
-}
-
-func (d *DeployCommand) readConf(base []byte, externalPathList []string) (*deployConfigure, error) {
-	var root = *d.mergedParams.varsPath
-	var ret = &deployConfigure{}
-	baseStr := string(base)
-
-	root = strings.TrimSuffix(root, "/")
-	for _, externalPath := range externalPathList {
-		external, err := ioutil.ReadFile(root + "/" + externalPath)
-		if err != nil {
-			return nil, err
-		}
-		if isEncrypted(external) {
-			plain, err := d.decrypt(external)
-			if err != nil {
-				return nil, err
-			}
-			external = plain
-		}
-		baseStr, err = lib.Embedde(baseStr, string(external))
-		if err != nil {
-			return nil, err
-		}
-	}
-	if err := json.Unmarshal([]byte(baseStr), ret); err != nil {
-		return nil, err
-	}
-	return ret, nil
 }
 
 func (d *DeployCommand) parseArgs(args []string) (helpString string) {
@@ -332,6 +234,7 @@ func (d *DeployCommand) generateSession() {
 }
 
 func (d *DeployCommand) Run(args []string) int {
+	var deploySetting = &setting.Setting{}
 	d.parseArgs(args)
 	d.parseEnv()
 	d.mergeParams()
@@ -339,51 +242,35 @@ func (d *DeployCommand) Run(args []string) int {
 		panic(err)
 	}
 	d.generateSession()
-	var config = &deployConfigure{}
 
-	externalList, err := fileList(*d.mergedParams.varsPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	baseConfBinary, err := ioutil.ReadFile(*d.mergedParams.file)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	if externalList != nil {
-		c, err := d.readConf(baseConfBinary, externalList)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		config = c
+	if false {
+
 	} else {
-		bin, err := ioutil.ReadFile(*d.mergedParams.file)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		if err := json.Unmarshal(bin, config); err != nil {
-			log.Fatalln(err)
-		}
-	}
+		loader := prototype.NewLoader(d.sess, d.mergedParams.kmsKeyID)
 
-	for i, containerDefinition := range config.ECS.TaskDefinition.ContainerDefinitions {
-		imageName, tag, err := parseDockerImage(*containerDefinition.Image)
+		s, err := loader.Load(*d.mergedParams.file, *d.mergedParams.varsPath, "")
 		if err != nil {
 			panic(err)
 		}
+		deploySetting = s
+	}
+
+	for i, containerDefinition := range deploySetting.TaskDefinition.ContainerDefinitions {
+		imageName, tag := parseDockerImage(*containerDefinition.Image)
 		if tag == "$tag" {
 			image := imageName + ":" + *d.mergedParams.overrideTag
-			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
+			deploySetting.TaskDefinition.ContainerDefinitions[i].Image = &image
 		} else if tag == "" {
 			image := imageName + ":" + "latest"
-			config.ECS.TaskDefinition.ContainerDefinitions[i].Image = &image
+			deploySetting.TaskDefinition.ContainerDefinitions[i].Image = &image
 		}
 	}
 
 	if *d.dryRun {
 		dryRunFormat := &DryRun{
 			*d.mergedParams.region,
-			*config.ECS,
+			*deploySetting,
 		}
 		f, err := os.Open("/dev/stderr")
 		if err != nil {
@@ -394,7 +281,7 @@ func (d *DeployCommand) Run(args []string) int {
 		return 0
 	}
 
-	result, err := api.Deploy(d.sess, config.Setting)
+	result, err := api.Deploy(d.sess, deploySetting)
 	if err != nil {
 		log.Fatalln(err)
 	}
