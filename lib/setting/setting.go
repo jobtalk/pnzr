@@ -1,8 +1,8 @@
 package setting
 
 import (
-	"github.com/aws/aws-sdk-go/service/ecs"
 	"encoding/json"
+	"github.com/aws/aws-sdk-go/service/ecs"
 	"io/ioutil"
 )
 

@@ -1,18 +1,18 @@
 package v1
 
 import (
-	"github.com/jobtalk/pnzr/lib/setting"
-	"path/filepath"
-	"os"
-	"errors"
-	"regexp"
-	"io/ioutil"
-	"github.com/cbroglie/mustache"
 	"encoding/json"
+	"errors"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/cbroglie/mustache"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/kms"
+	"github.com/jobtalk/pnzr/lib/setting"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"regexp"
 )
 
 var re = regexp.MustCompile(`.*\.json$`)
