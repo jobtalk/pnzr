@@ -1,19 +1,19 @@
 package prototype
 
 import (
-	"github.com/aws/aws-sdk-go/service/ecs"
-	"path/filepath"
-	"os"
-	"errors"
-	"regexp"
-	"github.com/aws/aws-sdk-go/aws/session"
-	intermediate "github.com/jobtalk/pnzr/lib/setting"
-	"io/ioutil"
-	"github.com/jobtalk/pnzr/lib/setting/prototype/embedde"
 	"encoding/json"
-	"strings"
+	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ecs"
+	intermediate "github.com/jobtalk/pnzr/lib/setting"
+	"github.com/jobtalk/pnzr/lib/setting/prototype/embedde"
 	"github.com/jobtalk/pnzr/lib/setting/prototype/kms"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 var re = regexp.MustCompile(`.*\.json$`)
@@ -65,19 +65,19 @@ func (s *setting) version() float64 {
 }
 
 type SettingLoader struct {
-	sess *session.Session
+	sess     *session.Session
 	kmsKeyID *string
 }
 
 func NewLoader(sess *session.Session, kmsKeyID *string) *SettingLoader {
 	return &SettingLoader{
-		sess: sess,
+		sess:     sess,
 		kmsKeyID: kmsKeyID,
 	}
 }
 
 func (s *SettingLoader) Load(basePath, varsPath, outerVals string) (*intermediate.Setting, error) {
-	varsFileList , err := fileList(varsPath)
+	varsFileList, err := fileList(varsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (s *SettingLoader) Load(basePath, varsPath, outerVals string) (*intermediat
 
 func (s *SettingLoader) loadConf(base []byte, varsRoot string, varsFileNameList []string) (*setting, error) {
 	var (
-		ret = &setting{}
+		ret     = &setting{}
 		baseStr = string(base)
 	)
 	varsRoot = strings.TrimSuffix(varsRoot, "/")
@@ -142,7 +142,7 @@ func (s *SettingLoader) loadConf(base []byte, varsRoot string, varsFileNameList 
 		}
 		baseStr, err = embedde.Embedde(baseStr, string(varsBinary))
 		if err != nil {
-			return  nil, err
+			return nil, err
 		}
 	}
 

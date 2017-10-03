@@ -1,9 +1,9 @@
 package embedde
 
 import (
-	"strings"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"strings"
 )
 
 func Embedde(base, val string) (string, error) {

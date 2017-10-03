@@ -1,12 +1,12 @@
 package kms
 
 import (
-"encoding/json"
+	"encoding/json"
 
-"github.com/aws/aws-sdk-go/aws"
-"github.com/aws/aws-sdk-go/aws/session"
-"github.com/aws/aws-sdk-go/service/kms"
-"github.com/aws/aws-sdk-go/service/kms/kmsiface"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
 )
 
 type KMS struct {

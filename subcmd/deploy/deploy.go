@@ -55,7 +55,6 @@ func (d DryRun) String() string {
 	return fmt.Sprintf("%s", string(structJSON))
 }
 
-
 var (
 	DockerImageParseErr       = errors.New("parse error")
 	IllegalAccessKeyOptionErr = errors.New("There was an illegal input in '-aws-access-key-id' or '-aws-secret-key-id '")
@@ -242,7 +241,6 @@ func (d *DeployCommand) Run(args []string) int {
 		panic(err)
 	}
 	d.generateSession()
-
 
 	if false {
 
