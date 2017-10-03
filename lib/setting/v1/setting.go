@@ -11,6 +11,8 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/ieee0824/cryptex"
+	"github.com/ieee0824/cryptex/kms"
 )
 
 var re = regexp.MustCompile(`.*\.json$`)
@@ -116,9 +118,24 @@ func (s *SettingLoader) Load(basePath, varsPath, outerVals string) (*setting.Set
 }
 
 func (s *SettingLoader) isEncrypt(bin []byte) bool {
-	return false
+	var buffer = cryptex.Container{}
+	if err := json.Unmarshal(bin, &buffer); err != nil {
+		return false
+	}
+	return buffer.EncryptionType == "kms"
 }
 
 func (s *SettingLoader) decrypt(bin []byte) ([]byte, error) {
-	return nil, nil
+	kmsClient := kms.New(s.sess)
+	kmsClient.SetKey(*s.kmsKeyID)
+
+	var buffer = cryptex.Container{}
+	if err := json.Unmarshal(bin, &buffer); err != nil {
+		return nil, err
+	}
+	plain, err := cryptex.New(kmsClient).Decrypt(&buffer)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(plain)
 }

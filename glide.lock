@@ -1,10 +1,10 @@
 hash: 2e521d9a91d63cc72ca59228e7406a3a1a582d49e237f65793f38098dcc46b46
-updated: 2017-08-18T15:18:46.432339413+09:00
+updated: 2017-10-03T15:28:25.178793734+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: 1850f427c33c2558a2118dc55c1cf95a633d7432
+  version: 8b344ddb7a49daf794928d1db484ad9a81499858
   subpackages:
   - aws
   - aws/awserr
@@ -34,17 +34,25 @@ imports:
   - service/ecs/ecsiface
   - service/elbv2
   - service/kms
+  - service/kms/kmsiface
   - service/sts
 - name: github.com/bgentry/speakeasy
   version: 675b82c74c0ed12283ee81ba8a534c8982c07b85
+- name: github.com/cbroglie/mustache
+  version: 6857e4b493bdb8d4b1931446eb41704aeb4c28cb
 - name: github.com/go-ini/ini
   version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
+- name: github.com/ieee0824/cryptex
+  version: fe4d7fab2b43b1107fc818d4eeac19abc41f4974
+  subpackages:
+  - encryptor
+  - kms
 - name: github.com/ieee0824/getenv
-  version: c67c7aafcf785db4bfb9f7ab7161f13a16d3a204
+  version: c0967c2a6018ada0a7537084588ee1e5084b09ac
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/joho/godotenv
-  version: 726cc8b906e3d31c70a9671c90a13716a8d3f50d
+  version: a79fa1e548e2c689c241d10173efd51e5d689d5b
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mitchellh/cli
