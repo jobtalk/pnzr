@@ -1,4 +1,4 @@
-package deploy
+package prototype
 
 import "testing"
 
@@ -38,7 +38,7 @@ func TestIsEncrypted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got := isEncrypted([]byte(test.input))
+		got := NewLoader(nil, nil).isEncrypted([]byte(test.input))
 		if got != test.want {
 			t.Fatalf("want %q, but %q:", test.want, got)
 		}

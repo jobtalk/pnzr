@@ -60,12 +60,15 @@ var (
 	IllegalAccessKeyOptionErr = errors.New("There was an illegal input in '-aws-access-key-id' or '-aws-secret-key-id '")
 )
 
-func parseDockerImage(image string) (url, tag string) {
+func parseDockerImage(image string) (url, tag string, err error) {
 	r := strings.Split(image, ":")
-	if len(r) == 2 {
-		return r[0], r[1]
+	if 3 <= len(r) {
+		return "", "", DockerImageParseErr
 	}
-	return r[0], ""
+	if len(r) == 2 {
+		return r[0], r[1], nil
+	}
+	return r[0], "", nil
 }
 
 func stringIsEmpty(s *string) bool {
@@ -255,7 +258,11 @@ func (d *DeployCommand) Run(args []string) int {
 	}
 
 	for i, containerDefinition := range deploySetting.TaskDefinition.ContainerDefinitions {
-		imageName, tag := parseDockerImage(*containerDefinition.Image)
+		imageName, tag, err := parseDockerImage(*containerDefinition.Image)
+		if err != nil {
+			panic(err)
+		}
+
 		if tag == "$tag" {
 			image := imageName + ":" + *d.mergedParams.overrideTag
 			deploySetting.TaskDefinition.ContainerDefinitions[i].Image = &image
