@@ -19,6 +19,7 @@ import (
 	"github.com/jobtalk/pnzr/api"
 	"github.com/jobtalk/pnzr/lib/setting"
 	"github.com/jobtalk/pnzr/lib/setting/prototype"
+	"github.com/jobtalk/pnzr/lib/setting/v1"
 )
 
 type DeployCommand struct {
@@ -237,6 +238,7 @@ func (d *DeployCommand) generateSession() {
 
 func (d *DeployCommand) Run(args []string) int {
 	var deploySetting = &setting.Setting{}
+	var loader setting.Loader
 	d.parseArgs(args)
 	d.parseEnv()
 	d.mergeParams()
@@ -245,17 +247,17 @@ func (d *DeployCommand) Run(args []string) int {
 	}
 	d.generateSession()
 
-	if false {
-
+	if setting.IsV1Setting(*d.mergedParams.file) {
+		loader = v1.NewLoader(d.sess, d.mergedParams.kmsKeyID)
 	} else {
-		loader := prototype.NewLoader(d.sess, d.mergedParams.kmsKeyID)
-
-		s, err := loader.Load(*d.mergedParams.file, *d.mergedParams.varsPath, "")
-		if err != nil {
-			panic(err)
-		}
-		deploySetting = s
+		loader = prototype.NewLoader(d.sess, d.mergedParams.kmsKeyID)
 	}
+
+	s, err := loader.Load(*d.mergedParams.file, *d.mergedParams.varsPath, "")
+	if err != nil {
+		panic(err)
+	}
+	deploySetting = s
 
 	for i, containerDefinition := range deploySetting.TaskDefinition.ContainerDefinitions {
 		imageName, tag, err := parseDockerImage(*containerDefinition.Image)
