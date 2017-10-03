@@ -1,0 +1,67 @@
+hash: cf86e6351dba4b10e558170ff52cdc4041efca05dbcc8da8ed541a4036b4e6f5
+updated: 2017-10-03T15:42:55.522631157+09:00
+imports:
+- name: github.com/armon/go-radix
+  version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
+- name: github.com/aws/aws-sdk-go
+  version: 8b344ddb7a49daf794928d1db484ad9a81499858
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/awsutil
+  - aws/client
+  - aws/client/metadata
+  - aws/corehandlers
+  - aws/credentials
+  - aws/credentials/ec2rolecreds
+  - aws/credentials/endpointcreds
+  - aws/credentials/stscreds
+  - aws/defaults
+  - aws/ec2metadata
+  - aws/endpoints
+  - aws/request
+  - aws/session
+  - aws/signer/v4
+  - internal/shareddefaults
+  - private/protocol
+  - private/protocol/json/jsonutil
+  - private/protocol/jsonrpc
+  - private/protocol/query
+  - private/protocol/query/queryutil
+  - private/protocol/rest
+  - private/protocol/xml/xmlutil
+  - service/ecs
+  - service/ecs/ecsiface
+  - service/kms
+  - service/kms/kmsiface
+  - service/sts
+- name: github.com/bgentry/speakeasy
+  version: 675b82c74c0ed12283ee81ba8a534c8982c07b85
+- name: github.com/cbroglie/mustache
+  version: 6857e4b493bdb8d4b1931446eb41704aeb4c28cb
+- name: github.com/ghodss/yaml
+  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
+- name: github.com/go-ini/ini
+  version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
+- name: github.com/ieee0824/cryptex
+  version: ef67f5c1ee7d16252876b48da7f194e989a9b2ac
+  subpackages:
+  - encryptor
+  - kms
+- name: github.com/ieee0824/getenv
+  version: c0967c2a6018ada0a7537084588ee1e5084b09ac
+- name: github.com/jmespath/go-jmespath
+  version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
+- name: github.com/joho/godotenv
+  version: a79fa1e548e2c689c241d10173efd51e5d689d5b
+- name: github.com/mattn/go-isatty
+  version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
+- name: github.com/mitchellh/cli
+  version: ee8578a9c12a5bb9d55303b9665cc448772c81b8
+- name: golang.org/x/sys
+  version: f3918c30c5c2cb527c0b071a27c35120a6c0719a
+  subpackages:
+  - unix
+- name: gopkg.in/yaml.v2
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
+testImports: []
