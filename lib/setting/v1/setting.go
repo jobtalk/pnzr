@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/cbroglie/mustache"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/kms"
 	"github.com/jobtalk/pnzr/lib/setting"
@@ -13,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 var re = regexp.MustCompile(`.*\.json$`)
@@ -67,6 +67,28 @@ func fileList(root string) ([]string, error) {
 type SettingLoader struct {
 	sess     *session.Session
 	kmsKeyID *string
+	reg      []*regexp.Regexp
+}
+
+func embedde(base, val []byte) ([]byte, error) {
+	var valMap = map[string]interface{}{}
+
+	if err := json.Unmarshal(val, &valMap); err != nil {
+		return nil, err
+	}
+
+	for k, v := range valMap {
+		re := regexp.MustCompile(`"\$` + k + `"`)
+		embeddeBin, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+
+		result := re.ReplaceAllString(string(base), string(embeddeBin))
+		base = []byte(result)
+	}
+
+	return base, nil
 }
 
 func NewLoader(sess *session.Session, kmsKeyID *string) *SettingLoader {
@@ -77,44 +99,39 @@ func NewLoader(sess *session.Session, kmsKeyID *string) *SettingLoader {
 }
 
 func (s *SettingLoader) Load(basePath, varsPath, outerVals string) (*setting.Setting, error) {
-	var ret = v1Setting{}
-	valueFileNameList, err := fileList(varsPath)
+	var setting = v1Setting{}
+	varFileList, err := fileList(varsPath)
+	if err != nil {
+		return nil, err
+	}
+	baseConf, err := ioutil.ReadFile(basePath)
 	if err != nil {
 		return nil, err
 	}
 
-	templateFile, err := ioutil.ReadFile(basePath)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, valueFileName := range valueFileNameList {
-		var values = map[string]string{}
-		valueBin, err := ioutil.ReadFile(valueFileName)
+	for _, path := range varFileList {
+		bin, err := ioutil.ReadFile(strings.TrimSuffix(varsPath, "/") + "/" + path)
 		if err != nil {
 			return nil, err
 		}
 
-		if s.isEncrypt(valueBin) {
-
-		}
-
-		if err := json.Unmarshal(valueBin, &values); err != nil {
+		if b, err := s.decrypt(bin); err != nil {
 			return nil, err
+		} else {
+			bin = b
 		}
 
-		result, err := mustache.Render(string(templateFile), values)
+		baseConf, err = embedde(baseConf, bin)
 		if err != nil {
 			return nil, err
 		}
-
-		templateFile = []byte(result)
 	}
 
-	if err := json.Unmarshal(templateFile, &ret); err != nil {
+	if err := json.Unmarshal(baseConf, &setting); err != nil {
 		return nil, err
 	}
-	return ret.Convert(), nil
+
+	return setting.Convert(), nil
 }
 
 func (s *SettingLoader) isEncrypt(bin []byte) bool {
@@ -126,6 +143,10 @@ func (s *SettingLoader) isEncrypt(bin []byte) bool {
 }
 
 func (s *SettingLoader) decrypt(bin []byte) ([]byte, error) {
+	if !s.isEncrypt(bin) {
+		return bin, nil
+	}
+
 	kmsClient := kms.New(s.sess)
 	kmsClient.SetKey(*s.kmsKeyID)
 
