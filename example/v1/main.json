@@ -1,7 +1,7 @@
 {
 	"Version": 1.0,
     "Service":{
-        "Cluster": "staging-backend",
+        "Cluster": "test-cluster",
         "DeploymentConfiguration":{
             "MaximumPercent": 200,
             "MinimumHealthyPercent": 100
@@ -29,7 +29,7 @@
                 "PortMappings":[
                     {
     			  "HostPort": 0,
-                        "ContainerPort":80,
+                        "ContainerPort":8080,
                         "Protocol":"tcp"
                     }
                 ]
