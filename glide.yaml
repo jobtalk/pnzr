@@ -16,6 +16,8 @@ import:
   version: ^0.2.0
   subpackages:
   - kms
+- package: github.com/ieee0824/jec
+  version: ^1.0.0
 - package: github.com/ieee0824/getenv
   version: ^0.2.0
 - package: github.com/joho/godotenv

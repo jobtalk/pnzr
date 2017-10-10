@@ -13,13 +13,14 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"github.com/ieee0824/jec"
 )
-
-var re = regexp.MustCompile(`.*\.json$`)
 
 var (
 	FileNotFoundError = errors.New("file info is nil")
 )
+
+var re = regexp.MustCompile(`.*\.json$`)
 
 type v1Setting struct {
 	Version        float64
@@ -70,27 +71,6 @@ type SettingLoader struct {
 	reg      []*regexp.Regexp
 }
 
-func embedde(base, val []byte) ([]byte, error) {
-	var valMap = map[string]interface{}{}
-
-	if err := json.Unmarshal(val, &valMap); err != nil {
-		return nil, err
-	}
-
-	for k, v := range valMap {
-		re := regexp.MustCompile(`"\$` + k + `"`)
-		embeddeBin, err := json.Marshal(v)
-		if err != nil {
-			return nil, err
-		}
-
-		result := re.ReplaceAllString(string(base), string(embeddeBin))
-		base = []byte(result)
-	}
-
-	return base, nil
-}
-
 func NewLoader(sess *session.Session, kmsKeyID *string) *SettingLoader {
 	return &SettingLoader{
 		sess:     sess,
@@ -121,7 +101,7 @@ func (s *SettingLoader) Load(basePath, varsPath, outerVals string) (*setting.Set
 			bin = b
 		}
 
-		baseConf, err = embedde(baseConf, bin)
+		baseConf, err = jec.Embed(baseConf, bin)
 		if err != nil {
 			return nil, err
 		}
