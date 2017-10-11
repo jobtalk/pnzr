@@ -11,6 +11,7 @@ import (
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/subcmd/vault/encrypt/prototype"
 	"github.com/jobtalk/pnzr/subcmd/vault/encrypt/v1"
+	"github.com/jobtalk/pnzr/subcmd/vault/encrypt/v1/iface"
 	"github.com/jobtalk/pnzr/vars"
 )
 
@@ -23,12 +24,13 @@ type EncryptCommand struct {
 	awsAccessKeyID *string
 	awsSecretKeyID *string
 	configVersion  *string
+	v1Encrypter    v1_api.API
 }
 
 func (e *EncryptCommand) encrypt(keyID string, fileName string) error {
 	switch *e.configVersion {
 	case "1.0":
-		return v1.Encrypt(e.sess, keyID, fileName)
+		return e.v1Encrypter.Encrypt(keyID, fileName)
 	case "prototype":
 		return prototype.Encrypt(e.sess, keyID, fileName)
 	default:
@@ -102,6 +104,7 @@ func (e *EncryptCommand) Run(args []string) int {
 		return 0
 	}
 	e.parseArgs(args)
+	e.v1Encrypter = v1.New(e.sess)
 
 	if err := e.encrypt(*e.kmsKeyID, *e.file); err != nil {
 		panic(err)

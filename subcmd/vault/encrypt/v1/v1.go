@@ -8,7 +8,17 @@ import (
 	"io/ioutil"
 )
 
-func Encrypt(sess *session.Session, keyID, fileName string) error {
+type Encrypter struct {
+	c *cryptex.Cryptex
+}
+
+func New(s *session.Session) *Encrypter {
+	return &Encrypter{
+		cryptex.New(kms.New(s)),
+	}
+}
+
+func (e *Encrypter) Encrypt(keyID, fileName string) error {
 	var plain interface{}
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -17,11 +27,8 @@ func Encrypt(sess *session.Session, keyID, fileName string) error {
 	if err := json.Unmarshal(bin, &plain); err != nil {
 		return err
 	}
-	kmsClient := kms.New(sess)
-	kmsClient.SetKey(keyID)
-	c := cryptex.New(kmsClient)
 
-	cipher, err := c.Encrypt(plain)
+	cipher, err := e.c.Encrypt(plain)
 	if err != nil {
 		return err
 	}
