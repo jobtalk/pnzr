@@ -1,15 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
 func parse(v string) (key string, val interface{}, err error) {
-	s := strings.SplitN(v, "=",1)
+	s := strings.SplitN(v, "=", 1)
 	if len(s) != 2 {
 		return "", nil, fmt.Errorf("parse error: %v", v)
 	}
