@@ -1,11 +1,11 @@
 package v1
 
 import (
-	"github.com/aws/aws-sdk-go/aws/session"
-	"io/ioutil"
 	"encoding/json"
-	"github.com/ieee0824/cryptex/kms"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/cryptex"
+	"github.com/ieee0824/cryptex/kms"
+	"io/ioutil"
 )
 
 func Decrypt(sess *session.Session, fileName string) error {

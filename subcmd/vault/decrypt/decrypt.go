@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/vars"
-	"github.com/jobtalk/pnzr/subcmd/vault/decrypt/v1"
 	"github.com/jobtalk/pnzr/subcmd/vault/decrypt/prototype"
+	"github.com/jobtalk/pnzr/subcmd/vault/decrypt/v1"
+	"github.com/jobtalk/pnzr/vars"
 )
 
 type DecryptCommand struct {
@@ -21,7 +21,7 @@ type DecryptCommand struct {
 	region         *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
-	configVersion              *string
+	configVersion  *string
 }
 
 func (d *DecryptCommand) parseArgs(args []string) (helpString string) {

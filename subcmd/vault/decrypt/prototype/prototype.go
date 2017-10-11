@@ -1,11 +1,11 @@
 package prototype
 
 import (
-	"github.com/aws/aws-sdk-go/aws/session"
-	"io/ioutil"
-	"fmt"
-	"github.com/jobtalk/pnzr/lib"
 	"errors"
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/jobtalk/pnzr/lib"
+	"io/ioutil"
 )
 
 func Decrypt(sess *session.Session, fileName string) error {

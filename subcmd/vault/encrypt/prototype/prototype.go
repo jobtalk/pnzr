@@ -7,7 +7,7 @@ import (
 )
 
 func Encrypt(sess *session.Session, keyID, fileName string) error {
-	bin, err :=ioutil.ReadFile(fileName)
+	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
