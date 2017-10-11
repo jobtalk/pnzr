@@ -23,7 +23,7 @@ type DecryptCommand struct {
 	awsAccessKeyID *string
 	awsSecretKeyID *string
 	configVersion  *string
-	v1Decrypter v1_api.API
+	v1Decrypter    v1_api.API
 }
 
 func (d *DecryptCommand) parseArgs(args []string) (helpString string) {

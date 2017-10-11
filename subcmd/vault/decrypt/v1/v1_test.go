@@ -1,23 +1,23 @@
 package v1
 
 import (
-	"testing"
-	"github.com/jobtalk/pnzr/vars"
-	"os/exec"
-	"os"
-	"github.com/ieee0824/cryptex"
-	"io/ioutil"
-	"github.com/ieee0824/cryptex/rsa"
-	"fmt"
-	"io"
 	"encoding/json"
+	"fmt"
+	"github.com/ieee0824/cryptex"
+	"github.com/ieee0824/cryptex/rsa"
+	"github.com/jobtalk/pnzr/vars"
+	"io"
+	"io/ioutil"
+	"os"
+	"os/exec"
 	"reflect"
+	"testing"
 )
 
 var (
 	ORIGIN_TEST_DIR = vars.TEST_DATA_DIR_ROOT + "/subcmd/vault/decrypt/v1"
-	COPY_TEST_DIR = ORIGIN_TEST_DIR + "/copy"
-	KEY_DIR = vars.TEST_DATA_DIR_ROOT + "/key"
+	COPY_TEST_DIR   = ORIGIN_TEST_DIR + "/copy"
+	KEY_DIR         = vars.TEST_DATA_DIR_ROOT + "/key"
 )
 
 func compaireJSON(a, b []byte) bool {
@@ -89,10 +89,9 @@ func TestDecrypter_Decrypt(t *testing.T) {
 		panic(err)
 	}
 
-
-	tests := map[string]struct{
+	tests := map[string]struct {
 		isEncrypt bool
-		err bool
+		err       bool
 	}{
 		"0.json": {
 			false,

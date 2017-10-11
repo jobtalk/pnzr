@@ -2,10 +2,10 @@ package v1
 
 import (
 	"encoding/json"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/kms"
 	"io/ioutil"
-	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 type Decrypter struct {
@@ -18,7 +18,7 @@ func New(s *session.Session) *Decrypter {
 	}
 }
 
-func (d *Decrypter)Decrypt(fileName string) error {
+func (d *Decrypter) Decrypt(fileName string) error {
 	var chipher = &cryptex.Container{}
 	chipherBin, err := ioutil.ReadFile(fileName)
 	if err != nil {
