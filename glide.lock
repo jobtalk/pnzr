@@ -1,10 +1,10 @@
-hash: 2fa64f5b10b4520bacbbd046ed0938509b3bd2afdd35b77e7a353b8a5c0a4478
-updated: 2017-10-03T15:47:58.380971165+09:00
+hash: 1fac9d267dae0853b48e86832489dbd402744cc8df1fbbb8646190f60d0b23b4
+updated: 2017-10-11T11:33:18.024380348+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: 8b344ddb7a49daf794928d1db484ad9a81499858
+  version: 885962fbd7bf49bf62db54f63fb89f75611677cf
   subpackages:
   - aws
   - aws/awserr
@@ -44,12 +44,14 @@ imports:
 - name: github.com/go-ini/ini
   version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
 - name: github.com/ieee0824/cryptex
-  version: fe4d7fab2b43b1107fc818d4eeac19abc41f4974
+  version: add880a364c61d8e4a7902de15a674bb79238b27
   subpackages:
   - encryptor
   - kms
 - name: github.com/ieee0824/getenv
   version: c0967c2a6018ada0a7537084588ee1e5084b09ac
+- name: github.com/ieee0824/jec
+  version: d7aa1b6b40b60859064742ec2aed49e5b26660bd
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/joho/godotenv
