@@ -2,7 +2,6 @@ package decrypt
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,8 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/lib"
-	"io/ioutil"
+	"github.com/jobtalk/pnzr/vars"
+	"github.com/jobtalk/pnzr/subcmd/vault/decrypt/v1"
+	"github.com/jobtalk/pnzr/subcmd/vault/decrypt/prototype"
 )
 
 type DecryptCommand struct {
@@ -21,6 +21,7 @@ type DecryptCommand struct {
 	region         *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
+	configVersion              *string
 }
 
 func (d *DecryptCommand) parseArgs(args []string) (helpString string) {
@@ -31,12 +32,12 @@ func (d *DecryptCommand) parseArgs(args []string) (helpString string) {
 
 	buffer := new(bytes.Buffer)
 	flagSet.SetOutput(buffer)
-
 	d.profile = flagSet.String("profile", getenv.String("AWS_PROFILE_NAME", "default"), "aws credentials profile name")
 	d.region = flagSet.String("region", getenv.String("AWS_REGION", "ap-northeast-1"), "aws region")
 	d.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
 	d.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 	d.file = flagSet.String("file", "", "target file")
+	d.configVersion = flagSet.String("v", vars.CONFIG_VERSION, "config version")
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
@@ -73,19 +74,14 @@ func (d *DecryptCommand) parseArgs(args []string) (helpString string) {
 }
 
 func (d *DecryptCommand) decrypt(fileName string) error {
-	bin, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		return err
+	switch *d.configVersion {
+	case "1.0":
+		return v1.Decrypt(d.sess, fileName)
+	case "prototype":
+		return prototype.Decrypt(d.sess, fileName)
+	default:
+		return fmt.Errorf("unsupport configure version: %v", *d.configVersion)
 	}
-	kms := lib.NewKMSFromBinary(bin, d.sess)
-	if kms == nil {
-		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
-	}
-	plainText, err := kms.Decrypt()
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(fileName, plainText, 0644)
 }
 
 func (d *DecryptCommand) Help() string {
@@ -102,6 +98,7 @@ func (d *DecryptCommand) Run(args []string) int {
 		return 0
 	}
 	d.parseArgs(args)
+
 	if err := d.decrypt(*d.file); err != nil {
 		panic(err)
 	}

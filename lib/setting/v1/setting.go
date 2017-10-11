@@ -7,13 +7,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/kms"
+	"github.com/ieee0824/jec"
 	"github.com/jobtalk/pnzr/lib/setting"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"github.com/ieee0824/jec"
 )
 
 var (
