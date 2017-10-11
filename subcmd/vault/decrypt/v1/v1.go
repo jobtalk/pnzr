@@ -2,13 +2,23 @@ package v1
 
 import (
 	"encoding/json"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/kms"
 	"io/ioutil"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-func Decrypt(sess *session.Session, fileName string) error {
+type Decrypter struct {
+	c *cryptex.Cryptex
+}
+
+func New(s *session.Session) *Decrypter {
+	return &Decrypter{
+		cryptex.New(kms.New(s)),
+	}
+}
+
+func (d *Decrypter)Decrypt(fileName string) error {
 	var chipher = &cryptex.Container{}
 	chipherBin, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -19,9 +29,7 @@ func Decrypt(sess *session.Session, fileName string) error {
 		return err
 	}
 
-	c := cryptex.New(kms.New(sess))
-
-	plain, err := c.Decrypt(chipher)
+	plain, err := d.c.Decrypt(chipher)
 	if err != nil {
 		return err
 	}

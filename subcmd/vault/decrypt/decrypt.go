@@ -11,6 +11,7 @@ import (
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/subcmd/vault/decrypt/prototype"
 	"github.com/jobtalk/pnzr/subcmd/vault/decrypt/v1"
+	"github.com/jobtalk/pnzr/subcmd/vault/decrypt/v1/iface"
 	"github.com/jobtalk/pnzr/vars"
 )
 
@@ -22,6 +23,7 @@ type DecryptCommand struct {
 	awsAccessKeyID *string
 	awsSecretKeyID *string
 	configVersion  *string
+	v1Decrypter v1_api.API
 }
 
 func (d *DecryptCommand) parseArgs(args []string) (helpString string) {
@@ -76,7 +78,7 @@ func (d *DecryptCommand) parseArgs(args []string) (helpString string) {
 func (d *DecryptCommand) decrypt(fileName string) error {
 	switch *d.configVersion {
 	case "1.0":
-		return v1.Decrypt(d.sess, fileName)
+		return d.v1Decrypter.Decrypt(fileName)
 	case "prototype":
 		return prototype.Decrypt(d.sess, fileName)
 	default:
@@ -98,6 +100,7 @@ func (d *DecryptCommand) Run(args []string) int {
 		return 0
 	}
 	d.parseArgs(args)
+	d.v1Decrypter = v1.New(d.sess)
 
 	if err := d.decrypt(*d.file); err != nil {
 		panic(err)
