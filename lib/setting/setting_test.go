@@ -1,9 +1,9 @@
 package setting
 
 import (
-	"testing"
-	"github.com/jobtalk/pnzr/vars"
 	"fmt"
+	"github.com/jobtalk/pnzr/vars"
+	"testing"
 )
 
 var (
@@ -11,7 +11,7 @@ var (
 )
 
 func TestIsV1Setting(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		want bool
 	}{
 		{false},
