@@ -2,7 +2,6 @@ package edit
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,12 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
-	"github.com/jobtalk/pnzr/lib"
 	"github.com/jobtalk/pnzr/subcmd/vault/edit/prototype"
 	"github.com/jobtalk/pnzr/subcmd/vault/edit/v1"
 	"github.com/jobtalk/pnzr/subcmd/vault/edit/v1/iface"
 	"github.com/jobtalk/pnzr/vars"
-	"io/ioutil"
 )
 
 type EditCommand struct {
@@ -79,36 +76,6 @@ func (e *EditCommand) parseArgs(args []string) (helpString string) {
 	}))
 
 	return
-}
-
-func (e *EditCommand) decrypt(fileName string) error {
-	bin, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		return err
-	}
-	kms := lib.NewKMSFromBinary(bin, e.sess)
-	if kms == nil {
-		return errors.New(fmt.Sprintf("%v form is illegal", fileName))
-	}
-	plainText, err := kms.Decrypt()
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(fileName, plainText, 0644)
-}
-
-func (e *EditCommand) encrypt(keyID string, fileName string) error {
-	bin, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		return err
-	}
-	kms := lib.NewKMS(e.sess)
-	_, err = kms.SetKeyID(keyID).Encrypt(bin)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(fileName, []byte(kms.String()), 0644)
 }
 
 func (e *EditCommand) Help() string {
