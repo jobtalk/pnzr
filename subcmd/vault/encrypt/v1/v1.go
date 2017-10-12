@@ -12,9 +12,9 @@ type Encrypter struct {
 	c *cryptex.Cryptex
 }
 
-func New(s *session.Session) *Encrypter {
+func New(s *session.Session, keyID string) *Encrypter {
 	return &Encrypter{
-		cryptex.New(kms.New(s)),
+		cryptex.New(kms.New(s).SetKey(keyID)),
 	}
 }
 

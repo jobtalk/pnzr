@@ -1,4 +1,4 @@
-package edit
+package util
 
 import (
 	"os"
@@ -25,7 +25,7 @@ func TestGetEditorEnvPnzrEditor(t *testing.T) {
 
 			os.Setenv("PNZR_EDITOR", test.in)
 
-			got := getEditor()
+			got := GetEditor()
 
 			if got != test.want {
 				t.Fatalf("want %q, but %q:", test.want, got)
@@ -54,7 +54,7 @@ func TestGetEditorEnvEditor(t *testing.T) {
 
 			os.Setenv("EDITOR", test.in)
 
-			got := getEditor()
+			got := GetEditor()
 
 			if got != test.want {
 				t.Fatalf("want %q, but %q:", test.want, got)
@@ -67,7 +67,7 @@ func TestGetEditorNoEnv(t *testing.T) {
 	os.Unsetenv("PNZR_EDITOR")
 	os.Unsetenv("EDITOR")
 
-	got := getEditor()
+	got := GetEditor()
 
 	if got != "nano" {
 		t.Fatalf("want %q, but %q:", "nano", got)

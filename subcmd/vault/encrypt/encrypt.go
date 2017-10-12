@@ -104,7 +104,7 @@ func (e *EncryptCommand) Run(args []string) int {
 		return 0
 	}
 	e.parseArgs(args)
-	e.v1Encrypter = v1.New(e.sess)
+	e.v1Encrypter = v1.New(e.sess, *e.kmsKeyID)
 
 	if err := e.encrypt(*e.kmsKeyID, *e.file); err != nil {
 		panic(err)

@@ -1,55 +1,60 @@
 package main
 
 import (
-	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"fmt"
-	"io/ioutil"
+	"github.com/ieee0824/getenv"
 	"os"
-	"strings"
+	"io/ioutil"
 )
 
-func parse(v string) (key string, val interface{}, err error) {
-	s := strings.SplitN(v, "=", 1)
-	if len(s) != 2 {
-		return "", nil, fmt.Errorf("parse error: %v", v)
+var (
+	buffer []byte
+)
+
+func open(ctx *gin.Context) {
+}
+
+func wq(ctx *gin.Context) {
+	if err := ioutil.WriteFile(os.Args[1], buffer, 0644); err != nil {
+		panic(err)
 	}
-	key = s[0]
-	if err = json.Unmarshal([]byte(s[1]), &val); err != nil {
-		return "", nil, err
+	fmt.Fprint(ctx.Writer, string(buffer))
+	os.Exit(0)
+}
+
+func root(ctx *gin.Context) {
+	fmt.Fprint(ctx.Writer, string(buffer))
+}
+
+func edit(ctx *gin.Context) {
+	body, err := ioutil.ReadAll(ctx.Request.Body)
+	if err != nil {
+		panic(err)
 	}
-	return
+	buffer = body
 }
 
 func main() {
-	m := map[string]interface{}{}
-	if len(os.Args) != 3 {
-		panic(fmt.Errorf("illegal args: %v", os.Args))
+	var err error
+	if len(os.Args) != 2 {
+		panic(fmt.Errorf("file name not set"))
 	}
 
-	f, err := os.Open(os.Args[1])
+	buffer, err = ioutil.ReadFile(os.Args[1])
 	if err != nil {
-		panic(err)
-	}
-
-	body, err := ioutil.ReadAll(f)
-	if err != nil {
-		panic(err)
-	}
-	f.Close()
-	if err := json.Unmarshal(body, &m); err != nil {
 		panic(err)
 	}
 
-	key, val, err := parse(os.Args[2])
-	if err != nil {
-		panic(err)
-	}
-	m[key] = val
-	result, err := json.MarshalIndent(m, "", "    ")
-	if err != nil {
-		panic(err)
-	}
-	if err := ioutil.WriteFile(os.Args[1], result, 0644); err != nil {
+	router := gin.Default()
+
+	router.GET("/", root)
+	router.POST("/", root)
+	router.POST("/o", open)
+	router.POST("/wq", wq)
+	router.POST("/e", edit)
+
+	if err := router.Run(fmt.Sprintf(":%d", getenv.Int("EDITOR_PORT", 8080))); err != nil {
 		panic(err)
 	}
 }
