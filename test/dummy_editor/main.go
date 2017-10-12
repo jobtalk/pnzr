@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/ieee0824/getenv"
-	"os"
 	"io/ioutil"
+	"os"
 )
 
 var (

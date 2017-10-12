@@ -1,17 +1,15 @@
 package prototype
 
 import (
-	"io/ioutil"
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/jobtalk/pnzr/lib"
-	"errors"
+	"github.com/jobtalk/pnzr/subcmd/vault/edit/util"
+	"io/ioutil"
 	"os"
 	"os/exec"
-	"github.com/jobtalk/pnzr/subcmd/vault/edit/util"
 )
-
-
 
 func encrypt(sess *session.Session, keyID, fileName string) error {
 	bin, err := ioutil.ReadFile(fileName)

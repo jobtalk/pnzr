@@ -1,12 +1,12 @@
 package v1
 
 import (
-	"github.com/ieee0824/cryptex"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/ieee0824/cryptex/kms"
-	"os"
 	"github.com/gin-gonic/gin/json"
+	"github.com/ieee0824/cryptex"
+	"github.com/ieee0824/cryptex/kms"
 	"github.com/jobtalk/pnzr/subcmd/vault/edit/util"
+	"os"
 )
 
 type Editor struct {
@@ -19,8 +19,7 @@ func New(s *session.Session, keyID string) *Editor {
 	}
 }
 
-
-func (e *Editor)Edit(fileName string) error {
+func (e *Editor) Edit(fileName string) error {
 	cryptex.SetEditor(util.GetEditor())
 	var container = &cryptex.Container{}
 

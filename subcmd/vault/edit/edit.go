@@ -11,14 +11,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
+	"github.com/jobtalk/pnzr/subcmd/vault/edit/prototype"
+	"github.com/jobtalk/pnzr/subcmd/vault/edit/v1"
+	"github.com/jobtalk/pnzr/subcmd/vault/edit/v1/iface"
 	"github.com/jobtalk/pnzr/vars"
 	"io/ioutil"
-	"github.com/jobtalk/pnzr/subcmd/vault/edit/prototype"
-	"github.com/jobtalk/pnzr/subcmd/vault/edit/v1/iface"
-	"github.com/jobtalk/pnzr/subcmd/vault/edit/v1"
 )
-
-
 
 type EditCommand struct {
 	sess           *session.Session
@@ -29,7 +27,7 @@ type EditCommand struct {
 	awsAccessKeyID *string
 	awsSecretKeyID *string
 	configVersion  *string
-	v1Editor v1_api.API
+	v1Editor       v1_api.API
 }
 
 func (e *EditCommand) parseArgs(args []string) (helpString string) {
