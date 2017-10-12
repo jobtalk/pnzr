@@ -10,17 +10,19 @@ import (
 )
 
 type Editor struct {
-	c *cryptex.Cryptex
+	c          *cryptex.Cryptex
+	editorName string
 }
 
 func New(s *session.Session, keyID string) *Editor {
 	return &Editor{
 		cryptex.New(kms.New(s).SetKey(keyID)),
+		util.GetEditor(),
 	}
 }
 
 func (e *Editor) Edit(fileName string) error {
-	cryptex.SetEditor(util.GetEditor())
+	cryptex.SetEditor(e.editorName)
 	var container = &cryptex.Container{}
 
 	f, err := os.Open(fileName)

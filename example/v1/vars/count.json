@@ -1,3 +1,6 @@
 {
-  "count": 1
+    "encryption_type": "kms",
+    "values": {
+        "count": "AQECAHh5q0tFgkoZemC6czjL/QJ6+DlDwjLL6N3YmGIcYUKyuwAAAGcwZQYJKoZIhvcNAQcGoFgwVgIBADBRBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDPh29HVpUJJP39DVrgIBEIAkiCVTg9ojbUuX5G48xhzt9tGPmm5fmfbuxKcJzMQDaZDCDjsB"
+    }
 }

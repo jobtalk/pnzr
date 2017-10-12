@@ -117,12 +117,10 @@ func TestEncrypter_Encrypt(t *testing.T) {
 
 	for key, test := range tests {
 		err := encrypter.Encrypt("", fmt.Sprintf("%s/%v", COPY_TEST_DIR, key))
-		if !test.err && err != nil {
-			t.Fatalf("should not be error but: %v", err)
+		if err != nil {
+			panic(err)
 		}
-		if test.err && err == nil {
-			t.Fatalf("should be error")
-		}
+
 		if !test.err {
 			org, err := ioutil.ReadFile(ORIGIN_TEST_DIR + "/" + key)
 			if err != nil {
@@ -141,9 +139,13 @@ func TestEncrypter_Encrypt(t *testing.T) {
 			if err := testDecrypter.decrypt(COPY_TEST_DIR + "/" + key); err != nil {
 				panic(err)
 			}
+
 			decrypted, err := ioutil.ReadFile(COPY_TEST_DIR + "/" + key)
-			if err != nil {
-				panic(err)
+			if !test.err && err != nil {
+				t.Fatalf("should not be error but: %v", err)
+			}
+			if test.err && err == nil {
+				t.Fatalf("should be error")
 			}
 			if !compaireJSON(org, decrypted) {
 				t.Log(string(org))
