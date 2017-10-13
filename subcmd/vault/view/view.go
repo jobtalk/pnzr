@@ -2,6 +2,7 @@ package view
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -9,8 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/ieee0824/cryptex"
+	"github.com/ieee0824/cryptex/kms"
 	"github.com/ieee0824/getenv"
 	"github.com/jobtalk/pnzr/lib"
+	"github.com/jobtalk/pnzr/vars"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -23,6 +27,7 @@ type ViewCommand struct {
 	region         *string
 	awsAccessKeyID *string
 	awsSecretKeyID *string
+	configVersion  *string
 }
 
 func (v *ViewCommand) parseArgs(args []string) (helpString string) {
@@ -39,6 +44,7 @@ func (v *ViewCommand) parseArgs(args []string) (helpString string) {
 	v.awsAccessKeyID = flagSet.String("aws-access-key-id", getenv.String("AWS_ACCESS_KEY_ID"), "aws access key id")
 	v.awsSecretKeyID = flagSet.String("aws-secret-key-id", getenv.String("AWS_SECRET_KEY_ID"), "aws secret key id")
 	v.file = flagSet.String("file", "", "target file")
+	v.configVersion = flagSet.String("v", vars.CONFIG_VERSION, "config version")
 	f = flagSet.String("f", "", "target file")
 
 	if err := flagSet.Parse(args); err != nil {
@@ -105,18 +111,35 @@ func (v *ViewCommand) Run(args []string) int {
 	}
 	v.parseArgs(args)
 
-	plain, err := v.decryptTemporary(*v.file)
-	if err != nil {
-		panic(err)
-	}
+	switch *v.configVersion {
+	case "1.0":
+		var container = &cryptex.Container{}
+		bin, err := ioutil.ReadFile(*v.file)
+		if err != nil {
+			panic(err)
+		}
+		if err := json.Unmarshal(bin, container); err != nil {
+			panic(err)
+		}
+		if err := cryptex.New(kms.New(v.sess)).View(container); err != nil {
+			panic(err)
+		}
+	case "prototype":
+		plain, err := v.decryptTemporary(*v.file)
+		if err != nil {
+			panic(err)
+		}
 
-	cmd := exec.Command("less")
-	cmd.Stdin = bytes.NewReader(plain)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+		cmd := exec.Command("less")
+		cmd.Stdin = bytes.NewReader(plain)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		panic(err)
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+	default:
+		panic(fmt.Errorf("unsupport version: %v", *v.configVersion))
 	}
 
 	return 0
