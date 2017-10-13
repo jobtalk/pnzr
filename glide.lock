@@ -1,10 +1,10 @@
 hash: 1fac9d267dae0853b48e86832489dbd402744cc8df1fbbb8646190f60d0b23b4
-updated: 2017-10-12T18:02:59.030214652+09:00
+updated: 2017-10-13T17:23:26.620358277+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: 64850c09d35fc1dc005ca76c13fed9382e34e7e3
+  version: 7cb0cfd8c7a20efc2ec149e50eb55fc770c673d8
   subpackages:
   - aws
   - aws/awserr
@@ -56,7 +56,7 @@ imports:
   subpackages:
   - proto
 - name: github.com/ieee0824/cryptex
-  version: 970fdd9596dd2fd3cd16af8375bd7edd27661f5f
+  version: fcc4a223560a23187d7d15f2c9289ecf258322e0
   subpackages:
   - encryptor
   - kms
