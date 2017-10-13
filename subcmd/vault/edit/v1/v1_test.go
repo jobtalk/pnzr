@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/rsa"
 	"github.com/jobtalk/pnzr/vars"
@@ -22,6 +23,34 @@ var (
 	COPY_TEST_DIR   = ORIGIN_TEST_DIR + "/copy"
 	KEY_DIR         = vars.TEST_DATA_DIR_ROOT + "/key"
 )
+
+type mocChiper struct {
+	fault bool
+}
+
+func newChiper(b bool) *mocChiper {
+	return &mocChiper{b}
+}
+
+func (m *mocChiper) Encrypt(d []byte) ([]byte, error) {
+	if m.fault {
+		return nil, fmt.Errorf("some error")
+	}
+	d = append(d[1:], d[0])
+	return d, nil
+}
+
+func (m *mocChiper) Decrypt(d []byte) ([]byte, error) {
+	if m.fault {
+		return nil, fmt.Errorf("some error")
+	}
+	d = append(d[len(d)-1:], d[:len(d)-1]...)
+	return d, nil
+}
+
+func (m *mocChiper) EncryptionType() string {
+	return "moc"
+}
 
 type encrypter struct {
 	crypter *cryptex.Cryptex
@@ -72,7 +101,34 @@ func (e *encrypter) encrypt(fileName string) error {
 	return ioutil.WriteFile(fileName, chipher, 0644)
 }
 
-func TestEditor_Edit(t *testing.T) {
+func TestNew(t *testing.T) {
+	if nil == New(session.New(), "") {
+		t.Fatalf("not allocated")
+	}
+}
+
+func TestEditor_Edit2(t *testing.T) {
+	testEditor := &Editor{
+		cryptex.New(newChiper(true)),
+		fmt.Sprintf("%s/editor", COPY_TEST_DIR),
+	}
+
+	tests := []struct {
+		fileName string
+	}{
+		{"hoge"},
+		{ORIGIN_TEST_DIR + "/0.json"},
+	}
+
+	for _, test := range tests {
+		err := testEditor.Edit(test.fileName)
+		if err == nil {
+			t.Fatalf("should be error for %v but not:", test.fileName)
+		}
+	}
+}
+
+func TestEditor_Edit1(t *testing.T) {
 	privateKey, err := ioutil.ReadFile(KEY_DIR + "/private-key.pem")
 	if err != nil {
 		panic(err)

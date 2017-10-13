@@ -38,6 +38,9 @@ func edit(ctx *gin.Context) {
 }
 
 func main() {
+	if getenv.Bool("FAULT") {
+		os.Exit(1)
+	}
 	go func() {
 		<-killer
 		time.Sleep(500 * time.Millisecond)
