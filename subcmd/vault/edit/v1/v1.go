@@ -1,8 +1,8 @@
 package v1
 
 import (
+	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/gin-gonic/gin/json"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/kms"
 	"github.com/jobtalk/pnzr/subcmd/vault/edit/util"
@@ -32,9 +32,22 @@ func (e *Editor) Edit(fileName string) error {
 	if err := json.NewDecoder(f).Decode(container); err != nil {
 		return err
 	}
-
-	if _, err := e.c.Edit(container); err != nil {
+	result, err := e.c.Edit(container)
+	if err != nil {
 		return err
 	}
+
+	w, err := os.OpenFile(fileName, os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "    ")
+
+	if err := encoder.Encode(result); err != nil {
+		return err
+	}
+
 	return nil
 }
