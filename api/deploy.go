@@ -15,15 +15,15 @@ type DeployDeps struct {
 // 存在するときはアップデートする
 func (d *DeployDeps) Deploy(s *setting.Setting) (interface{}, error) {
 	var result = []interface{}{}
-	if s.ECS != nil && s.ECS.TaskDefinition != nil {
-		resultTaskDefinition, err := d.ecs.RegisterTaskDefinition(s.ECS.TaskDefinition)
+	if s != nil && s.TaskDefinition != nil {
+		resultTaskDefinition, err := d.ecs.RegisterTaskDefinition(s.TaskDefinition)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, resultTaskDefinition)
 	}
-	if s.ECS != nil && s.ECS.Service != nil {
-		resultUpsert, err := d.ecs.UpsertService(s.ECS.Service)
+	if s != nil && s.Service != nil {
+		resultUpsert, err := d.ecs.UpsertService(s.Service)
 		if err != nil {
 			return nil, err
 		}

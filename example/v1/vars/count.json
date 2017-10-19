@@ -1,0 +1,7 @@
+{
+    "encryption_type": "kms",
+    "values": {
+        "array": "AQECAHh5q0tFgkoZemC6czjL/QJ6+DlDwjLL6N3YmGIcYUKyuwAAAHcwdQYJKoZIhvcNAQcGoGgwZgIBADBhBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDIfJ4JuWea2MQ+TfjQIBEIA0qy84d8KDtpLsm3MGxtbFzQYmLN9MaW0KUuN9MXbFqwEMSvr0ZpZp0kIIhQdgSvv+tj0SKg==",
+        "count": "AQECAHh5q0tFgkoZemC6czjL/QJ6+DlDwjLL6N3YmGIcYUKyuwAAAGcwZQYJKoZIhvcNAQcGoFgwVgIBADBRBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDEZAFJxwNJtHGcXTxAIBEIAk7FwlkxxQFnO/2IdSsdf8pUAYcevOylxNHXk2RcYSQhW8794P"
+    }
+}
