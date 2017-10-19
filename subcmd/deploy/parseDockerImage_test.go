@@ -8,9 +8,9 @@ func TestParseDockerImage(t *testing.T) {
 		tag string
 	}
 	tests := []struct {
-		in   string
-		want wantSt
-		err  bool
+		in         string
+		want       wantSt
+		expectsErr bool
 	}{
 		{
 			"foo.bar.baz",
@@ -28,18 +28,18 @@ func TestParseDockerImage(t *testing.T) {
 			false,
 		},
 		{
-			in:  "foo:bar:baz:hoge",
-			err: true,
+			in:         "foo:bar:baz:hoge",
+			expectsErr: true,
 		},
 	}
 
 	for _, test := range tests {
 		url, tag, err := parseDockerImage(test.in)
 
-		if !test.err && err != nil {
+		if !test.expectsErr && err != nil {
 			t.Fatalf("should not be error for %v but: %v", test.in, err)
 		}
-		if test.err && err == nil {
+		if test.expectsErr && err == nil {
 			t.Fatalf("should be error for %v but not:", test.in)
 		}
 		if test.want.tag != tag || test.want.url != url {

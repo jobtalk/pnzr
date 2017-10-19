@@ -1,15 +1,10 @@
-package lib
+package embedde
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 )
-
-func isJSON(s string) bool {
-	var v interface{}
-	return nil == json.Unmarshal([]byte(s), &v)
-}
 
 func Embedde(base, val string) (string, error) {
 	// 埋め込み用の値をjsonからデコードする

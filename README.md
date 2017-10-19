@@ -89,3 +89,21 @@ $ pnzr vault edit -f target.json
 $ pnzr vault view -profile use-mfa-user -f deploy-config.json 
 Assume Role MFA token code: ******
 ```
+
+# use any editor in edit mode
+It run when assigning editor name to EDITOR.
+
+## vim
+```
+$ EDITOR=vim pnzr vault edit -f /path/to/target
+```
+
+## vscode
+```
+$ EDITOR="code --wait" pnzr vault edit -f /path/to/target
+```
+
+## atom
+```
+$ EDITOR="atom --wait" pnzr vault edit -f /path/to/target
+```

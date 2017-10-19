@@ -1,28 +1,29 @@
 package deploy
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
 	"testing"
+
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 func TestDeployCommand_parseArgs(t *testing.T) {
 	tests := []struct {
-		input []string
-		want  *params
-		help  bool
-		err   bool
+		input      []string
+		want       *params
+		help       bool
+		expectsErr bool
 	}{
 		{
-			input: []string{},
-			want:  &params{},
-			help:  false,
-			err:   false,
+			input:      []string{},
+			want:       &params{},
+			help:       false,
+			expectsErr: false,
 		},
 		{
-			input: []string{"-h"},
-			want:  &params{},
-			help:  true,
-			err:   false,
+			input:      []string{"-h"},
+			want:       &params{},
+			help:       true,
+			expectsErr: false,
 		},
 		{
 			input: []string{
@@ -32,15 +33,15 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				kmsKeyID: aws.String("hoge"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
 				"-key_id",
 			},
-			help: false,
-			err:  true,
+			help:       false,
+			expectsErr: true,
 		},
 		{
 			input: []string{
@@ -50,15 +51,15 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				file: aws.String("hoge"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
 				"-f",
 			},
-			help: false,
-			err:  true,
+			help:       false,
+			expectsErr: true,
 		},
 		{
 			input: []string{
@@ -68,15 +69,15 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				file: aws.String("huga"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
 				"-file",
 			},
-			help: false,
-			err:  true,
+			help:       false,
+			expectsErr: true,
 		},
 		{
 			input: []string{
@@ -85,8 +86,8 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				file: aws.String("foo"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
@@ -96,16 +97,16 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				file: aws.String("huga"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
 				"-f", "hoge",
 				"-file",
 			},
-			help: false,
-			err:  true,
+			help:       false,
+			expectsErr: true,
 		},
 		{
 			input: []string{
@@ -116,8 +117,8 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				file: aws.String("huga"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
@@ -126,8 +127,8 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				profile: aws.String("ap-northeast-1"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
@@ -136,8 +137,8 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				varsPath: aws.String("hoge"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
@@ -146,8 +147,8 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				overrideTag: aws.String("hoge"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
@@ -156,8 +157,8 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				awsAccessKey: aws.String("hoge"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
@@ -166,15 +167,15 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 			want: &params{
 				awsSecretKey: aws.String("hoge"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 		{
 			input: []string{
 				"-aaaaaaaa",
 			},
-			help: false,
-			err:  true,
+			help:       false,
+			expectsErr: true,
 		},
 		{
 			input: []string{
@@ -197,24 +198,24 @@ func TestDeployCommand_parseArgs(t *testing.T) {
 				awsAccessKey: aws.String("access_key"),
 				awsSecretKey: aws.String("secret_key"),
 			},
-			help: false,
-			err:  false,
+			help:       false,
+			expectsErr: false,
 		},
 	}
 
 	for _, test := range tests {
 		func(test struct {
-			input []string
-			want  *params
-			help  bool
-			err   bool
+			input      []string
+			want       *params
+			help       bool
+			expectsErr bool
 		}) {
 			defer func() {
 				err := recover()
-				if !test.err && err != nil {
+				if !test.expectsErr && err != nil {
 					t.Fatalf("should not be error for %v but: %v", test.input, err)
 				}
-				if test.err && err == nil {
+				if test.expectsErr && err == nil {
 					t.Fatalf("should be error for %v but not:", test.input)
 				}
 			}()

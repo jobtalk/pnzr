@@ -17,16 +17,14 @@ func TestDeploy(t *testing.T) {
 
 	// Settings
 	onlyService := setting.Setting{
-		ECS: &setting.ECS{Service: service},
+		Service: service,
 	}
 	onlyTaskDefinition := setting.Setting{
-		ECS: &setting.ECS{TaskDefinition: taskDefinition},
+		TaskDefinition: taskDefinition,
 	}
 	both := setting.Setting{
-		ECS: &setting.ECS{
-			Service:        service,
-			TaskDefinition: taskDefinition,
-		},
+		Service:        service,
+		TaskDefinition: taskDefinition,
 	}
 
 	// UpsertService のみが呼ばれる
