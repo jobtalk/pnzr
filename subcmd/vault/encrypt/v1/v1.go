@@ -2,11 +2,11 @@ package v1
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/kms"
 	"io/ioutil"
-	"fmt"
 )
 
 type Encrypter struct {
