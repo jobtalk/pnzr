@@ -1,10 +1,10 @@
 hash: 1fac9d267dae0853b48e86832489dbd402744cc8df1fbbb8646190f60d0b23b4
-updated: 2017-10-13T17:23:26.620358277+09:00
+updated: 2017-10-20T17:28:03.449650028+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: 7cb0cfd8c7a20efc2ec149e50eb55fc770c673d8
+  version: 1e7792b681d9bc32eff919999321b2589e891688
   subpackages:
   - aws
   - aws/awserr
@@ -44,15 +44,14 @@ imports:
 - name: github.com/gin-contrib/sse
   version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
 - name: github.com/gin-gonic/gin
-  version: b8b68314faa067acae5b17c828127b04af51ebe2
+  version: d459835d2b077e44f7c9b453505ee29881d5d12d
   subpackages:
   - binding
-  - json
   - render
 - name: github.com/go-ini/ini
   version: e7fea39b01aea8d5671f6858f0532f56e8bff3a5
 - name: github.com/golang/protobuf
-  version: 5a0f697c9ed9d68fef0116532c6e05cfeae00e55
+  version: 748d386b5c1ea99658fd69fe9f03991ce86a90c1
   subpackages:
   - proto
 - name: github.com/ieee0824/cryptex
@@ -64,19 +63,17 @@ imports:
 - name: github.com/ieee0824/getenv
   version: c0967c2a6018ada0a7537084588ee1e5084b09ac
 - name: github.com/ieee0824/jec
-  version: d7aa1b6b40b60859064742ec2aed49e5b26660bd
+  version: 2c90ef2a8c1fb51436bc11dea21b0e87214244b3
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/joho/godotenv
   version: a79fa1e548e2c689c241d10173efd51e5d689d5b
-- name: github.com/json-iterator/go
-  version: 6240e1e7983a85228f7fd9c3e1b6932d46ec58e2
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mitchellh/cli
   version: ee8578a9c12a5bb9d55303b9665cc448772c81b8
 - name: github.com/ugorji/go
-  version: c8210b25554128b6d32628ab706ac43706e37ae0
+  version: 5efa3251c7f7d05e5d9704a69a984ec9f1386a40
   subpackages:
   - codec
 - name: golang.org/x/sys
@@ -86,5 +83,5 @@ imports:
 - name: gopkg.in/go-playground/validator.v8
   version: 5f1438d3fca68893a817e4a66806cea46a9e4ebf
 - name: gopkg.in/yaml.v2
-  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
+  version: 25c4ec802a7d637f88d584ab26798e94ad14c13b
 testImports: []
