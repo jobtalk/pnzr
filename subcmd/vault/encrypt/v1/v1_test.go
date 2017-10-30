@@ -109,7 +109,11 @@ func (t *encrypterTester) fin() error {
 	return nil
 }
 
-func (tester *encrypterTester) run(t *testing.T, tests map[string]testInput) error {
+func (tester *encrypterTester) run(t *testing.T, tests map[string]testInput, f func(t *testing.T, tester *encrypterTester, tests map[string]testInput) error) error {
+	return f(t, tester, tests)
+}
+
+func encryptTestRun(t *testing.T, tester *encrypterTester, tests map[string]testInput) error {
 	for key, test := range tests {
 		err := tester.encrypter.Encrypt("", fmt.Sprintf("%s/%v", tester.COPY_TEST_DIR, key))
 		if err != nil {
@@ -147,6 +151,20 @@ func (tester *encrypterTester) run(t *testing.T, tests map[string]testInput) err
 				t.Log(string(decrypted))
 				t.Fatalf("not match")
 			}
+		}
+	}
+	return nil
+}
+
+func alreadyEncryptErrorTestRun(t *testing.T, tester *encrypterTester, tests map[string]testInput) error {
+	for key, _ := range tests {
+		err := tester.encrypter.Encrypt("", fmt.Sprintf("%s/%v", tester.COPY_TEST_DIR, key))
+		if err != nil {
+			return err
+		}
+		err = tester.encrypter.Encrypt("", fmt.Sprintf("%s/%v", tester.COPY_TEST_DIR, key))
+		if err == nil {
+			t.Fatalf("should be error")
 		}
 	}
 	return nil
@@ -212,7 +230,28 @@ func TestEncrypter_Encrypt(t *testing.T) {
 		}
 	}()
 
-	if err := tester.run(t, tests); err != nil {
+	if err := tester.run(t, tests, encryptTestRun); err != nil {
+		panic(err)
+	}
+}
+
+func TestEncrypter_AlreadyEncrypt(t *testing.T) {
+	tests := map[string]testInput{
+		"0.json": {
+			true,
+		},
+	}
+	tester, err := newEncrypterTester()
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := tester.fin(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err := tester.run(t, tests, alreadyEncryptErrorTestRun); err != nil {
 		panic(err)
 	}
 }

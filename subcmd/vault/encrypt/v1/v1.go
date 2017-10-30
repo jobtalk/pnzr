@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/kms"
@@ -19,13 +20,17 @@ func New(s *session.Session, keyID string) *Encrypter {
 }
 
 func (e *Encrypter) Encrypt(keyID, fileName string) error {
-	var plain interface{}
+	var plain map[string]interface{}
 	bin, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
 	if err := json.Unmarshal(bin, &plain); err != nil {
 		return err
+	}
+
+	if _, ok := plain["encryption_type"]; ok {
+		return fmt.Errorf("%s is already encrypted", fileName)
 	}
 
 	cipher, err := e.c.Encrypt(plain)
