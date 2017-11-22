@@ -73,8 +73,21 @@ $ pnzr vault decrypt -f target.json
 
 ### Viewer mode of encrypted setting file
 
+#### latest config version
 ```
 $ pnzr vault view -f target.json
+```
+
+#### choose config version
+```
+$ pnzr vault view -v prototype -а target.json
+```
+
+#### check default config version
+```
+$pnzr vault view -h
+  -v string
+    	config version (default "1.0")
 ```
 
 ### Edit mode of encrypted file
