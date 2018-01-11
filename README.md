@@ -73,8 +73,21 @@ $ pnzr vault decrypt -f target.json
 
 ### Viewer mode of encrypted setting file
 
+#### latest config version
 ```
 $ pnzr vault view -f target.json
+```
+
+#### choose config version
+```
+$ pnzr vault view -v prototype -а target.json
+```
+
+#### check default config version
+```
+$pnzr vault view -h
+  -v string
+    	config version (default "1.0")
 ```
 
 ### Edit mode of encrypted file
@@ -88,4 +101,22 @@ $ pnzr vault edit -f target.json
 ```
 $ pnzr vault view -profile use-mfa-user -f deploy-config.json 
 Assume Role MFA token code: ******
+```
+
+# use any editor in edit mode
+It run when assigning editor name to EDITOR.
+
+## vim
+```
+$ EDITOR=vim pnzr vault edit -f /path/to/target
+```
+
+## vscode
+```
+$ EDITOR="code --wait" pnzr vault edit -f /path/to/target
+```
+
+## atom
+```
+$ EDITOR="atom --wait" pnzr vault edit -f /path/to/target
 ```

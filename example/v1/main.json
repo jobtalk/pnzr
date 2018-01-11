@@ -1,0 +1,42 @@
+{
+    "Service": {
+        "Cluster": "test-cluster",
+        "DeploymentConfiguration": {
+            "MaximumPercent": 200,
+            "MinimumHealthyPercent": 100
+        },
+        "DesiredCount": "$count",
+        "LoadBalancers": [
+            {
+                "ContainerName": "app",
+                "ContainerPort": 8080,
+                "TargetGroupArn": "targetgroup arn"
+            }
+        ],
+        "Role": "ecsServiceRole",
+        "ServiceName": "dummy-app",
+        "TaskDefinition": "dummy-app"
+    },
+    "TaskDefinition": {
+        "ContainerDefinitions": [
+            {
+                "Cpu": 0,
+                "Essential": true,
+                "Image": "ieee0824/dummy-app:$tag",
+                "Memory": 128,
+                "Name": "app",
+                "PortMappings": [
+                    {
+                        "ContainerPort": 8080,
+                        "HostPort": 0,
+                        "Protocol": "tcp"
+                    }
+                ]
+            }
+        ],
+        "Family": "dummy-app",
+        "NetworkMode": "bridge",
+        "TaskRoleArn": "task role arn"
+    },
+    "Version": 1
+}
