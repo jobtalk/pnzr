@@ -14,6 +14,10 @@ jobs:
                     go get github.com/Masterminds/glide
                     go install github.com/Masterminds/glide
             - run:
+                name: "Install dep"
+                command: |
+                    go get -u github.com/golang/dep/cmd/dep
+            - run:
                 name: "check fmt"
                 command: |
                     if [ $(go fmt $(glide nv) | wc -l) -eq 0 ]; then
@@ -29,7 +33,7 @@ jobs:
             - run:
                 name: "Install packages"
                 command: |
-                    glide i
+                    dep ensure
             - run:
                 name: "run test"
                 command: |
