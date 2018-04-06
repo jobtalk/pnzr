@@ -3,7 +3,7 @@ jobs:
     build:
         working_directory: /go/src/github.com/jobtalk/pnzr
         docker:
-            - image: golang:1.9.2
+            - image: golang:1.9.5
               environment:
                   GO15VENDOREXPERIMENT: 1
         steps:
@@ -13,6 +13,10 @@ jobs:
                 command: |
                     go get github.com/Masterminds/glide
                     go install github.com/Masterminds/glide
+            - run:
+                name: "Install dep"
+                command: |
+                    go get -u github.com/golang/dep/cmd/dep
             - run:
                 name: "check fmt"
                 command: |
@@ -29,7 +33,7 @@ jobs:
             - run:
                 name: "Install packages"
                 command: |
-                    glide i
+                    dep ensure
             - run:
                 name: "run test"
                 command: |
