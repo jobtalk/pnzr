@@ -23,14 +23,6 @@ test_steps: &test_steps
                 go install github.com/Masterminds/glide
                 go get -u github.com/golang/dep/cmd/dep
         - run:
-            name: "check fmt"
-            command: |
-                if [ $(go fmt $(glide nv) | wc -l) -eq 0 ]; then
-                    exit 0
-                fi
-                echo "Go fmt is not applied."
-                exit 1
-        - run:
             name: "Install packages"
             command: |
                 dep ensure
@@ -38,7 +30,27 @@ test_steps: &test_steps
             name: "run test"
             command: |
                 go test -cover $(glide novendor)
+check_fmt: &check_fmt
+    steps:
+        - checkout
+        - run:
+            name: "setup"
+            command: |
+                go get github.com/Masterminds/glide
+                go install github.com/Masterminds/glide
+        - run:
+            name: "check fmt"
+            command: |
+                if [ $(go fmt $(glide nv) | wc -l) -eq 0 ]; then
+                    exit 0
+                fi
+                echo "Go fmt is not applied."
+                exit 1
 jobs:
+    check_fmt:
+        <<: *go1_10
+        <<: *check_fmt
+
     test_1_10:
         <<: *go1_10
         <<: *test_steps
@@ -91,11 +103,13 @@ workflows:
     version: 2
     apply:
         jobs:
+            - check_fmt
             - test_1_10
             - test_1_9
             - test_1_8
             - build:
                 requires:
+                    - check_fmt
                     - test_1_10
                     - test_1_9
                     - test_1_8
