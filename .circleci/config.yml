@@ -12,21 +12,19 @@ go1_8: &go1_8
     working_directory: /go/src/github.com/jobtalk/pnzr
     docker:
         - image: golang:1.8
-tasks:
-    - run: &setup
-        name: "setup"
-        command: |
-            go get github.com/Masterminds/glide
-            go install github.com/Masterminds/glide
-            go get -u github.com/golang/dep/cmd/dep
 
 jobs:
-    build:
+    test_1_10:
         <<: *go1_10
         steps:
             - checkout
-            - *setup
-            - run:
+            - run: &setup
+                name: "setup"
+                command: |
+                    go get github.com/Masterminds/glide
+                    go install github.com/Masterminds/glide
+                    go get -u github.com/golang/dep/cmd/dep
+            - run: &check_fmt
                 name: "check fmt"
                 command: |
                     if [ $(go fmt $(glide nv) | wc -l) -eq 0 ]; then
@@ -34,19 +32,25 @@ jobs:
                     fi
                     echo "Go fmt is not applied."
                     exit 1
+            - run: &install_packages
+                name: "Install packages"
+                command: |
+                    dep ensure
+            - run: &run_test
+                name: "run test"
+                command: |
+                    go test -cover $(glide novendor)
+    build:
+        <<: *go1_10
+        steps:
+            - checkout
+            - *steps
             - run:
                 name: "Install github-release"
                 command: |
                     go get github.com/aktau/github-release
                     go install github.com/aktau/github-release
-            - run:
-                name: "Install packages"
-                command: |
-                    dep ensure
-            - run:
-                name: "run test"
-                command: |
-                    go test -cover $(glide novendor)
+            - *install_packages
             - run:
                 name: "build pnzr"
                 command: |
@@ -65,3 +69,9 @@ jobs:
                         github-release upload -u jobtalk -r pnzr -t "${VERSION}" --name "pnzr-darwin-amd64" --file bin/darwin/pnzr
                         github-release upload -u jobtalk -r pnzr -t "${VERSION}" --name "pnzr-linux-amd64" --file bin/linux/pnzr
                     fi
+workflows:
+    version: 2
+    apply:
+        jobs:
+            - test_1_10
+            - build
