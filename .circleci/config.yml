@@ -4,12 +4,24 @@ go1_10: &go1_10
     working_directory: /go/src/github.com/jobtalk/pnzr
     docker:
         - image: golang:1.10.2
+go1_9: &go1_9
+    working_directory: /go/src/github.com/jobtalk/pnzr
+    docker:
+        - image: golang:1.9
+go1_8: &go1_8
+    working_directory: /go/src/github.com/jobtalk/pnzr
+    docker:
+        - image: golang:1.8
+setups: &setups
+    - checkout
+
+
 
 jobs:
     build:
         <<: *go1_10
         steps:
-            - checkout
+            <<: *setups
             - run:
                 name: "Install glide"
                 command: |
