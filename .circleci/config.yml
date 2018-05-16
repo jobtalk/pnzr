@@ -94,7 +94,7 @@ workflows:
             - test_1_10
             - test_1_9
             - test_1_8
-            - build
+            - build:
                 requires:
                     - test_1_10
                     - test_1_9
