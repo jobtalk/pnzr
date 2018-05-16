@@ -12,7 +12,7 @@ go1_8: &go1_8
     working_directory: /go/src/github.com/jobtalk/pnzr
     docker:
         - image: golang:1.8
-- run: &setup
+run: &setup
     name: "setup"
     command: |
         go get github.com/Masterminds/glide
