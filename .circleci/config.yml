@@ -13,44 +13,56 @@ go1_8: &go1_8
     docker:
         - image: golang:1.8
 
+test_steps: &test_steps
+    steps:
+        - checkout
+        - run:
+            name: "setup"
+            command: |
+                go get github.com/Masterminds/glide
+                go install github.com/Masterminds/glide
+                go get -u github.com/golang/dep/cmd/dep
+        - run:
+            name: "check fmt"
+            command: |
+                if [ $(go fmt $(glide nv) | wc -l) -eq 0 ]; then
+                    exit 0
+                fi
+                echo "Go fmt is not applied."
+                exit 1
+        - run:
+            name: "Install packages"
+            command: |
+                dep ensure
+        - run:
+            name: "run test"
+            command: |
+                go test -cover $(glide novendor)
 jobs:
     test_1_10:
         <<: *go1_10
+        <<: *test_steps
+        
+    build:
+        <<: *go1_10
         steps:
             - checkout
-            - run: &setup
+            - run:
                 name: "setup"
                 command: |
                     go get github.com/Masterminds/glide
                     go install github.com/Masterminds/glide
                     go get -u github.com/golang/dep/cmd/dep
-            - run: &check_fmt
-                name: "check fmt"
-                command: |
-                    if [ $(go fmt $(glide nv) | wc -l) -eq 0 ]; then
-                        exit 0
-                    fi
-                    echo "Go fmt is not applied."
-                    exit 1
-            - run: &install_packages
-                name: "Install packages"
-                command: |
-                    dep ensure
-            - run: &run_test
-                name: "run test"
-                command: |
-                    go test -cover $(glide novendor)
-    build:
-        <<: *go1_10
-        steps:
-            - checkout
-            - *setup
+
             - run:
                 name: "Install github-release"
                 command: |
                     go get github.com/aktau/github-release
                     go install github.com/aktau/github-release
-            - *install_packages
+            - run:
+                name: "Install packages"
+                command: |
+                    dep ensure
             - run:
                 name: "build pnzr"
                 command: |
