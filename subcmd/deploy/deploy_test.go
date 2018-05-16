@@ -2,9 +2,10 @@ package deploy
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
 	"os"
 	"testing"
+
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 var (
@@ -61,7 +62,7 @@ func TestCompareStringPointer(t *testing.T) {
 		got := compareStringPointer(test.inS1, test.inS2)
 
 		if got != test.want {
-			t.Fatalf("want %q, but %q:", test.want, got)
+			t.Fatalf("want %v, but %v:", test.want, got)
 		}
 	}
 }
