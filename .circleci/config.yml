@@ -44,7 +44,7 @@ jobs:
         <<: *go1_10
         steps:
             - checkout
-            - *steps
+            - *setup
             - run:
                 name: "Install github-release"
                 command: |
