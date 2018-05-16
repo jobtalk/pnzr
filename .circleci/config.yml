@@ -96,7 +96,7 @@ jobs:
                     fi
 workflows:
     version: 2
-    test and build:
+    test_and_build:
         jobs:
             - check_fmt
             - test_1_10
