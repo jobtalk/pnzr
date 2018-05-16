@@ -1,31 +1,13 @@
 version: 2
 
-references:
-    setup: &setup
-        - run:
-            name: "Install glide"
-            command: |
-                go get github.com/Masterminds/glide
-                go install github.com/Masterminds/glide
-        - run:
-            name: "Install dep"
-            command: |
-                go get -u github.com/golang/dep/cmd/dep
-jobs:
-    test_1_10_x:
-        working_directory: /go/src/github.com/jobtalk/pnzr
-        docker:
-            - image: golang:1.10.2
-        steps:
-            - checkout
-            <<: *setup
+go1_10: &go1_10 
+    working_directory: /go/src/github.com/jobtalk/pnzr
+    docker:
+        - image: golang:1.10.2
 
+jobs:
     build:
-        working_directory: /go/src/github.com/jobtalk/pnzr
-        docker:
-            - image: golang:1.10.2
-              environment:
-                  GO15VENDOREXPERIMENT: 1
+        <<: *go1_10
         steps:
             - checkout
             - run:
@@ -76,8 +58,3 @@ jobs:
                         github-release upload -u jobtalk -r pnzr -t "${VERSION}" --name "pnzr-darwin-amd64" --file bin/darwin/pnzr
                         github-release upload -u jobtalk -r pnzr -t "${VERSION}" --name "pnzr-linux-amd64" --file bin/linux/pnzr
                     fi
-workflows:
-    version: 2
-    apply:
-        jobs:
-            - test_1_10_x
