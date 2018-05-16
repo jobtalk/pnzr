@@ -12,18 +12,20 @@ go1_8: &go1_8
     working_directory: /go/src/github.com/jobtalk/pnzr
     docker:
         - image: golang:1.8
+tasks:
+    - run: &setup
+        name: "setup"
+        command: |
+            go get github.com/Masterminds/glide
+            go install github.com/Masterminds/glide
+            go get -u github.com/golang/dep/cmd/dep
 
 jobs:
     build:
         <<: *go1_10
         steps:
             - checkout
-            - run: &setup
-                name: "setup"
-                command: |
-                    go get github.com/Masterminds/glide
-                    go install github.com/Masterminds/glide
-                    go get -u github.com/golang/dep/cmd/dep
+            - *setup
             - run:
                 name: "check fmt"
                 command: |
