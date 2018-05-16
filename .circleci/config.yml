@@ -42,7 +42,13 @@ jobs:
     test_1_10:
         <<: *go1_10
         <<: *test_steps
-        
+    test_1_9:
+        <<: *go1_9
+        <<: *test_steps
+    test_1_8:
+        <<: *go1_8
+        <<: *test_steps
+
     build:
         <<: *go1_10
         steps:
@@ -86,4 +92,10 @@ workflows:
     apply:
         jobs:
             - test_1_10
+            - test_1_9
+            - test_1_8
             - build
+                requires:
+                    - test_1_10
+                    - test_1_9
+                    - test_1_8
