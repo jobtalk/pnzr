@@ -20,6 +20,7 @@ ecs deploy docker container
 The pnzr package works on Go versions:
 * 1.8.x and greater
 * 1.9.x and greater
+* 1.10.x and greater
 
 ## Installation
 Can be installed in either way.
