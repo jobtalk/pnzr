@@ -2,8 +2,9 @@ package setting
 
 import (
 	"encoding/json"
-	"github.com/aws/aws-sdk-go/service/ecs"
 	"io/ioutil"
+
+	"github.com/aws/aws-sdk-go/service/ecs"
 )
 
 type Setting struct {

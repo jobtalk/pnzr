@@ -40,7 +40,7 @@ func TestIsEncrypted(t *testing.T) {
 	for _, test := range tests {
 		got := NewLoader(nil, nil).isEncrypted([]byte(test.input))
 		if got != test.want {
-			t.Fatalf("want %q, but %q:", test.want, got)
+			t.Fatalf("want %v, but %v:", test.want, got)
 		}
 	}
 }

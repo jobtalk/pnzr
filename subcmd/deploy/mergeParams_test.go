@@ -2,11 +2,12 @@ package deploy
 
 import (
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/jobtalk/pnzr/vars"
 	"github.com/joho/godotenv"
-	"os"
-	"testing"
 )
 
 func TestStringIsEmpty(t *testing.T) {
@@ -31,7 +32,7 @@ func TestStringIsEmpty(t *testing.T) {
 	for _, test := range tests {
 		got := stringIsEmpty(test.input)
 		if test.want != got {
-			t.Fatalf("want %q, but %q:", test.want, got)
+			t.Fatalf("want %v, but %v:", test.want, got)
 		}
 	}
 }
