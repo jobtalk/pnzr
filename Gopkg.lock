@@ -90,8 +90,8 @@
     "kms",
     "rsa"
   ]
-  revision = "fcc4a223560a23187d7d15f2c9289ecf258322e0"
-  version = "v0.2.5"
+  revision = "8031f3a97f8dc0ab6c574ec70c928d40521b4685"
+  version = "v0.2.6"
 
 [[projects]]
   name = "github.com/ieee0824/getenv"
