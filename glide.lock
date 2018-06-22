@@ -1,10 +1,10 @@
 hash: 1fac9d267dae0853b48e86832489dbd402744cc8df1fbbb8646190f60d0b23b4
-updated: 2017-10-20T17:28:03.449650028+09:00
+updated: 2018-06-22T16:35:02.004604545+09:00
 imports:
 - name: github.com/armon/go-radix
   version: 4239b77079c7b5d1243b7b4736304ce8ddb6f0f2
 - name: github.com/aws/aws-sdk-go
-  version: 1e7792b681d9bc32eff919999321b2589e891688
+  version: fde4ded7becdeae4d26bf1212916aabba79349b4
   subpackages:
   - aws
   - aws/awserr
@@ -16,12 +16,15 @@ imports:
   - aws/credentials/ec2rolecreds
   - aws/credentials/endpointcreds
   - aws/credentials/stscreds
+  - aws/csm
   - aws/defaults
   - aws/ec2metadata
   - aws/endpoints
   - aws/request
   - aws/session
   - aws/signer/v4
+  - internal/sdkio
+  - internal/sdkrand
   - internal/shareddefaults
   - private/protocol
   - private/protocol/json/jsonutil
@@ -55,7 +58,7 @@ imports:
   subpackages:
   - proto
 - name: github.com/ieee0824/cryptex
-  version: fcc4a223560a23187d7d15f2c9289ecf258322e0
+  version: 8031f3a97f8dc0ab6c574ec70c928d40521b4685
   subpackages:
   - encryptor
   - kms
@@ -83,5 +86,5 @@ imports:
 - name: gopkg.in/go-playground/validator.v8
   version: 5f1438d3fca68893a817e4a66806cea46a9e4ebf
 - name: gopkg.in/yaml.v2
-  version: 25c4ec802a7d637f88d584ab26798e94ad14c13b
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports: []
