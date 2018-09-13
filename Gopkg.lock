@@ -2,11 +2,14 @@
 
 
 [[projects]]
+  digest = "1:9850f24c7656d8a11d6634c433fae31f2ffd5e5513daf453f51c7f345bc53a38"
   name = "github.com/armon/go-radix"
   packages = ["."]
+  pruneopts = "UT"
   revision = "4239b77079c7b5d1243b7b4736304ce8ddb6f0f2"
 
 [[projects]]
+  digest = "1:28ea07434d0d4379522f1f487603c1a9144ad572f055bc7dceaa097fba14acd5"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -19,6 +22,7 @@
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
     "aws/credentials/stscreds",
+    "aws/csm",
     "aws/defaults",
     "aws/ec2metadata",
     "aws/endpoints",
@@ -27,6 +31,7 @@
     "aws/signer/v4",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/json/jsonutil",
@@ -39,118 +44,170 @@
     "service/ecs/ecsiface",
     "service/kms",
     "service/kms/kmsiface",
-    "service/sts"
+    "service/sts",
   ]
-  revision = "f6efafab9ddced9880456bc53096fa79f4596f5e"
-  version = "v1.13.27"
+  pruneopts = "UT"
+  revision = "71a2a92b0063297b055b6f5a014d441c142da2ce"
+  version = "v1.15.32"
 
 [[projects]]
+  digest = "1:c8982287c8e7569c515f405828fa045065fc0e03e25c9432e12ad4d75e6e3c8c"
   name = "github.com/bgentry/speakeasy"
   packages = ["."]
+  pruneopts = "UT"
   revision = "675b82c74c0ed12283ee81ba8a534c8982c07b85"
 
 [[projects]]
+  digest = "1:2cd7915ab26ede7d95b8749e6b1f933f1c6d5398030684e6505940a10f31cfda"
   name = "github.com/ghodss/yaml"
   packages = ["."]
+  pruneopts = "UT"
   revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
   version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:36fe9527deed01d2a317617e59304eb2c4ce9f8a24115bcc5c2e37b3aee5bae4"
   name = "github.com/gin-contrib/sse"
   packages = ["."]
+  pruneopts = "UT"
   revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
 
 [[projects]]
+  digest = "1:489e108f21464371ebf9cb5c30b1eceb07c6dd772dff073919267493dd9d04ea"
   name = "github.com/gin-gonic/gin"
   packages = [
     ".",
     "binding",
-    "render"
+    "render",
   ]
+  pruneopts = "UT"
   revision = "d459835d2b077e44f7c9b453505ee29881d5d12d"
   version = "v1.2"
 
 [[projects]]
+  digest = "1:f779e6a6b3a143d9fd6cbc8e1c3ddfbe42df2cbab0ecabe66669a609a56460b8"
   name = "github.com/go-ini/ini"
   packages = ["."]
+  pruneopts = "UT"
   revision = "e7fea39b01aea8d5671f6858f0532f56e8bff3a5"
   version = "v1.27.0"
 
 [[projects]]
+  digest = "1:9b0e71863f18fc5de645a263184c8a6409ae731e847b35b25da4be818f1975fa"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
+  pruneopts = "UT"
   revision = "748d386b5c1ea99658fd69fe9f03991ce86a90c1"
 
 [[projects]]
+  digest = "1:7ed04e304baf9cd04ba6e1b0726148bbdf7ef581e3f6c2c45a0a475b8715749b"
   name = "github.com/ieee0824/cryptex"
   packages = [
     ".",
     "encryptor",
     "kms",
-    "rsa"
+    "rsa",
   ]
+  pruneopts = "UT"
   revision = "8031f3a97f8dc0ab6c574ec70c928d40521b4685"
   version = "v0.2.6"
 
 [[projects]]
+  digest = "1:054bce5d5e8f686f1157ab39b5ac993d7dd2797632966ba998a6105ab60829dd"
   name = "github.com/ieee0824/getenv"
   packages = ["."]
+  pruneopts = "UT"
   revision = "c0967c2a6018ada0a7537084588ee1e5084b09ac"
   version = "v0.2"
 
 [[projects]]
+  digest = "1:5f70ee8b9de2cfbc00d9466dd44d0a6cc5a97d9cf47d2a0ee9648f07982c0784"
   name = "github.com/ieee0824/jec"
   packages = ["."]
+  pruneopts = "UT"
   revision = "2c90ef2a8c1fb51436bc11dea21b0e87214244b3"
   version = "v1.0.1"
 
 [[projects]]
+  digest = "1:e22af8c7518e1eab6f2eab2b7d7558927f816262586cd6ed9f349c97a6c285c4"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
+  pruneopts = "UT"
   revision = "0b12d6b5"
 
 [[projects]]
+  digest = "1:70e697d67ccaec45e16bac3a32380ebcd9e7e071079c60d0171d42cf1cf9748a"
   name = "github.com/joho/godotenv"
   packages = ["."]
+  pruneopts = "UT"
   revision = "a79fa1e548e2c689c241d10173efd51e5d689d5b"
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:fa610f9fe6a93f4a75e64c83673dfff9bf1a34bbb21e6102021b6bc7850834a3"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
+  pruneopts = "UT"
   revision = "fc9e8d8ef48496124e79ae0df75490096eccf6fe"
   version = "v0.0.2"
 
 [[projects]]
+  digest = "1:778be55b0ed9f92c9258628fc8a61eaaff715c18b8bf968acb8658d02ced0935"
   name = "github.com/mitchellh/cli"
   packages = ["."]
+  pruneopts = "UT"
   revision = "ee8578a9c12a5bb9d55303b9665cc448772c81b8"
 
 [[projects]]
+  digest = "1:4692f16a37b264e3b69e741506428c50a00db32f9a2f600c1dd8f1f2936c5347"
   name = "github.com/ugorji/go"
   packages = ["codec"]
+  pruneopts = "UT"
   revision = "5efa3251c7f7d05e5d9704a69a984ec9f1386a40"
 
 [[projects]]
+  digest = "1:bbf324989601c1c64369916ecc2aee2c0e7249f616c1720ebc7c449735692dc2"
   name = "golang.org/x/sys"
   packages = ["unix"]
+  pruneopts = "UT"
   revision = "f3918c30c5c2cb527c0b071a27c35120a6c0719a"
 
 [[projects]]
+  digest = "1:cbc72c4c4886a918d6ab4b95e347ffe259846260f99ebdd8a198c2331cf2b2e9"
   name = "gopkg.in/go-playground/validator.v8"
   packages = ["."]
+  pruneopts = "UT"
   revision = "5f1438d3fca68893a817e4a66806cea46a9e4ebf"
   version = "v8.18.2"
 
 [[projects]]
+  digest = "1:1883ec914995921bfc6c1c39a46d1ed153f37ddc6f5348ace363725917dcf476"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = "UT"
   revision = "25c4ec802a7d637f88d584ab26798e94ad14c13b"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b93a54504204a162dd563dc3f8bcf0726e7eb350285e5ea0b3a06bc9fbc7ba2b"
+  input-imports = [
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/credentials",
+    "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
+    "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/ecs",
+    "github.com/aws/aws-sdk-go/service/ecs/ecsiface",
+    "github.com/aws/aws-sdk-go/service/kms",
+    "github.com/aws/aws-sdk-go/service/kms/kmsiface",
+    "github.com/gin-gonic/gin",
+    "github.com/ieee0824/cryptex",
+    "github.com/ieee0824/cryptex/kms",
+    "github.com/ieee0824/cryptex/rsa",
+    "github.com/ieee0824/getenv",
+    "github.com/ieee0824/jec",
+    "github.com/joho/godotenv",
+    "github.com/mitchellh/cli",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
