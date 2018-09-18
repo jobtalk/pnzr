@@ -2,11 +2,12 @@ package v1
 
 import (
 	"encoding/json"
+	"os"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/ieee0824/cryptex"
 	"github.com/ieee0824/cryptex/kms"
 	"github.com/jobtalk/pnzr/subcmd/vault/edit/util"
-	"os"
 )
 
 type Editor struct {
@@ -37,7 +38,7 @@ func (e *Editor) Edit(fileName string) error {
 		return err
 	}
 
-	w, err := os.OpenFile(fileName, os.O_WRONLY, 0644)
+	w, err := os.OpenFile(fileName, os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
